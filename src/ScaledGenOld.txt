@@ -1,0 +1,412 @@
+#include "ScaledGen.h"
+
+ScaledGen::ScaledGen()
+{
+	_topLeft = 0;
+	_topRight = 0;
+	_botLeft = 0;
+	_botRight = 0;
+	_topLeftCondition = -1;
+	_topRightCondition = -1;
+	_botLeftCondition = -1;
+	_botRightCondition = -1;
+}
+
+
+ScaledGen::~ScaledGen()
+{
+}
+
+
+// int ScaledGen::TryGetValue(int posX, int posY)
+// {
+// 	if (posX >= 0 && posY >= 0 && posX < MapCommons::SELECTED_TERRAIN_MAP_SIZE && posY < MapCommons::SELECTED_TERRAIN_MAP_SIZE)
+// 	{
+// 		return _map[posX][posY];
+// 	}
+// 	return MapCommons::MAP_INIT_VALUE;
+// }
+
+// int ScaledGen::GetAverage(int list[4])
+// {
+// 	int sum = 0;
+// 	int count = 0;
+// 	for (int i = 0; i<4; i++){
+// 		if (list[i] != MapCommons::MAP_INIT_VALUE)
+// 		{
+// 			count++;
+// 			sum += list[i];
+// 		}
+// 	}
+//     if (count == 0) return 0;
+// 	int avg = Commons::round(sum / count);
+// 	return avg;
+// }
+
+// void ScaledGen::DiamondSquare()
+// {
+//     DiamondStep(floor(MapCommons::SELECTED_TERRAIN_MAP_SIZE / 2), floor(MapCommons::SELECTED_TERRAIN_MAP_SIZE / 2), MapCommons::SELECTED_TERRAIN_MAP_SIZE);
+// 	SquareStep(floor(MapCommons::SELECTED_TERRAIN_MAP_SIZE / 2), floor(MapCommons::SELECTED_TERRAIN_MAP_SIZE / 2), MapCommons::SELECTED_TERRAIN_MAP_SIZE);
+// }
+
+// void ScaledGen::DiamondStep(int posX, int posY, int boxSize)
+// {
+// 	if (boxSize > 0)
+// 	{
+// 		int halfBoxSize = floor(boxSize / 2);
+// 		int quarterBoxSize = floor(halfBoxSize / 2);
+
+// 		int averageArray[] ={
+//             TryGetValue(posX - halfBoxSize, posY - halfBoxSize),
+//             TryGetValue(posX + halfBoxSize, posY - halfBoxSize),
+//             TryGetValue(posX + halfBoxSize, posY + halfBoxSize),
+//             TryGetValue(posX - halfBoxSize, posY + halfBoxSize)
+//         };
+        
+//         _map[posX][posY] =
+//             GetAverage(averageArray) +
+//             Commons::RNGPosNeg(10, 5) +
+//             MapCommons::VALIDATION_BUFFER;
+		
+//         if (boxSize >= 2)
+// 		{
+// 			DiamondStep(posX - quarterBoxSize, posY - quarterBoxSize, halfBoxSize);
+// 			DiamondStep(posX + quarterBoxSize, posY - quarterBoxSize, halfBoxSize);
+// 			DiamondStep(posX - quarterBoxSize, posY + quarterBoxSize, halfBoxSize);
+// 			DiamondStep(posX + quarterBoxSize, posY + quarterBoxSize, halfBoxSize);
+// 		}
+// 	}
+// 	return;
+// }
+
+// void ScaledGen::SquareStep(int posX, int posY, int boxSize)
+// {
+// 	if (boxSize >= 2)
+// 	{
+// 		int halfBoxSize = floor(boxSize / 2);
+// 		int quarterBoxSize = floor(halfBoxSize / 2);
+// 		// Performing Averages for Each Side
+//         int averageArrayLeft[] = {
+//             TryGetValue(posX, posY),
+//             TryGetValue(posX - halfBoxSize, posY - halfBoxSize),
+//             TryGetValue(posX - halfBoxSize, posY + halfBoxSize),
+//             TryGetValue(posX - boxSize - 1, posY)
+//         };
+// 		_map[posX - halfBoxSize][posY] = GetAverage(averageArrayLeft);
+
+// 		int averageArrayRight[] = {
+//             TryGetValue(posX, posY),
+//             TryGetValue(posX + halfBoxSize, posY - halfBoxSize),
+//             TryGetValue(posX + halfBoxSize, posY + halfBoxSize),
+//             TryGetValue(posX + boxSize - 1, posY)
+//         };
+// 		_map[posX + halfBoxSize][posY] = GetAverage(averageArrayRight);
+
+// 		int averageArrayBot[] = {
+//             TryGetValue(posX, posY),
+//             TryGetValue(posX - halfBoxSize, posY - halfBoxSize),
+//             TryGetValue(posX + halfBoxSize, posY - halfBoxSize),
+//             TryGetValue(posX, posY - boxSize - 1)
+//         };
+// 		_map[posX][posY - halfBoxSize] = GetAverage(averageArrayBot);
+
+// 		int averageArrayTop[] = {
+//             TryGetValue(posX, posY),
+//             TryGetValue(posX - halfBoxSize, posY + halfBoxSize),
+//             TryGetValue(posX + halfBoxSize, posY + halfBoxSize),
+//             TryGetValue(posX, posY + boxSize - 1)
+//         };
+// 		_map[posX][posY + halfBoxSize] = GetAverage(averageArrayTop);
+
+//         // Recurse Each Quarter Box
+// 		SquareStep(posX - quarterBoxSize, posY - quarterBoxSize, halfBoxSize);
+// 		SquareStep(posX + quarterBoxSize, posY - quarterBoxSize, halfBoxSize);
+// 		SquareStep(posX - quarterBoxSize, posY + quarterBoxSize, halfBoxSize);
+// 		SquareStep(posX + quarterBoxSize, posY + quarterBoxSize, halfBoxSize);
+// 	}
+// 	return;
+// }
+
+
+// int ScaledGen::SetCondition(){
+// 	bool hasWater = false;
+// 	bool hasHills = false;
+// 	int currentValues[] = { _topLeftCondition , _topRightCondition , _botLeftCondition , _botRightCondition };
+	
+// 	for (int i = 0; i< 4; i++)
+// 	{
+// 		if (currentValues[i] == 0)
+// 		{
+// 			hasWater = true;
+// 		}
+// 		else if (currentValues[i] == 3)
+// 		{
+// 			hasHills = true;
+// 		}
+// 	}
+// 	if (hasHills != true)
+// 	{
+// 		return 3;
+// 	}
+// 	else if (hasWater != true)
+// 	{
+// 		return 0;
+// 	}
+// 	else if (hasHills == true && hasWater == true)
+// 	{
+// 		return Commons::RNG(2, 1);
+// 	}
+// 	else if (hasWater == true)
+// 	{
+// 		return Commons::RNG(3, 1);
+// 	}
+// 	else if (hasHills == true)
+// 	{
+// 		return Commons::RNG(2, 0);
+// 	}
+// 	else
+// 	{
+// 		return Commons::RNG(3, 0);
+// 	}
+
+// }
+
+// int ScaledGen::GenerateRandomAsPerCondition(int conditionValue){
+// 	if (conditionValue == 0) //water
+// 	{
+// 		return Commons::RNG(MapCommons::PLAIN_LIMIT_LOWER, MapCommons::BASE_LIMIT_LOWER);
+// 	}
+// 	else if (conditionValue == 1) //plain
+// 	{
+// 		return Commons::RNG(MapCommons::FOREST_LIMIT_LOWER, MapCommons::PLAIN_LIMIT_LOWER);
+// 	}
+// 	else if (conditionValue == 2) //forest
+// 	{
+// 		return Commons::RNG(MapCommons::HILL_LIMIT_LOWER, MapCommons::FOREST_LIMIT_LOWER);
+// 	}
+// 	else //hilly
+// 	{
+// 		return Commons::RNG(MapCommons::BASE_LIMIT_UPPER, MapCommons::HILL_LIMIT_LOWER);
+// 	}
+// }
+
+// void ScaledGen::GenerateCornerValues()
+// {
+//     // Generating Corner Values for Starting Condition of Diamon Square Algo
+//     // First Conditions for Each Corner is Generated - Analogy : Hilly , Water
+// 	_topLeftCondition = SetCondition();
+// 	_topRightCondition = SetCondition();
+// 	_botLeftCondition = SetCondition();
+// 	_botRightCondition = SetCondition();
+//     // Next The Situation of the Condition is Generated - Analogy : More Hilly , Less Hilly
+// 	_topLeft = GenerateRandomAsPerCondition(_topLeftCondition);
+// 	_topRight = GenerateRandomAsPerCondition(_topRightCondition);
+// 	_botLeft = GenerateRandomAsPerCondition(_botLeftCondition);
+// 	_botRight = GenerateRandomAsPerCondition(_botRightCondition);
+// }
+
+// void ScaledGen::SetCornerValues()
+// {
+// 	_map[0][0] = _topLeft;
+// 	_map[0][MapCommons::SELECTED_TERRAIN_MAP_SIZE - 1] = _topRight;
+// 	_map[MapCommons::SELECTED_TERRAIN_MAP_SIZE - 1][0] = _botLeft;
+// 	_map[MapCommons::SELECTED_TERRAIN_MAP_SIZE - 1][MapCommons::SELECTED_TERRAIN_MAP_SIZE - 1] = _botRight;
+// }
+
+// void ScaledGen::GenerateBlankMap()
+// {
+// 	for (int i = 0; i < MapCommons::SELECTED_TERRAIN_MAP_SIZE; i++)
+// 	{
+// 		for (int j = 0; j < MapCommons::SELECTED_TERRAIN_MAP_SIZE; j++)
+// 		{
+// 			_map[i][j] = MapCommons::MAP_INIT_VALUE;
+// 		}
+// 	}
+// }
+
+// cocos2d::Vec2 ScaledGen::FindCellInRingRegion(cocos2d::Vec2 pos, int innerRadius, int outerRadius, MapCommons::MAP_EDGES mapEdge, MapCommons::MAP_EDGES mapEdgeOptional = MapCommons::MAP_EDGES::EMPTY)
+// {
+//     // Code to Find a Valid cell in a Given Square Ring Based Region of the Map
+//     // Enum is Used to Specified for EDGES ... The Region can be a Quarter Ring/Circle , Semi Ring/Circle or Even a Full Ring/Circle
+//     // based on Outer & Inner Radii
+// 	int possibleTries = 5;
+// 	int tryCount = 0;
+// 	do
+// 	{
+// 		int possibleX[4] = { -1, -1, -1, -1 };
+// 		int possibleY[4] = { -1, -1, -1, -1 };
+// 		int possibleValues = 0;
+
+// 		if (mapEdge != MapCommons::MAP_EDGES::ALL)
+// 		{
+// 			possibleValues=0;
+// 			possibleX[possibleValues] = GetFinalCellValue(pos.x, GetCellPositionBuffer(outerRadius, innerRadius), false, mapEdge);
+// 			possibleY[possibleValues] = GetFinalCellValue(pos.y, GetCellPositionBuffer(outerRadius, innerRadius), true, mapEdge);
+
+// 			if (mapEdgeOptional != MapCommons::MAP_EDGES::EMPTY)
+// 			{
+// 				possibleValues++;
+// 				possibleX[possibleValues] = GetFinalCellValue(pos.x, GetCellPositionBuffer(outerRadius, innerRadius), false, mapEdgeOptional);
+// 				possibleY[possibleValues] = GetFinalCellValue(pos.y, GetCellPositionBuffer(outerRadius, innerRadius), true, mapEdgeOptional);
+// 			}
+// 		}
+// 		else
+// 		{
+// 			// ALL EDGES
+// 			possibleValues=0;
+// 			possibleX[possibleValues] = GetFinalCellValue(pos.x, GetCellPositionBuffer(outerRadius, innerRadius), false, MapCommons::MAP_EDGES::TOP_LEFT_EDGE);
+// 			possibleY[possibleValues] = GetFinalCellValue(pos.y, GetCellPositionBuffer(outerRadius, innerRadius), true, MapCommons::MAP_EDGES::TOP_LEFT_EDGE);
+
+// 			possibleValues++;
+// 			possibleX[possibleValues] = GetFinalCellValue(pos.x, GetCellPositionBuffer(outerRadius, innerRadius), false, MapCommons::MAP_EDGES::TOP_RIGHT_EDGE);
+// 			possibleY[possibleValues] = GetFinalCellValue(pos.y, GetCellPositionBuffer(outerRadius, innerRadius), true, MapCommons::MAP_EDGES::TOP_RIGHT_EDGE);
+
+// 			possibleValues++;
+// 			possibleX[possibleValues] = GetFinalCellValue(pos.x, GetCellPositionBuffer(outerRadius, innerRadius), false, MapCommons::MAP_EDGES::BOT_LEFT_EDGE);
+// 			possibleY[possibleValues] = GetFinalCellValue(pos.y, GetCellPositionBuffer(outerRadius, innerRadius), true, MapCommons::MAP_EDGES::BOT_LEFT_EDGE);
+
+// 			possibleValues++;
+// 			possibleX[possibleValues] = GetFinalCellValue(pos.x, GetCellPositionBuffer(outerRadius, innerRadius), false, MapCommons::MAP_EDGES::BOT_RIGHT_EDGE);
+// 			possibleY[possibleValues] = GetFinalCellValue(pos.y, GetCellPositionBuffer(outerRadius, innerRadius), true, MapCommons::MAP_EDGES::BOT_RIGHT_EDGE);
+// 		}
+
+// 		int selectionIndex = Commons::RNG(possibleValues, 0);
+// 		if (_map[possibleX[selectionIndex]][possibleY[selectionIndex]] != 3 && _map[possibleX[selectionIndex]][possibleY[selectionIndex]] != 0)
+// 		{
+// 			return Vec2(possibleX[selectionIndex], possibleY[selectionIndex]);
+// 		}
+// 		else
+// 		{
+// 			for (int i = 0; i < possibleValues; i++)
+// 			{
+// 				if (_map[possibleX[i]][possibleY[i]] != 3 && _map[possibleX[i]][possibleY[i]] != 0)
+// 				{
+// 					return Vec2(possibleX[i], possibleY[i]);
+// 				}
+// 			}
+// 		}
+// 		tryCount++;
+// 	} while (tryCount < possibleTries);
+// 	return Vec2(-1, -1);
+// }
+
+// int ScaledGen::GetFinalCellValue(int posX, int bufferValue , bool isYAxis, MapCommons::MAP_EDGES mapEdge)
+// {
+//     // Adds or Subtracts the Buffer Value from the Given Position - Relies on Type of Edge
+// 	if (mapEdge == MapCommons::MAP_EDGES::TOP_LEFT_EDGE)
+// 	{
+// 		return posX + bufferValue;
+// 	}
+// 	else if (mapEdge == MapCommons::MAP_EDGES::BOT_RIGHT_EDGE)
+// 	{
+// 		return posX - bufferValue;
+// 	}
+// 	else if (mapEdge == MapCommons::MAP_EDGES::TOP_RIGHT_EDGE)
+// 	{
+// 		if (isYAxis)
+// 		{
+// 			return posX - bufferValue;
+// 		}
+// 		return posX + bufferValue;
+// 	}
+// 	else if (mapEdge == MapCommons::MAP_EDGES::BOT_LEFT_EDGE)
+// 	{
+// 		if (isYAxis)
+// 		{
+// 			return posX + bufferValue;
+// 		}
+// 		return posX - bufferValue;
+// 	}
+//     return -1;
+// }
+
+
+// int ScaledGen::GetCellPositionBuffer(int outerRadius , int innerRadius)
+// {
+//     // Uses RNG to get a Randomized Radius between Outer & Inner Radii
+// 	int possibleX = Commons::RNG(outerRadius, innerRadius);
+// 	return possibleX;
+// }
+
+// bool ScaledGen::ValidateMap(){
+
+//     int numHill=0;
+//     int numWater=0;
+//     int numPlain=0;
+//     int numForest=0;
+//     for (int i=0; i< MapCommons::SELECTED_TERRAIN_MAP_SIZE; i++) {
+//         for (int j=0; j <MapCommons::SELECTED_TERRAIN_MAP_SIZE; j++) {
+//             if(MapCommons::IsValueBetweenForest(_map[i][j]))
+//             {
+//                 numForest++;
+//             }
+//             else if(MapCommons::IsValueBetweenWater(_map[i][j]))
+//             {
+//                 numWater++;
+//             }
+//             else if(MapCommons::IsValueBetweenPlain(_map[i][j]))
+//             {
+//                 numPlain++;
+//             }
+//             else if(MapCommons::IsValueBetweenHill(_map[i][j]))
+//             {
+//                 numHill++;
+//             }
+//         }
+//     }
+    
+//     float totalCells = MapCommons::SELECTED_TERRAIN_MAP_SIZE * MapCommons::SELECTED_TERRAIN_MAP_SIZE;
+//     float percentHill =(numHill/totalCells) * 100;
+//     float percentForest =(numForest/totalCells) * 100;
+//     float percentPlain =(numPlain/totalCells) * 100;
+//     float percentWater =(numWater/totalCells) * 100;
+    
+//     CCLOG("Percentage of Hills : %f", percentHill);
+//     CCLOG("Percentage of Water : %f", percentWater);
+//     CCLOG("Percentage of Forest : %f", percentForest);
+//     CCLOG("Percentage of Plain : %f", percentPlain);
+    
+//     // So Far there has been a Limit to Hills and Water Cap - Generally at Run Time a Map Gets generated
+//     // most of the time in the 1st Iteration
+//     // else definetly gets generated in the 2nd iteration. So far seen none with 3 Iterations
+//     if(percentHill <= MapCommons::HILL_GEN_LIMIT_UPPER && percentWater <= MapCommons::WATER_GEN_LIMIT_UPPER)
+//     {
+//         return true;
+//     }
+//     return false;
+// }
+
+
+string ScaledGen::GenerateMap()
+{
+	string test;
+	return test;
+	
+	// bool mapValidity = false;
+	// do
+	// {
+	// 	GenerateBlankMap();
+	// 	GenerateCornerValues();
+	// 	SetCornerValues();
+	// 	DiamondSquare();
+ //        mapValidity = true;// ValidateMap();
+	// } while (mapValidity == false);
+ //    // Note: This is Size + Buffer Size - Check MapCommons.h
+ //    for (int posX = 0; posX < MapCommons::SELECTED_TERRAIN_MAP_SIZE; posX++)
+ //    {
+ //        for (int posY = 0; posY < MapCommons::SELECTED_TERRAIN_MAP_SIZE; posY++)
+ //        {
+ //            MapCommons::TerrainMap[posX][posY] = _map[posX][posY];
+ //        }
+ //    }
+ //    // DEBUG Algorithm :
+ //    // MapCommons::OutputMap(MapCommons::MAP_TYPES::TERRAIN_MAP);
+	// std::vector<std::string> xmlVector = tmxGenerator.GenerateTmxMapXml();
+	// std::string finalizedString = "";
+	// for (int i = 0; i < xmlVector.size(); i++){
+	// 	finalizedString += xmlVector.at(i);
+	// }
+ //    //Vec2 v = findCellInRing(Vec2(0,0), 1, 3, Commons::MAP_EDGES::TOP_LEFT_EDGE);
+ //    //CCLOG("Reported Cell : %f,%f" , v.x , v.y);
+	// return finalizedString;
+}

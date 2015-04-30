@@ -1,0 +1,34 @@
+<script src='build/scaled.js'></script>
+<script>
+var generator = new ScaledGen();
+generator.SetMapSize(33,33);
+generator.AddTerrain({
+	label : 'Forest',
+	max : 100,
+	min : 75,
+	default : true
+});
+
+generator.AddTerrain({
+	label : 'Plain',
+	max : 75,
+	min : 50,
+	zLevel : 2
+});
+
+generator.AddTerrain({
+	label : 'Plain',
+	max : 50,
+	min : 25
+});
+
+generator.AddTerrain({
+	label : 'Plain',
+	max : 25,
+	min : 0
+});
+
+generator.GenerateMap();
+
+console.log(generator);
+</script>
