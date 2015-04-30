@@ -49,14 +49,24 @@ ScaledMap.prototype.AddTerrain = function(terrainObject) {
     } else {
         terrainData.CreateTerrain(currentSize, terrainObject.label, terrainObject.max, terrainObject.min, 0);
     }
-    if ("default" in terrainObject) {
+    if ("default" in terrainObject && hasDefaultTerrain === false) {
         this.hasDefaultTerrain = true;
         terrainData.SetDefault();
     }
     this.terrains.push(terrainData);
 };
 
-ScaledMap.prototype.Init = function() {};
+ScaledMap.prototype.Init = function() {
+    if (this.hasDefaultTerrain === false) {
+        terrains[0].SetDefault();
+    }
+};
+
+ScaledMap.prototype.GenerateMapValues = function() {};
+
+var diamondStep = function() {};
+
+var squareStep = function() {};
 
 var ScaledTerrain = function() {
     this.terrainUpperValue = -1;

@@ -28,7 +28,7 @@ ScaledMap.prototype.AddTerrain = function (terrainObject) {
 		terrainData.CreateTerrain(currentSize, terrainObject.label, terrainObject.max, terrainObject.min, 0);
 	}
 
-	if('default' in terrainObject && hasDefaultTerrain == false) {
+	if('default' in terrainObject && hasDefaultTerrain === false) {
 		this.hasDefaultTerrain = true;
 		terrainData.SetDefault();
 	}
@@ -37,7 +37,7 @@ ScaledMap.prototype.AddTerrain = function (terrainObject) {
 };
 
 ScaledMap.prototype.Init = function() {
-	if(this.hasDefaultTerrain == false) {
+	if(this.hasDefaultTerrain === false) {
 		terrains[0].SetDefault();
 	}
 
@@ -50,8 +50,8 @@ ScaledMap.prototype.GenerateMapValues = function() {
 
 var diamondStep = function() {
 
-}
+};
 
 var squareStep = function() {
 	
-}
+};
