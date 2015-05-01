@@ -12,7 +12,40 @@ ScaledGen.prototype.AddTerrain = function(terrainData) {
 };
 
 
-ScaledGen.prototype.GenerateMap = function() {
-	console.log(Commons.RandomizePlusMinus(35,55));
-	console.log(this.mainMap['rowSize']);
+ScaledGen.prototype.AddStartingCondition = function(conditionData) {
+	this.mainMap.AddStartingCondition(conditionData);
 };
+
+
+ScaledGen.prototype.GenerateMap = function() {
+	this.mainMap.GenerateMapValues();
+};
+
+ScaledGen.prototype.RenderMapValues = function(identifier) {
+	var map_element = document.getElementById(identifier);
+	var mapValues = this.mainMap.mapValues;
+	var mapHtml = "";
+	for (var rowKey in mapValues) {
+		mapHtml += GenerateRow(mapValues[rowKey]);
+	}
+	map_element.innerHTML = mapHtml;
+};
+
+
+
+function GenerateRow(rowValues) {
+	var rowHtml = "<div class='row'>";
+	for (var columnKey in rowValues) {
+		rowHtml += GenerateCell(rowValues[columnKey]);
+	}
+	rowHtml += "</div>";
+	return rowHtml;
+}
+
+function GenerateCell(cellValue) {
+	var html = "";
+	html += "<div class='cell'>";
+	html += cellValue;
+	html += "</div>";
+	return html;
+}

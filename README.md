@@ -16,6 +16,68 @@ Fully compatible with Cocos 2D JS & Cordova Apps
 #### Version
 0.0.1
 
+#### Basic Usage
+Refer index.html for a live development example
+
+```js
+var generator = new ScaledGen();
+generator.SetMapSize(17,17);
+
+generator.AddTerrain({
+	key : 'layer_water',
+	label : 'Water',
+	max : 25,
+	min : 0,
+	default : true
+});
+
+generator.AddTerrain({
+	key : 'layer_plain',
+	label : 'Plain',
+	max : 50,
+	min : 25
+});
+
+generator.AddTerrain({
+	key : 'layer_bushes',
+	label : 'Bushes',
+	max : 50,
+	min : 25,
+	zLevel : 1,
+	type : 'decoration'
+});
+
+generator.AddTerrain({
+	key : 'layer_forest',
+	label : 'Forest',
+	max : 75,
+	min : 50
+});
+
+generator.AddTerrain({
+	key : 'layer_hill',
+	label : 'Hilly Terrain',
+	max : 100,
+	min : 75
+});
+
+generator.AddStartingCondition({
+	layerKey: 'layer_hill', 
+	minCount: 1,
+	optionalPercent: 15
+});
+
+generator.AddStartingCondition({
+	layerKey: 'layer_plain', 
+	minCount: 1,
+	optionalPercent: 65
+});
+
+generator.GenerateMap();
+generator.RenderMapValues('map-container');
+```
+
+
 License
 ----
 MIT
