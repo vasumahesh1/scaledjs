@@ -1,6 +1,8 @@
 # ScaledJS - Terrain Generator for HTML 5 Games & Apps
 Fully compatible with Cocos 2D JS & Cordova Apps
 
+[![Build Status](https://travis-ci.org/vasumahesh1/scaledjs.svg?branch=master)](https://travis-ci.org/vasumahesh1/scaledjs)
+
 > **IMPORTANT:**
 > ScaledJS is **under construction and doesn't work fully at the moment**.
 > It was initially coded in C++, But due to limited usability porting to
