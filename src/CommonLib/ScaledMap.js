@@ -125,15 +125,55 @@ ScaledMap.prototype.Init = function() {
 		}
 
 	} else if (totalMin > 4) {
-		console.warn("LOL");
+		console.warn("Cannot have more than 4 starting conditions as a Rectangular map has only 4 vertices");
 	}
 
 	if (remainingSlots !== 0) {
-		for (i = 0; i < remainingSlots; i++) {
-			var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
-			slotsUsed.push(remainingValue);
-			var terrainToUse = Commons.RandomizeInArray(regularTerrains)["terrainId"];
-			this.startValues[remainingValue] = terrainToUse;
+
+		var totalOptional = 0;
+		var optionalArray = [];
+		var nonOptionalArray = [];
+
+		for (var terrainKey in regularTerrains) {
+			var tempTerrain = {};
+			if(regularTerrains[terrainKey].terrainStartPercent > 0) {
+				totalOptional += regularTerrains[terrainKey].terrainStartPercent;
+				tempTerrain["terrainId"] = regularTerrains[terrainKey].terrainId;
+				tempTerrain["cumulativePercent"] = totalOptional;
+				optionalArray.push(tempTerrain);
+			}
+			else {
+				tempTerrain["terrainId"] = regularTerrains[terrainKey].terrainId;
+				nonOptionalArray.push(tempTerrain);
+			}
+		}
+
+		if(totalOptional > 100) {
+			console.warn("Please make sure your optional percentages are not over 100");
+		}
+		else {
+			for (i = 0; i < remainingSlots; i++) {
+				var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
+				slotsUsed.push(remainingValue);
+
+				var randomPercent = Commons.Randomize(0,100);
+				var terrainToUse = null;
+				var found = false;
+				for (var optionalKey in optionalArray) {
+					if(randomPercent <= optionalArray[optionalKey]["cumulativePercent"]) {
+						found = true;
+						terrainToUse = optionalArray[optionalKey]["terrainId"];
+						break;
+					}
+
+				}
+
+				if(found === false) {
+					terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainId"];
+				}
+
+				this.startValues[remainingValue] = terrainToUse;
+			}
 		}
 	}
 
