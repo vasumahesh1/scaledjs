@@ -1,7 +1,7 @@
-# ScaledJS - Terrain Generator for HTML 5 Games & Apps
-Fully compatible with Cocos 2D JS & Cordova Apps
-
+## ScaledJS - Terrain Generator for HTML 5 Games & Apps
 [![Build Status](https://travis-ci.org/vasumahesh1/scaledjs.svg?branch=master)](https://travis-ci.org/vasumahesh1/scaledjs)
+
+Fully compatible with Cocos 2D JS & Cordova Apps
 
 > **IMPORTANT:**
 > ScaledJS is **under construction and doesn't work fully at the moment**.
@@ -9,6 +9,7 @@ Fully compatible with Cocos 2D JS & Cordova Apps
 > JavaScript was important.
 
 ### Features
+----
 * Uses Optimal Diamond Square Algorithm for Terrain Generation
 * Freedom to Add as Many Layers as you want
 * Freely decide on how the Starting Conditions of the Map are
@@ -16,24 +17,30 @@ Fully compatible with Cocos 2D JS & Cordova Apps
   Generation (rather than having a static XML map)
 
 ### Version
+----
 0.0.2
 
 ### Hey! What's working ?
+----
 * Map Initialization
 * Starting Conditions of the Map
 * Adding more Terrains
-* ~~Terrain Generation based off Diamond Square Algorithm~~
+* Terrain Generation based off Diamond Square Algorithm
 * ~~Conversion of Value Matrix to 3D Layered Matrix~~
 * ~~Conversion of 3D Matrix to TMX Tiled Map Format~~
 
 
 
 ### Basic Usage
+----
 Refer index.html for a live development example
 
 ```js
 // Main Instance of the Generator
-var generator = new ScaledGen();
+var generator = new ScaledGen({
+	debug : true,
+	logs : ['diamond-square']
+});
 
 // Set the Map Size you want to Generate
 generator.SetMapSize(17,17);
@@ -98,13 +105,13 @@ generator.RenderMapValues('map-container');
 ```
 
 ### Some Function Definitions
+----
 
-##### generator.SetMapSize(rowSize, columnSize)
+#### generator.SetMapSize(rowSize, columnSize)
 ----
 Sets the Size of the Map. Will be adding support later for Rectangular Maps.
 
-
-##### generator.AddTerrain(terrainData)
+#### generator.AddTerrain(terrainData)
 ----
 Add a new Terrain to the Map.
 
@@ -127,8 +134,7 @@ Add a new Terrain to the Map.
 * `type` *Optional* - Type of Layer. Regular Layers have type as 'terrain', for Materials like Trees, Bushes or other decorative Items.
 * `default` *Optional* - Mark one Layer as Default. Currently not being used.
 
-
-##### generator.AddStartingCondition(conditionData)
+#### generator.AddStartingCondition(conditionData)
 ----
 Specify the Starting Condition of some part of the Map. Like: Telling the Map to have atleast one Hilly Area.
 
@@ -164,10 +170,8 @@ The above code basically says:
 * Furthermore the rest free slots of the map will have a 65% chance of being a Plain Terrain
 
 
-License
+### License
 ----
+
 MIT
-
-
-[Animate]:https://github.com/daneden/animate.css
 

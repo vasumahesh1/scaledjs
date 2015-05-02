@@ -1,15 +1,36 @@
 // ----- Construct -----    
-var Commons = {};
+var Commons = {
+    debug: false,
+    allowedLogs: [ "all" ]
+};
 
 // ----- Declare Vars Here -----
 var PLUS_MINUS_BAR = 4;
+
+Commons.ConsoleLog = function(message, object) {
+    if (this.debug === true) {
+        console.log("[ScaledGen] " + message + " : " + JSON.stringify(object));
+    }
+};
+
+Commons.Log = function(message, object, tag) {
+    if (this.debug === true && (this.allowedLogs.indexOf(tag) != -1 || this.allowedLogs[0] == "all")) {
+        this.ConsoleLog(message, object);
+    }
+};
+
+Commons.Warn = function(message) {
+    if (this.debug === true) {
+        console.warn("[ScaledGen - Stage Change] " + message);
+    }
+};
 
 Commons.RoundNumber = function(number) {
     return Math.round(number);
 };
 
 Commons.Randomize = function(minValue, maxValue) {
-    return Math.floor(Math.random() * (maxValue + 1) + minValue);
+    return Math.floor(Math.random() * (maxValue - minValue + 1) + minValue);
 };
 
 Commons.RandomizeInArray = function(arrayList) {
@@ -36,6 +57,30 @@ Commons.RandomizePlusMinus = function(minValue, maxValue) {
     return barValue;
 };
 
+Commons.GetAverage = function(arrayList) {
+    this.Log("Array Came", arrayList);
+    var sum = 0;
+    var count = 0;
+    for (var key in arrayList) {
+        if (arrayList[key] != -1) {
+            sum += arrayList[key];
+            count++;
+        }
+    }
+    var avg = sum / count;
+    this.Log("Avg", avg);
+    return avg;
+};
+
+Commons.TryGetArrayValue = function(arrayList, posX, posY) {
+    if (posX in arrayList) {
+        if (posY in arrayList[posX]) {
+            return arrayList[posX][posY];
+        }
+    }
+    return -1;
+};
+
 var ScaledMap = function() {
     this.terrains = [];
     this.mapValues = [];
@@ -43,8 +88,8 @@ var ScaledMap = function() {
     this.columnSize = 33;
     this.mapInitValue = -1;
     this.hasDefaultTerrain = false;
-    this.startValues = [ -1, -1, -1, -1 ];
-    this.startValuesTerrainKey = [ "", "", "", "" ];
+    this.startTerrainKeys = [ "", "", "", "" ];
+    this.startTerrainValues = [];
     this.GetDefaultTerrain = function() {
         for (var key in this.terrains) {
             if (this.terrains[key].terrainDefault === true) {
@@ -68,13 +113,6 @@ var ScaledMap = function() {
             }
         }
     };
-    this.GetTerrainById = function(terrainId) {
-        for (var key in this.terrains) {
-            if (this.terrains[key].terrainId == terrainId) {
-                return this.terrains[key];
-            }
-        }
-    };
 };
 
 ScaledMap.prototype.SetDimensions = function(rowSize, columnSize) {
@@ -83,12 +121,11 @@ ScaledMap.prototype.SetDimensions = function(rowSize, columnSize) {
 };
 
 ScaledMap.prototype.AddTerrain = function(terrainObject) {
-    var terrainId = this.terrains.length;
     var terrainData = new ScaledTerrain();
     if ("zLevel" in terrainObject) {
-        terrainData.CreateTerrain(terrainId, terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, terrainObject.zLevel);
+        terrainData.CreateTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, terrainObject.zLevel);
     } else {
-        terrainData.CreateTerrain(terrainId, terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, 0);
+        terrainData.CreateTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, 0);
     }
     if ("type" in terrainObject) {
         terrainData.SetType(terrainObject.type);
@@ -97,6 +134,7 @@ ScaledMap.prototype.AddTerrain = function(terrainObject) {
         this.hasDefaultTerrain = true;
         terrainData.SetDefault();
     }
+    Commons.Log("Adding Terrain", terrainData);
     this.terrains.push(terrainData);
 };
 
@@ -120,11 +158,11 @@ ScaledMap.prototype.Init = function() {
     var minCountArray = [];
     var totalMin = 0;
     var regularTerrains = this.GetMainTerrains();
-    console.log(regularTerrains);
+    Commons.Log("Regular Terrains", regularTerrains);
     for (var key in regularTerrains) {
         if (regularTerrains[key].terrainStartCount > 0) {
             var tempObject = {};
-            tempObject["id"] = regularTerrains[key].terrainId;
+            tempObject["terrainKey"] = regularTerrains[key].terrainKey;
             tempObject["count"] = regularTerrains[key].terrainStartCount;
             tempObject["nextPercent"] = regularTerrains[key].terrainStartPercent;
             totalMin += regularTerrains[key].terrainStartCount;
@@ -142,7 +180,7 @@ ScaledMap.prototype.Init = function() {
             for (j = 0; j < minCountArray[minKey]["count"]; j++) {
                 var value = Commons.RandomizeWithException(0, 3, slotsUsed);
                 slotsUsed.push(value);
-                this.startValues[value] = minCountArray[minKey]["id"];
+                this.startTerrainKeys[value] = minCountArray[minKey]["terrainKey"];
             }
         }
     } else if (totalMin > 4) {
@@ -156,11 +194,11 @@ ScaledMap.prototype.Init = function() {
             var tempTerrain = {};
             if (regularTerrains[terrainKey].terrainStartPercent > 0) {
                 totalOptional += regularTerrains[terrainKey].terrainStartPercent;
-                tempTerrain["terrainId"] = regularTerrains[terrainKey].terrainId;
+                tempTerrain["terrainKey"] = regularTerrains[terrainKey].terrainKey;
                 tempTerrain["cumulativePercent"] = totalOptional;
                 optionalArray.push(tempTerrain);
             } else {
-                tempTerrain["terrainId"] = regularTerrains[terrainKey].terrainId;
+                tempTerrain["terrainKey"] = regularTerrains[terrainKey].terrainKey;
                 nonOptionalArray.push(tempTerrain);
             }
         }
@@ -176,34 +214,90 @@ ScaledMap.prototype.Init = function() {
                 for (var optionalKey in optionalArray) {
                     if (randomPercent <= optionalArray[optionalKey]["cumulativePercent"]) {
                         found = true;
-                        terrainToUse = optionalArray[optionalKey]["terrainId"];
+                        terrainToUse = optionalArray[optionalKey]["terrainKey"];
                         break;
                     }
                 }
                 if (found === false) {
-                    terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainId"];
+                    terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainKey"];
                 }
-                this.startValues[remainingValue] = terrainToUse;
+                this.startTerrainKeys[remainingValue] = terrainToUse;
             }
         }
     }
-    console.log(this.startValues);
+    Commons.Log("Start Terrain Keys", this.startTerrainKeys);
+    for (var startTerrainKey in this.startTerrainKeys) {
+        var terrainObject = this.GetTerrainByKey(this.startTerrainKeys[startTerrainKey]);
+        this.startTerrainValues.push(terrainObject.GetRandomTerrainValue());
+    }
+    Commons.Log("Start Terrain Values", this.startTerrainValues);
+    this.mapValues[0][0] = this.startTerrainValues[0];
+    this.mapValues[0][this.columnSize - 1] = this.startTerrainValues[1];
+    this.mapValues[this.rowSize - 1][0] = this.startTerrainValues[2];
+    this.mapValues[this.rowSize - 1][this.columnSize - 1] = this.startTerrainValues[3];
 };
 
 ScaledMap.prototype.GenerateMapValues = function() {
+    Commons.Warn("Map Init Starting");
     this.Init();
+    Commons.Warn("Diamond Square Algorithm Starting");
+    this.mapValues = diamondSquare(this.mapValues, this.rowSize - 1);
 };
 
-var diamondStep = function(mapValues, posX, posY, boxSize) {};
+var diamondSquare = function(mapValues, boxSize) {
+    Commons.Warn("Diamond Step Starting");
+    diamondStep(mapValues, boxSize / 2, boxSize / 2, boxSize);
+    Commons.Warn("Square Step Starting");
+    squareStep(mapValues, boxSize / 2, boxSize / 2, boxSize);
+    return mapValues;
+};
 
-var squareStep = function(mapValues, posX, posY, boxSize) {};
+function diamondStep(mapValues, posX, posY, boxSize) {
+    var halfBoxSize = Math.floor(boxSize / 2);
+    var quartBoxSize = Math.floor(halfBoxSize / 2);
+    Commons.Log("HalfBoxSize", halfBoxSize, "diamond-square");
+    Commons.Log("QuarterBoxSize", quartBoxSize, "diamond-square");
+    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]" ], "diamond-square");
+    mapValues[posX][posY] = Commons.GetAverage([ mapValues[posX - halfBoxSize][posY - halfBoxSize], mapValues[posX - halfBoxSize][posY + halfBoxSize], mapValues[posX + halfBoxSize][posY - halfBoxSize], mapValues[posX + halfBoxSize][posY + halfBoxSize] ]);
+    Commons.Log("Value of Center [" + posX + "][" + posY + "]", mapValues[posX][posY], "diamond-square");
+    if (halfBoxSize >= 2) {
+        diamondStep(mapValues, posX - quartBoxSize, posY - quartBoxSize, halfBoxSize);
+        diamondStep(mapValues, posX + quartBoxSize, posY - quartBoxSize, halfBoxSize);
+        diamondStep(mapValues, posX - quartBoxSize, posY + quartBoxSize, halfBoxSize);
+        diamondStep(mapValues, posX + quartBoxSize, posY + quartBoxSize, halfBoxSize);
+    }
+}
+
+function squareStep(mapValues, posX, posY, boxSize) {
+    var halfBoxSize = Math.floor(boxSize / 2);
+    var quartBoxSize = Math.floor(halfBoxSize / 2);
+    Commons.Log("HalfBoxSize", halfBoxSize, "diamond-square");
+    Commons.Log("QuarterBoxSize", quartBoxSize, "diamond-square");
+    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + (posX - boxSize) + "],[" + posY + "]" ], "diamond-square");
+    mapValues[posX - halfBoxSize][posY] = Commons.GetAverage([ Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY), Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize), Commons.TryGetArrayValue(mapValues, posX - boxSize, posY) ]);
+    Commons.Log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], "diamond-square");
+    Commons.Log("Getting Avreage of", [ "[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + (posX + boxSize) + "],[" + posY + "]" ], "diamond-square");
+    mapValues[posX + halfBoxSize][posY] = Commons.GetAverage([ Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY), Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize), Commons.TryGetArrayValue(mapValues, posX + boxSize, posY) ]);
+    Commons.Log("Value of [" + (posX + halfBoxSize) + "][" + posY + "]", mapValues[posX + halfBoxSize][posY]);
+    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + (posY - boxSize) + "]" ], "diamond-square");
+    mapValues[posX][posY - halfBoxSize] = Commons.GetAverage([ Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY), Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY - boxSize) ]);
+    Commons.Log("Value of [" + posX + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], "diamond-square");
+    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + posX + "],[" + (posY + boxSize) + "]" ], "diamond-square");
+    mapValues[posX][posY + halfBoxSize] = Commons.GetAverage([ Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY), Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY + boxSize) ]);
+    Commons.Log("Value of [" + posX + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], "diamond-square");
+    if (halfBoxSize >= 2) {
+        squareStep(mapValues, posX - quartBoxSize, posY - quartBoxSize, halfBoxSize);
+        squareStep(mapValues, posX + quartBoxSize, posY - quartBoxSize, halfBoxSize);
+        squareStep(mapValues, posX - quartBoxSize, posY + quartBoxSize, halfBoxSize);
+        squareStep(mapValues, posX + quartBoxSize, posY + quartBoxSize, halfBoxSize);
+    }
+}
 
 var ScaledTerrain = function() {
     this.terrainUpperValue = -1;
     this.terrainLowerValue = -1;
     this.terrainLabel = -1;
     this.terrainKey = -1;
-    this.terrainId = -1;
     this.terrainZLevel = -1;
     this.terrainType = "terrain";
     this.terrainDefault = false;
@@ -211,12 +305,11 @@ var ScaledTerrain = function() {
     this.terrainStartPercent = 0;
 };
 
-ScaledTerrain.prototype.CreateTerrain = function(terrainId, terrainLabel, terrainKey, terrainUpperValue, terrainLowerValue, terrainZLevel) {
+ScaledTerrain.prototype.CreateTerrain = function(terrainLabel, terrainKey, terrainUpperValue, terrainLowerValue, terrainZLevel) {
     this.terrainUpperValue = terrainUpperValue;
     this.terrainLowerValue = terrainLowerValue;
     this.terrainKey = terrainKey;
     this.terrainLabel = terrainLabel;
-    this.terrainId = terrainId;
     this.terrainZLevel = terrainZLevel;
 };
 
@@ -233,7 +326,19 @@ ScaledTerrain.prototype.SetType = function(terrainType) {
     this.terrainType = terrainType;
 };
 
-var ScaledGen = function() {
+ScaledTerrain.prototype.GetRandomTerrainValue = function() {
+    return Commons.Randomize(this.terrainLowerValue, this.terrainUpperValue);
+};
+
+var ScaledGen = function(settingsData) {
+    if (settingsData) {
+        if ("debug" in settingsData && settingsData["debug"] === true) {
+            Commons.debug = true;
+        }
+        if ("logs" in settingsData) {
+            Commons.allowedLogs = settingsData["logs"];
+        }
+    }
     this.mainMap = new ScaledMap();
 };
 

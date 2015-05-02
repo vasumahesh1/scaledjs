@@ -5,8 +5,8 @@ var ScaledMap = function() {
 	this.columnSize = 33;
 	this.mapInitValue = -1;
 	this.hasDefaultTerrain = false;
-	this.startValues = [-1, -1, -1, -1];
-	this.startValuesTerrainKey = ["", "", "", ""];
+	this.startTerrainKeys = ["", "", "", ""];
+	this.startTerrainValues = [];
 
 	this.GetDefaultTerrain = function() {
 		for (var key in this.terrains) {
@@ -35,14 +35,6 @@ var ScaledMap = function() {
 		}
 	};
 
-	this.GetTerrainById = function(terrainId) {
-		for (var key in this.terrains) {
-			if (this.terrains[key].terrainId == terrainId) {
-				return this.terrains[key];
-			}
-		}
-	};
-
 };
 
 ScaledMap.prototype.SetDimensions = function(rowSize, columnSize) {
@@ -51,12 +43,11 @@ ScaledMap.prototype.SetDimensions = function(rowSize, columnSize) {
 };
 
 ScaledMap.prototype.AddTerrain = function(terrainObject) {
-	var terrainId = this.terrains.length;
 	var terrainData = new ScaledTerrain();
 	if ('zLevel' in terrainObject) {
-		terrainData.CreateTerrain(terrainId, terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, terrainObject.zLevel);
+		terrainData.CreateTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, terrainObject.zLevel);
 	} else {
-		terrainData.CreateTerrain(terrainId, terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, 0);
+		terrainData.CreateTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, 0);
 	}
 
 	if ('type' in terrainObject) {
@@ -67,7 +58,7 @@ ScaledMap.prototype.AddTerrain = function(terrainObject) {
 		this.hasDefaultTerrain = true;
 		terrainData.SetDefault();
 	}
-
+	Commons.Log("Adding Terrain", terrainData);
 	this.terrains.push(terrainData);
 };
 
@@ -95,12 +86,12 @@ ScaledMap.prototype.Init = function() {
 	var totalMin = 0;
 
 	var regularTerrains = this.GetMainTerrains();
-	console.log(regularTerrains);
+	Commons.Log("Regular Terrains", regularTerrains);
 
 	for (var key in regularTerrains) {
 		if (regularTerrains[key].terrainStartCount > 0) {
 			var tempObject = {};
-			tempObject["id"] = regularTerrains[key].terrainId;
+			tempObject["terrainKey"] = regularTerrains[key].terrainKey;
 			tempObject["count"] = regularTerrains[key].terrainStartCount;
 			tempObject["nextPercent"] = regularTerrains[key].terrainStartPercent;
 			totalMin += regularTerrains[key].terrainStartCount;
@@ -117,10 +108,10 @@ ScaledMap.prototype.Init = function() {
 	if (totalMin <= 4) {
 		remainingSlots = 4 - totalMin;
 		for (var minKey in minCountArray) {
-			for(j=0;j<minCountArray[minKey]["count"];j++) {
+			for (j = 0; j < minCountArray[minKey]["count"]; j++) {
 				var value = Commons.RandomizeWithException(0, 3, slotsUsed);
 				slotsUsed.push(value);
-				this.startValues[value] = minCountArray[minKey]["id"];
+				this.startTerrainKeys[value] = minCountArray[minKey]["terrainKey"];
 			}
 		}
 
@@ -136,60 +127,195 @@ ScaledMap.prototype.Init = function() {
 
 		for (var terrainKey in regularTerrains) {
 			var tempTerrain = {};
-			if(regularTerrains[terrainKey].terrainStartPercent > 0) {
+			if (regularTerrains[terrainKey].terrainStartPercent > 0) {
 				totalOptional += regularTerrains[terrainKey].terrainStartPercent;
-				tempTerrain["terrainId"] = regularTerrains[terrainKey].terrainId;
+				tempTerrain["terrainKey"] = regularTerrains[terrainKey].terrainKey;
 				tempTerrain["cumulativePercent"] = totalOptional;
 				optionalArray.push(tempTerrain);
-			}
-			else {
-				tempTerrain["terrainId"] = regularTerrains[terrainKey].terrainId;
+			} else {
+				tempTerrain["terrainKey"] = regularTerrains[terrainKey].terrainKey;
 				nonOptionalArray.push(tempTerrain);
 			}
 		}
 
-		if(totalOptional > 100) {
+		if (totalOptional > 100) {
 			console.warn("Please make sure your optional percentages are not over 100");
-		}
-		else {
+		} else {
 			for (i = 0; i < remainingSlots; i++) {
 				var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
 				slotsUsed.push(remainingValue);
 
-				var randomPercent = Commons.Randomize(0,100);
+				var randomPercent = Commons.Randomize(0, 100);
 				var terrainToUse = null;
 				var found = false;
 				for (var optionalKey in optionalArray) {
-					if(randomPercent <= optionalArray[optionalKey]["cumulativePercent"]) {
+					if (randomPercent <= optionalArray[optionalKey]["cumulativePercent"]) {
 						found = true;
-						terrainToUse = optionalArray[optionalKey]["terrainId"];
+						terrainToUse = optionalArray[optionalKey]["terrainKey"];
 						break;
 					}
 
 				}
 
-				if(found === false) {
-					terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainId"];
+				if (found === false) {
+					terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainKey"];
 				}
 
-				this.startValues[remainingValue] = terrainToUse;
+				this.startTerrainKeys[remainingValue] = terrainToUse;
 			}
 		}
 	}
 
-	console.log(this.startValues);
+	Commons.Log("Start Terrain Keys", this.startTerrainKeys);
+
+	for (var startTerrainKey in this.startTerrainKeys) {
+		var terrainObject = this.GetTerrainByKey(this.startTerrainKeys[startTerrainKey]);
+		this.startTerrainValues.push(terrainObject.GetRandomTerrainValue());
+	}
+
+	Commons.Log("Start Terrain Values", this.startTerrainValues);
+
+	this.mapValues[0][0] = this.startTerrainValues[0];
+	this.mapValues[0][this.columnSize - 1] = this.startTerrainValues[1];
+	this.mapValues[this.rowSize - 1][0] = this.startTerrainValues[2];
+	this.mapValues[this.rowSize - 1][this.columnSize - 1] = this.startTerrainValues[3];
 
 };
 
 ScaledMap.prototype.GenerateMapValues = function() {
+	Commons.Warn("Map Init Starting");
 	this.Init();
+	Commons.Warn("Diamond Square Algorithm Starting");
+	this.mapValues = diamondSquare(this.mapValues, this.rowSize - 1);
 	//var defaultTerrain = this.GetDefaultTerrain();
 };
 
-var diamondStep = function(mapValues, posX, posY, boxSize) {
 
+var diamondSquare = function(mapValues, boxSize) {
+	Commons.Warn("Diamond Step Starting");
+	diamondStep(mapValues, boxSize / 2, boxSize / 2, boxSize);
+	Commons.Warn("Square Step Starting");
+	squareStep(mapValues, boxSize / 2, boxSize / 2, boxSize);
+	return mapValues;
 };
 
-var squareStep = function(mapValues, posX, posY, boxSize) {
+function diamondStep(mapValues, posX, posY, boxSize) {
+	var halfBoxSize = Math.floor(boxSize / 2);
+	var quartBoxSize = Math.floor(halfBoxSize / 2);
 
-};
+	Commons.Log("HalfBoxSize", halfBoxSize, 'diamond-square');
+	Commons.Log("QuarterBoxSize", quartBoxSize, 'diamond-square');
+
+	Commons.Log(
+		"Getting Avreage of", [
+			"[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
+			"[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
+			"[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
+			"[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]"
+		],
+		'diamond-square'
+	);
+
+
+
+	mapValues[posX][posY] = Commons.GetAverage([
+		mapValues[posX - halfBoxSize][posY - halfBoxSize],
+		mapValues[posX - halfBoxSize][posY + halfBoxSize],
+		mapValues[posX + halfBoxSize][posY - halfBoxSize],
+		mapValues[posX + halfBoxSize][posY + halfBoxSize],
+	]);
+
+	Commons.Log("Value of Center [" + posX + "][" + posY + "]", mapValues[posX][posY], 'diamond-square');
+	if (halfBoxSize >= 2) {
+		diamondStep(mapValues, posX - quartBoxSize, posY - quartBoxSize, halfBoxSize);
+		diamondStep(mapValues, posX + quartBoxSize, posY - quartBoxSize, halfBoxSize);
+		diamondStep(mapValues, posX - quartBoxSize, posY + quartBoxSize, halfBoxSize);
+		diamondStep(mapValues, posX + quartBoxSize, posY + quartBoxSize, halfBoxSize);
+	}
+}
+
+function squareStep(mapValues, posX, posY, boxSize) {
+	var halfBoxSize = Math.floor(boxSize / 2);
+	var quartBoxSize = Math.floor(halfBoxSize / 2);
+
+	Commons.Log("HalfBoxSize", halfBoxSize, 'diamond-square');
+	Commons.Log("QuarterBoxSize", quartBoxSize, 'diamond-square');
+
+	Commons.Log(
+		"Getting Avreage of", [
+			"[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
+			"[" + (posX) + "],[" + (posY) + "]",
+			"[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
+			"[" + (posX - boxSize) + "],[" + (posY) + "]"
+		],
+		'diamond-square'
+	);
+	mapValues[posX - halfBoxSize][posY] = Commons.GetAverage([
+		Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
+		Commons.TryGetArrayValue(mapValues, posX, posY),
+		Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
+		Commons.TryGetArrayValue(mapValues, posX - boxSize, posY)
+	]);
+	Commons.Log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], 'diamond-square');
+
+
+	Commons.Log(
+		"Getting Avreage of", [
+			"[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
+			"[" + (posX) + "],[" + (posY) + "]",
+			"[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
+			"[" + (posX + boxSize) + "],[" + (posY) + "]"
+		],
+		'diamond-square'
+	);
+	mapValues[posX + halfBoxSize][posY] = Commons.GetAverage([
+		Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
+		Commons.TryGetArrayValue(mapValues, posX, posY),
+		Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
+		Commons.TryGetArrayValue(mapValues, posX + boxSize, posY)
+	]);
+	Commons.Log("Value of [" + (posX + halfBoxSize) + "][" + posY + "]", mapValues[posX + halfBoxSize][posY]);
+
+
+	Commons.Log(
+		"Getting Avreage of", [
+			"[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
+			"[" + (posX) + "],[" + (posY) + "]",
+			"[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
+			"[" + (posX) + "],[" + (posY - boxSize) + "]"
+		],
+		'diamond-square');
+	mapValues[posX][posY - halfBoxSize] = Commons.GetAverage([
+		Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
+		Commons.TryGetArrayValue(mapValues, posX, posY),
+		Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
+		Commons.TryGetArrayValue(mapValues, posX, posY - boxSize)
+	]);
+	Commons.Log("Value of [" + (posX) + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], 'diamond-square');
+
+
+	Commons.Log(
+		"Getting Avreage of", [
+			"[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
+			"[" + (posX) + "],[" + (posY) + "]",
+			"[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
+			"[" + (posX) + "],[" + (posY + boxSize) + "]"
+		],
+		'diamond-square'
+	);
+	mapValues[posX][posY + halfBoxSize] = Commons.GetAverage([
+		Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
+		Commons.TryGetArrayValue(mapValues, posX, posY),
+		Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
+		Commons.TryGetArrayValue(mapValues, posX, posY + boxSize)
+	]);
+	Commons.Log("Value of [" + (posX) + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], 'diamond-square');
+
+
+	if (halfBoxSize >= 2) {
+		squareStep(mapValues, posX - quartBoxSize, posY - quartBoxSize, halfBoxSize);
+		squareStep(mapValues, posX + quartBoxSize, posY - quartBoxSize, halfBoxSize);
+		squareStep(mapValues, posX - quartBoxSize, posY + quartBoxSize, halfBoxSize);
+		squareStep(mapValues, posX + quartBoxSize, posY + quartBoxSize, halfBoxSize);
+	}
+}

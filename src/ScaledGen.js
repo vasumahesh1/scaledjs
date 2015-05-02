@@ -1,4 +1,14 @@
-var ScaledGen = function() {
+var ScaledGen = function(settingsData) {
+	if (settingsData) {
+		if (("debug" in settingsData) && settingsData["debug"] === true) {
+			Commons.debug = true;
+		}
+
+		if (("logs" in settingsData)) {
+			Commons.allowedLogs = settingsData["logs"];
+		}
+	}
+
 	this.mainMap = new ScaledMap();
 };
 

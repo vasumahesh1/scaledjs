@@ -3,7 +3,10 @@
 </div>
 <script src='build/scaled.js'></script>
 <script>
-var generator = new ScaledGen();
+var generator = new ScaledGen({
+	debug : true,
+	logs : ['diamond-square']
+});
 generator.SetMapSize(17,17);
 
 generator.AddTerrain({
@@ -83,6 +86,7 @@ generator.RenderMapValues('map-container');
 	background: #f6f6f6;
 	border-bottom: solid 1px #d6d6d6;
 	border-right: solid 1px #d6d6d6;
+	overflow: hidden;
 }
 
 .row {

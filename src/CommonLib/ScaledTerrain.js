@@ -3,7 +3,6 @@ var ScaledTerrain = function() {
 	this.terrainLowerValue = -1;
 	this.terrainLabel = -1;
 	this.terrainKey = -1;
-	this.terrainId = -1;
 	this.terrainZLevel = -1;
 	this.terrainType = "terrain";
 	this.terrainDefault = false;
@@ -11,24 +10,28 @@ var ScaledTerrain = function() {
 	this.terrainStartPercent = 0;
 };
 
-ScaledTerrain.prototype.CreateTerrain = function (terrainId, terrainLabel, terrainKey, terrainUpperValue, terrainLowerValue, terrainZLevel) {
+ScaledTerrain.prototype.CreateTerrain = function(terrainLabel, terrainKey, terrainUpperValue, terrainLowerValue, terrainZLevel) {
 	this.terrainUpperValue = terrainUpperValue;
 	this.terrainLowerValue = terrainLowerValue;
 	this.terrainKey = terrainKey;
 	this.terrainLabel = terrainLabel;
-	this.terrainId = terrainId;
 	this.terrainZLevel = terrainZLevel;
 };
 
-ScaledTerrain.prototype.SetStartingCondition = function (terrainStartCount, terrainStartPercent) {
+ScaledTerrain.prototype.SetStartingCondition = function(terrainStartCount, terrainStartPercent) {
 	this.terrainStartPercent = terrainStartPercent;
 	this.terrainStartCount = terrainStartCount;
 };
 
-ScaledTerrain.prototype.SetDefault = function () {
+ScaledTerrain.prototype.SetDefault = function() {
 	this.terrainDefault = true;
 };
 
-ScaledTerrain.prototype.SetType = function (terrainType) {
+ScaledTerrain.prototype.SetType = function(terrainType) {
 	this.terrainType = terrainType;
+};
+
+
+ScaledTerrain.prototype.GetRandomTerrainValue = function() {
+	return Commons.Randomize(this.terrainLowerValue, this.terrainUpperValue);
 };
