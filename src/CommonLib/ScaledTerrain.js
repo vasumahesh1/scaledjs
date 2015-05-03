@@ -8,6 +8,8 @@ var ScaledTerrain = function() {
 	this.terrainDefault = false;
 	this.terrainStartCount = 0;
 	this.terrainStartPercent = 0;
+	this.terrainValidationMinPercent = -1;
+	this.terrainValidationMaxPercent = -1;
 };
 
 ScaledTerrain.prototype.CreateTerrain = function(terrainLabel, terrainKey, terrainUpperValue, terrainLowerValue, terrainZLevel) {
@@ -36,8 +38,13 @@ ScaledTerrain.prototype.GetRandomTerrainValue = function() {
 };
 
 ScaledTerrain.prototype.IsRegularTerrain = function() {
-	if(this.terrainType == "terrain") {
+	if (this.terrainType == "terrain") {
 		return true;
 	}
 	return false;
+};
+
+ScaledTerrain.prototype.SetValidation = function(minValue, maxValue) {
+	this.terrainValidationMinPercent = minValue;
+	this.terrainValidationMaxPercent = maxValue;
 };

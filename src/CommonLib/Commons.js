@@ -2,10 +2,10 @@
 var Commons = {
 	debug: false,
 	allowedLogs: ['all'],
-	validLogKeys : {
-		mapInitializeLogKey : 'mapInit',
-		diamondSquareLogKey : 'diamondSquare',
-		mapValidationLogKey : 'mapValidation'
+	validLogKeys: {
+		mapInitializeLogKey: 'mapInit',
+		diamondSquareLogKey: 'diamondSquare',
+		mapValidationLogKey: 'mapValidation'
 	},
 	showProgressUpdate: function() {}
 };
@@ -31,6 +31,12 @@ Commons.Log = function(message, object, tag) {
 Commons.Warn = function(message) {
 	if (this.debug === true) {
 		console.warn("[ScaledGen - Stage Change] " + message);
+	}
+};
+
+Commons.Error = function(message) {
+	if (this.debug === true) {
+		console.error("[ScaledGen - Stage Change] " + message);
 	}
 };
 

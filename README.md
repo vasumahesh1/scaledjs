@@ -63,7 +63,12 @@ generator.AddTerrain({
 	min : 25
 });
 
-// Terrains that act as decorations or aren't part of the Land generation must be marked as 'decoration'
+// Terrains that act as decorations or aren't 
+// part of the Land generation must be marked as 'decoration'
+// This is because Layers that take part in the actual Terrain generation
+// process must be seperate from decoration items like Trees or Bushes
+// This will be useful when the 3D Layered Map is generated, Thereby Keeping 
+// decoration items above the actual terrain
 generator.AddTerrain({
 	key : 'layer_bushes',
 	label : 'Bushes',
@@ -87,21 +92,43 @@ generator.AddTerrain({
 	min : 75
 });
 
-// Define How the Map will look by specifying the Starting Condition of the map
+// Define How the Map will look by specifying the 
+// Starting Condition of the map
 generator.AddStartingCondition({
-	layerKey: 'layer_hill', 
+	terrainKey: 'layer_hill', 
 	minCount: 1,
-	optionalPercent: 15
+	optionalPercent: 5
 });
 
 generator.AddStartingCondition({
-	layerKey: 'layer_plain', 
+	terrainKey: 'layer_water', 
+	minCount: 2,
+	optionalPercent: 25
+});
+
+generator.AddStartingCondition({
+	terrainKey: 'layer_plain', 
 	minCount: 1,
-	optionalPercent: 65
+	optionalPercent: 35
+});
+
+// Define Validation Rules
+// So that the Generator will only generate a Map that
+// meets the Rules you have given
+generator.AddValidationRule({
+	terrainKey : 'layer_water',
+	minPercent : 5
+});
+
+generator.AddValidationRule({
+	terrainKey : 'layer_hill',
+	maxPercent : 15
 });
 
 // Final Command to Run and Execute the Map Generation
 generator.GenerateMap();
+var map = generator.GetMapValues(); // 2D Array of the entered size
+
 generator.RenderMapValues('map-container');
 ```
 
@@ -117,7 +144,8 @@ Parameters that can be consumed:
 {
 	debug : true,
 	logs : [],
-	onProgressUpdate : updateFunction
+	onProgressUpdate : updateFunction,
+	maxTries : 10
 }
 ```
 * `debug` - boolean - Optional
@@ -138,7 +166,6 @@ Parameters that can be consumed:
 	]
 	```
 
-
 * onProgressUpdate - function - Optional
 
 	Enable Progress Reporting sent from the Generator. Useful in cases when you have bigger maps and have load times. You can use this hook to show progress for better User Experience.
@@ -150,6 +177,11 @@ Parameters that can be consumed:
 		}
 	});
 	```
+
+* `maxTries` - int - Optional
+
+	Specify the Maximum number of Iterations the Terrain Generator must perform incase of repeated validation failure by the Rules provided by the User
+
 
 #### ScaledGen.SetMapSize(rowSize, columnSize)
 
@@ -218,14 +250,14 @@ There are 4 Starting slots namely the:
 Areas of the Map.
 ```js
 {
-	layerKey: 'layer_plain', 
+	terrainKey: 'layer_plain', 
 	minCount: 1,
 	optionalPercent: 65
 }
 ```
-* `layerKey` - string - Required
+* `terrainKey` - string - Required
 
-	Specify the Layer to impose this condition on.
+	Specify the Terrain's Key to impose this condition on.
 
 * `minCount` - int - Required
 
@@ -239,7 +271,7 @@ For eg:
 
 ```js
 generator.AddStartingCondition({
-	layerKey: 'layer_plain', 
+	terrainKey: 'layer_plain', 
 	minCount: 1,
 	optionalPercent: 65
 });
@@ -247,6 +279,37 @@ generator.AddStartingCondition({
 The above code basically says:
 * There must be One Side of the Map which must have Plains (`layer_plain`)
 * Furthermore the rest free slots of the map will have a 65% chance of being a Plain Terrain
+
+
+#### ScaledGen.prototype.AddValidationRule(ruleData)
+
+Add a Validation Rule for the Generation.
+
+> **Note:** Validation Rules are "Post Generation Rules". That means the map is 
+> tested for Validity after the algorithm.
+> But wait! There's more. If the Terrain Generation fails to meet the Terrain Criteria 
+> at first run, a Validity Report is generated. And will (soon) be fed into the Algorithm.
+> This will make the Terrain Generator Auto Correct it's mistakes. And making sure the 
+> Generation will produce suitable output on second run.
+
+```js
+generator.AddValidationRule({
+	terrainKey : 'layer_water',
+	minPercent : 5
+});
+```
+
+* `terrainKey` - string - Required
+
+	Specify the Terrain's Key to impose the Validation Rule on.
+
+* `minPercent` - int - Range (0,100) (Inclusive)
+
+	Minimum Percentage of that Terrain must be in the Map.
+
+* `maxPercent` - int - Range (0,100) (Inclusive)
+
+	Maximum Percentage of that Terrain must be in the Map.
 
 License
 --------------------------------
