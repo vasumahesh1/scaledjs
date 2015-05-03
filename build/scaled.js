@@ -1,7 +1,13 @@
-// ----- Construct -----    
+// ----- Construct -----
 var Commons = {
     debug: false,
-    allowedLogs: [ "all" ]
+    allowedLogs: [ "all" ],
+    validLogKeys: {
+        mapInitializeLogKey: "mapInit",
+        diamondSquareLogKey: "diamondSquare",
+        mapValidationLogKey: "mapValidation"
+    },
+    showProgressUpdate: function() {}
 };
 
 // ----- Declare Vars Here -----
@@ -144,6 +150,16 @@ ScaledMap.prototype.AddStartingCondition = function(conditionObject) {
     terrainObject.terrainStartPercent = conditionObject["optionalPercent"];
 };
 
+ScaledMap.prototype.GetLayersFromValue = function(terrainValue) {
+    var selectedTerrains = [];
+    for (var key in this.terrains) {
+        if (this.terrains[key].terrainUpperValue >= terrainValue && this.terrains[key].terrainLowerValue <= terrainValue) {
+            selectedTerrains.push(this.terrains[key]);
+        }
+    }
+    return selectedTerrains;
+};
+
 ScaledMap.prototype.Init = function() {
     if (this.hasDefaultTerrain === false) {
         terrains[0].SetDefault();
@@ -255,11 +271,11 @@ var diamondSquare = function(mapValues, boxSize) {
 function diamondStep(mapValues, posX, posY, boxSize) {
     var halfBoxSize = Math.floor(boxSize / 2);
     var quartBoxSize = Math.floor(halfBoxSize / 2);
-    Commons.Log("HalfBoxSize", halfBoxSize, "diamond-square");
-    Commons.Log("QuarterBoxSize", quartBoxSize, "diamond-square");
-    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]" ], "diamond-square");
+    Commons.Log("HalfBoxSize", halfBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+    Commons.Log("QuarterBoxSize", quartBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]" ], Commons.validLogKeys.diamondSquareLogKey);
     mapValues[posX][posY] = Commons.GetAverage([ mapValues[posX - halfBoxSize][posY - halfBoxSize], mapValues[posX - halfBoxSize][posY + halfBoxSize], mapValues[posX + halfBoxSize][posY - halfBoxSize], mapValues[posX + halfBoxSize][posY + halfBoxSize] ]);
-    Commons.Log("Value of Center [" + posX + "][" + posY + "]", mapValues[posX][posY], "diamond-square");
+    Commons.Log("Value of Center [" + posX + "][" + posY + "]", mapValues[posX][posY], Commons.validLogKeys.diamondSquareLogKey);
     if (halfBoxSize >= 2) {
         diamondStep(mapValues, posX - quartBoxSize, posY - quartBoxSize, halfBoxSize);
         diamondStep(mapValues, posX + quartBoxSize, posY - quartBoxSize, halfBoxSize);
@@ -271,20 +287,20 @@ function diamondStep(mapValues, posX, posY, boxSize) {
 function squareStep(mapValues, posX, posY, boxSize) {
     var halfBoxSize = Math.floor(boxSize / 2);
     var quartBoxSize = Math.floor(halfBoxSize / 2);
-    Commons.Log("HalfBoxSize", halfBoxSize, "diamond-square");
-    Commons.Log("QuarterBoxSize", quartBoxSize, "diamond-square");
-    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + (posX - boxSize) + "],[" + posY + "]" ], "diamond-square");
+    Commons.Log("HalfBoxSize", halfBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+    Commons.Log("QuarterBoxSize", quartBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + (posX - boxSize) + "],[" + posY + "]" ], Commons.validLogKeys.diamondSquareLogKey);
     mapValues[posX - halfBoxSize][posY] = Commons.GetAverage([ Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY), Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize), Commons.TryGetArrayValue(mapValues, posX - boxSize, posY) ]);
-    Commons.Log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], "diamond-square");
-    Commons.Log("Getting Avreage of", [ "[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + (posX + boxSize) + "],[" + posY + "]" ], "diamond-square");
+    Commons.Log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], Commons.validLogKeys.diamondSquareLogKey);
+    Commons.Log("Getting Avreage of", [ "[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + (posX + boxSize) + "],[" + posY + "]" ], Commons.validLogKeys.diamondSquareLogKey);
     mapValues[posX + halfBoxSize][posY] = Commons.GetAverage([ Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY), Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize), Commons.TryGetArrayValue(mapValues, posX + boxSize, posY) ]);
     Commons.Log("Value of [" + (posX + halfBoxSize) + "][" + posY + "]", mapValues[posX + halfBoxSize][posY]);
-    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + (posY - boxSize) + "]" ], "diamond-square");
+    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]", "[" + posX + "],[" + (posY - boxSize) + "]" ], Commons.validLogKeys.diamondSquareLogKey);
     mapValues[posX][posY - halfBoxSize] = Commons.GetAverage([ Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY), Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY - boxSize) ]);
-    Commons.Log("Value of [" + posX + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], "diamond-square");
-    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + posX + "],[" + (posY + boxSize) + "]" ], "diamond-square");
+    Commons.Log("Value of [" + posX + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
+    Commons.Log("Getting Avreage of", [ "[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + posX + "],[" + posY + "]", "[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]", "[" + posX + "],[" + (posY + boxSize) + "]" ], Commons.validLogKeys.diamondSquareLogKey);
     mapValues[posX][posY + halfBoxSize] = Commons.GetAverage([ Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY), Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize), Commons.TryGetArrayValue(mapValues, posX, posY + boxSize) ]);
-    Commons.Log("Value of [" + posX + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], "diamond-square");
+    Commons.Log("Value of [" + posX + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
     if (halfBoxSize >= 2) {
         squareStep(mapValues, posX - quartBoxSize, posY - quartBoxSize, halfBoxSize);
         squareStep(mapValues, posX + quartBoxSize, posY - quartBoxSize, halfBoxSize);
@@ -330,6 +346,13 @@ ScaledTerrain.prototype.GetRandomTerrainValue = function() {
     return Commons.Randomize(this.terrainLowerValue, this.terrainUpperValue);
 };
 
+ScaledTerrain.prototype.IsRegularTerrain = function() {
+    if (this.terrainType == "terrain") {
+        return true;
+    }
+    return false;
+};
+
 var ScaledGen = function(settingsData) {
     if (settingsData) {
         if ("debug" in settingsData && settingsData["debug"] === true) {
@@ -337,6 +360,9 @@ var ScaledGen = function(settingsData) {
         }
         if ("logs" in settingsData) {
             Commons.allowedLogs = settingsData["logs"];
+        }
+        if ("onProgressUpdate" in settingsData) {
+            Commons.showProgressUpdate = settingsData["onProgressUpdate"];
         }
     }
     this.mainMap = new ScaledMap();
@@ -364,24 +390,33 @@ ScaledGen.prototype.RenderMapValues = function(identifier) {
     var mapValues = this.mainMap.mapValues;
     var mapHtml = "";
     for (var rowKey in mapValues) {
-        mapHtml += GenerateRow(mapValues[rowKey]);
+        mapHtml += this.GenerateRow(mapValues[rowKey]);
     }
     map_element.innerHTML = mapHtml;
 };
 
-function GenerateRow(rowValues) {
+ScaledGen.prototype.GenerateRow = function(rowValues) {
     var rowHtml = "<div class='row'>";
     for (var columnKey in rowValues) {
-        rowHtml += GenerateCell(rowValues[columnKey]);
+        rowHtml += this.GenerateCell(rowValues[columnKey]);
     }
     rowHtml += "</div>";
     return rowHtml;
-}
+};
 
-function GenerateCell(cellValue) {
+ScaledGen.prototype.GenerateCell = function(cellValue) {
+    var responsibleTerrains = this.mainMap.GetLayersFromValue(cellValue);
+    var terrainKey = "no-cell";
+    for (var key in responsibleTerrains) {
+        if (responsibleTerrains[key].IsRegularTerrain() === true) {
+            terrainKey = responsibleTerrains[key].terrainKey;
+            break;
+        }
+    }
     var html = "";
-    html += "<div class='cell'>";
-    html += cellValue;
+    html += "<div class='cell " + terrainKey + " ";
+    html += "data-value='" + cellValue + "' ";
+    html += "'>";
     html += "</div>";
     return html;
-}
+};

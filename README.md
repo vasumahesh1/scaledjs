@@ -8,20 +8,23 @@ Fully compatible with Cocos 2D JS & Cordova Apps
 > It was initially coded in C++, But due to limited usability porting to
 > JavaScript was important.
 
-### Features
-----
+Features
+--------------------------------
+
 * Uses Optimal Diamond Square Algorithm for Terrain Generation
 * Freedom to Add as Many Layers as you want
 * Freely decide on how the Starting Conditions of the Map are
 * Inbuilt Generator for TMX Tiled Format Maps - For Runtime Tiled Map
   Generation (rather than having a static XML map)
 
-### Version
-----
+Version
+--------------------------------
+
 0.0.2
 
-### Hey! What's working ?
-----
+Hey! What's working ?
+--------------------------------
+
 * Map Initialization
 * Starting Conditions of the Map
 * Adding more Terrains
@@ -31,16 +34,14 @@ Fully compatible with Cocos 2D JS & Cordova Apps
 
 
 
-### Basic Usage
-----
+Basic Usage
+--------------------------------
+
 Refer index.html for a live development example
 
 ```js
 // Main Instance of the Generator
-var generator = new ScaledGen({
-	debug : true,
-	logs : ['diamond-square']
-});
+var generator = new ScaledGen();
 
 // Set the Map Size you want to Generate
 generator.SetMapSize(17,17);
@@ -104,15 +105,63 @@ generator.GenerateMap();
 generator.RenderMapValues('map-container');
 ```
 
-### Some Function Definitions
-----
+Customizations
+--------------------------------
 
-#### generator.SetMapSize(rowSize, columnSize)
-----
-Sets the Size of the Map. Will be adding support later for Rectangular Maps.
+#### ScaledGen(settingsData)
 
-#### generator.AddTerrain(terrainData)
-----
+Constructor for the main ScaledJS generator.
+
+Parameters that can be consumed:
+```js
+{
+	debug : true,
+	logs : [],
+	onProgressUpdate : updateFunction
+}
+```
+* `debug` - boolean - Optional
+
+	Sets the mode to Debug. Enables Console Logging.
+
+* `logs` - array - Optional
+
+	Array of strings containing the set of Console Log to show. By default it is set to `all` which allows all sub-modules of the generator to log to the console.
+
+	If you want to Enable logging for only a specific part of the Generation like Validation or the Generation Itself. Use the following Keys:
+
+	```js
+	[
+		'mapInit',
+		'diamondSquare',
+		'mapValidation'
+	]
+	```
+
+
+* onProgressUpdate - function - Optional
+
+	Enable Progress Reporting sent from the Generator. Useful in cases when you have bigger maps and have load times. You can use this hook to show progress for better User Experience.
+
+	```js
+	var generator = new ScaledGen({
+		onProgressUpdate : function(progressValue) {
+			console.log("Progress from Library " + progressValue);
+		}
+	});
+	```
+
+#### ScaledGen.SetMapSize(rowSize, columnSize)
+
+Sets the Size of the Map. Check Limitations Heading for indepth status of ScaledJS.
+
+Rectangular Maps are right now **Not Supported**.
+
+**Supported Map Sizes:** 9, 17, 33, 65, 129, 257, 513, 1025, 2049, 4097, 8193
+
+
+#### ScaledGen.AddTerrain(terrainData)
+
 Add a new Terrain to the Map.
 
 ```js
@@ -126,19 +175,41 @@ Add a new Terrain to the Map.
 	default : true
 }
 ```
-* `key` - Specify the a unqiue key for the layer. Later use this key to define other Conditions and Parameters.
-* `label` - Give a nice human readable String to this Layer.
-* `max` - Maximum Value (Range 0-100) to be used to represent this Layer (Note more than One Layer can have Overlapping Values, used the `zLevel` param to define which comes first).
-* `min` - Minimum Value (Range 0-100) to be used to represent this Layer (Note more than One Layer can have Overlapping Values, used the `zLevel` param to define which comes first).
-* `zLevel` *Optional* - Indicates the Z Index of the Layer incase of Overlapping. If your Layers aren't overlapping no need to use this.
-* `type` *Optional* - Type of Layer. Regular Layers have type as 'terrain', for Materials like Trees, Bushes or other decorative Items.
-* `default` *Optional* - Mark one Layer as Default. Currently not being used.
 
-#### generator.AddStartingCondition(conditionData)
-----
+* `key` - string - Required
+
+	Specify the a unqiue key for the layer. Later use this key to define other Conditions and Parameters.
+
+* `label` - string - Required
+
+	Human Readable name for the layer. (has a future use trust me).
+
+
+* `max` - int - Required - Range (0,100) (Inclusive)
+
+	Maximum Value to be used to represent this Layer (Note more than One Layer can have Overlapping Values, used the `zLevel` param to define which comes first).
+
+* `min` - int - Required - Range (0,100) (Inclusive)
+
+	Minimum Value to be used to represent this Layer (Note more than One Layer can have Overlapping Values, used the `zLevel` param to define which comes first).
+
+* `zLevel`  - int - Optional
+
+	Indicates the Z Index of the Layer incase of Overlapping. If your Layers aren't overlapping no need to use this.
+
+* `type`  - string - Optional
+
+	Type of Layer. Regular Layers have type as 'terrain', for Materials like Trees, Bushes or other decorative Items.
+
+* `default` - boolean - Optional
+
+	Mark one Layer as Default. Currently not being used.
+
+#### ScaledGen.AddStartingCondition(conditionData)
+
 Specify the Starting Condition of some part of the Map. Like: Telling the Map to have atleast one Hilly Area.
 
-There are 4 Starting slots namely the 
+There are 4 Starting slots namely the:
 * Top Left
 * Top Right
 * Bottom Left
@@ -152,9 +223,17 @@ Areas of the Map.
 	optionalPercent: 65
 }
 ```
-* `layerKey` - Specify the Layer to impose this condition on.
-* `minCount` - Specify how many slots of the 4 Starting slots to be a `must have` for this terrain.
-* `optionalPercent` - If there are any free slots left then what is the percentage that the free slot will be this terrain? The `optionalPercent` specifies this value.
+* `layerKey` - string - Required
+
+	Specify the Layer to impose this condition on.
+
+* `minCount` - int - Required
+
+	Specify how many slots of the 4 Starting slots to be a `must have` for this terrain.
+
+* `optionalPercent` - int - Required
+
+	If there are any free slots left then what is the percentage that the free slot will be this terrain? The `optionalPercent` specifies this value.
 
 For eg:
 
@@ -169,9 +248,8 @@ The above code basically says:
 * There must be One Side of the Map which must have Plains (`layer_plain`)
 * Furthermore the rest free slots of the map will have a 65% chance of being a Plain Terrain
 
-
-### License
-----
+License
+--------------------------------
 
 MIT
 

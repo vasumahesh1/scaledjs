@@ -69,6 +69,16 @@ ScaledMap.prototype.AddStartingCondition = function(conditionObject) {
 	terrainObject.terrainStartPercent = conditionObject["optionalPercent"];
 };
 
+ScaledMap.prototype.GetLayersFromValue = function(terrainValue) {
+	var selectedTerrains = [];
+	for (var key in this.terrains) {
+		if (this.terrains[key].terrainUpperValue >= terrainValue && this.terrains[key].terrainLowerValue <= terrainValue) {
+			selectedTerrains.push(this.terrains[key]);
+		}
+	}
+	return selectedTerrains;
+};
+
 ScaledMap.prototype.Init = function() {
 	if (this.hasDefaultTerrain === false) {
 		terrains[0].SetDefault();
@@ -203,8 +213,8 @@ function diamondStep(mapValues, posX, posY, boxSize) {
 	var halfBoxSize = Math.floor(boxSize / 2);
 	var quartBoxSize = Math.floor(halfBoxSize / 2);
 
-	Commons.Log("HalfBoxSize", halfBoxSize, 'diamond-square');
-	Commons.Log("QuarterBoxSize", quartBoxSize, 'diamond-square');
+	Commons.Log("HalfBoxSize", halfBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+	Commons.Log("QuarterBoxSize", quartBoxSize, Commons.validLogKeys.diamondSquareLogKey);
 
 	Commons.Log(
 		"Getting Avreage of", [
@@ -213,7 +223,7 @@ function diamondStep(mapValues, posX, posY, boxSize) {
 			"[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
 			"[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]"
 		],
-		'diamond-square'
+		Commons.validLogKeys.diamondSquareLogKey
 	);
 
 
@@ -225,7 +235,7 @@ function diamondStep(mapValues, posX, posY, boxSize) {
 		mapValues[posX + halfBoxSize][posY + halfBoxSize],
 	]);
 
-	Commons.Log("Value of Center [" + posX + "][" + posY + "]", mapValues[posX][posY], 'diamond-square');
+	Commons.Log("Value of Center [" + posX + "][" + posY + "]", mapValues[posX][posY], Commons.validLogKeys.diamondSquareLogKey);
 	if (halfBoxSize >= 2) {
 		diamondStep(mapValues, posX - quartBoxSize, posY - quartBoxSize, halfBoxSize);
 		diamondStep(mapValues, posX + quartBoxSize, posY - quartBoxSize, halfBoxSize);
@@ -238,8 +248,8 @@ function squareStep(mapValues, posX, posY, boxSize) {
 	var halfBoxSize = Math.floor(boxSize / 2);
 	var quartBoxSize = Math.floor(halfBoxSize / 2);
 
-	Commons.Log("HalfBoxSize", halfBoxSize, 'diamond-square');
-	Commons.Log("QuarterBoxSize", quartBoxSize, 'diamond-square');
+	Commons.Log("HalfBoxSize", halfBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+	Commons.Log("QuarterBoxSize", quartBoxSize, Commons.validLogKeys.diamondSquareLogKey);
 
 	Commons.Log(
 		"Getting Avreage of", [
@@ -248,7 +258,7 @@ function squareStep(mapValues, posX, posY, boxSize) {
 			"[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
 			"[" + (posX - boxSize) + "],[" + (posY) + "]"
 		],
-		'diamond-square'
+		Commons.validLogKeys.diamondSquareLogKey
 	);
 	mapValues[posX - halfBoxSize][posY] = Commons.GetAverage([
 		Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
@@ -256,7 +266,7 @@ function squareStep(mapValues, posX, posY, boxSize) {
 		Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
 		Commons.TryGetArrayValue(mapValues, posX - boxSize, posY)
 	]);
-	Commons.Log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], 'diamond-square');
+	Commons.Log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], Commons.validLogKeys.diamondSquareLogKey);
 
 
 	Commons.Log(
@@ -266,7 +276,7 @@ function squareStep(mapValues, posX, posY, boxSize) {
 			"[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
 			"[" + (posX + boxSize) + "],[" + (posY) + "]"
 		],
-		'diamond-square'
+		Commons.validLogKeys.diamondSquareLogKey
 	);
 	mapValues[posX + halfBoxSize][posY] = Commons.GetAverage([
 		Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
@@ -284,14 +294,14 @@ function squareStep(mapValues, posX, posY, boxSize) {
 			"[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
 			"[" + (posX) + "],[" + (posY - boxSize) + "]"
 		],
-		'diamond-square');
+		Commons.validLogKeys.diamondSquareLogKey);
 	mapValues[posX][posY - halfBoxSize] = Commons.GetAverage([
 		Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
 		Commons.TryGetArrayValue(mapValues, posX, posY),
 		Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
 		Commons.TryGetArrayValue(mapValues, posX, posY - boxSize)
 	]);
-	Commons.Log("Value of [" + (posX) + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], 'diamond-square');
+	Commons.Log("Value of [" + (posX) + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
 
 
 	Commons.Log(
@@ -301,7 +311,7 @@ function squareStep(mapValues, posX, posY, boxSize) {
 			"[" + (posX + halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
 			"[" + (posX) + "],[" + (posY + boxSize) + "]"
 		],
-		'diamond-square'
+		Commons.validLogKeys.diamondSquareLogKey
 	);
 	mapValues[posX][posY + halfBoxSize] = Commons.GetAverage([
 		Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
@@ -309,7 +319,7 @@ function squareStep(mapValues, posX, posY, boxSize) {
 		Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
 		Commons.TryGetArrayValue(mapValues, posX, posY + boxSize)
 	]);
-	Commons.Log("Value of [" + (posX) + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], 'diamond-square');
+	Commons.Log("Value of [" + (posX) + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
 
 
 	if (halfBoxSize >= 2) {

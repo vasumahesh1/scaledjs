@@ -31,7 +31,13 @@ ScaledTerrain.prototype.SetType = function(terrainType) {
 	this.terrainType = terrainType;
 };
 
-
 ScaledTerrain.prototype.GetRandomTerrainValue = function() {
 	return Commons.Randomize(this.terrainLowerValue, this.terrainUpperValue);
+};
+
+ScaledTerrain.prototype.IsRegularTerrain = function() {
+	if(this.terrainType == "terrain") {
+		return true;
+	}
+	return false;
 };

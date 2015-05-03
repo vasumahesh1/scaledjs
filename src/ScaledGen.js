@@ -7,6 +7,10 @@ var ScaledGen = function(settingsData) {
 		if (("logs" in settingsData)) {
 			Commons.allowedLogs = settingsData["logs"];
 		}
+
+		if (("onProgressUpdate" in settingsData)) {
+			Commons.showProgressUpdate = settingsData["onProgressUpdate"];
+		}
 	}
 
 	this.mainMap = new ScaledMap();
@@ -36,26 +40,36 @@ ScaledGen.prototype.RenderMapValues = function(identifier) {
 	var mapValues = this.mainMap.mapValues;
 	var mapHtml = "";
 	for (var rowKey in mapValues) {
-		mapHtml += GenerateRow(mapValues[rowKey]);
+		mapHtml += this.GenerateRow(mapValues[rowKey]);
 	}
 	map_element.innerHTML = mapHtml;
 };
 
 
 
-function GenerateRow(rowValues) {
+ScaledGen.prototype.GenerateRow = function(rowValues) {
 	var rowHtml = "<div class='row'>";
 	for (var columnKey in rowValues) {
-		rowHtml += GenerateCell(rowValues[columnKey]);
+		rowHtml += this.GenerateCell(rowValues[columnKey]);
 	}
 	rowHtml += "</div>";
 	return rowHtml;
-}
+};
 
-function GenerateCell(cellValue) {
+ScaledGen.prototype.GenerateCell = function(cellValue) {
+	var responsibleTerrains = this.mainMap.GetLayersFromValue(cellValue);
+	var terrainKey = "no-cell";
+	for (var key in responsibleTerrains) {
+		if (responsibleTerrains[key].IsRegularTerrain() === true) {
+			terrainKey = responsibleTerrains[key].terrainKey;
+			break;
+		}
+	}
+
 	var html = "";
-	html += "<div class='cell'>";
-	html += cellValue;
+	html += "<div class='cell " + terrainKey + " ";
+	html += "data-value='" + cellValue + "' ";
+	html += "'>";
 	html += "</div>";
 	return html;
-}
+};

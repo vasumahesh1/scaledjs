@@ -3,16 +3,13 @@
 </div>
 <script src='build/scaled.js'></script>
 <script>
-var generator = new ScaledGen({
-	debug : true,
-	logs : ['diamond-square']
-});
+var generator = new ScaledGen();
 generator.SetMapSize(17,17);
 
 generator.AddTerrain({
 	key : 'layer_water',
 	label : 'Water',
-	max : 25,
+	max : 30,
 	min : 0,
 	default : true
 });
@@ -20,15 +17,15 @@ generator.AddTerrain({
 generator.AddTerrain({
 	key : 'layer_plain',
 	label : 'Plain',
-	max : 50,
-	min : 25
+	max : 65,
+	min : 30
 });
 
 generator.AddTerrain({
 	key : 'layer_bushes',
 	label : 'Bushes',
 	max : 50,
-	min : 25,
+	min : 30,
 	zLevel : 1,
 	type : 'decoration'
 });
@@ -36,21 +33,27 @@ generator.AddTerrain({
 generator.AddTerrain({
 	key : 'layer_forest',
 	label : 'Forest',
-	max : 75,
-	min : 50
+	max : 85,
+	min : 65
 });
 
 generator.AddTerrain({
 	key : 'layer_hill',
 	label : 'Hilly Terrain',
 	max : 100,
-	min : 75
+	min : 85
 });
 
 generator.AddStartingCondition({
 	layerKey: 'layer_hill', 
 	minCount: 1,
 	optionalPercent: 5
+});
+
+generator.AddStartingCondition({
+	layerKey: 'layer_water', 
+	minCount: 1,
+	optionalPercent: 15
 });
 
 generator.AddStartingCondition({
@@ -61,6 +64,11 @@ generator.AddStartingCondition({
 
 generator.GenerateMap();
 generator.RenderMapValues('map-container');
+
+
+function updateFunction(progressValue) {
+	console.log("Got Some Progress Value from Lib : " + progressValue);
+}
 </script>
 <style>
 * {
@@ -72,21 +80,43 @@ generator.RenderMapValues('map-container');
 #map-container {
 	margin: 10px;
 	display: inline-block;
-	border-top: solid 1px #d6d6d6;
-	border-left: solid 1px #d6d6d6;
+/*	border-top: solid 1px #777;
+	border-left: solid 1px #777;*/
 }
 
 .cell {
 	display: inline-block;
+	min-height: 30px;
+	min-width: 30px;
 	height: 30px;
 	width: 30px;
 	line-height: 30px;
 	text-align: center;
 	float: left;
 	background: #f6f6f6;
-	border-bottom: solid 1px #d6d6d6;
-	border-right: solid 1px #d6d6d6;
+/*	border-bottom: solid 1px #777;
+	border-right: solid 1px #777;*/
 	overflow: hidden;
+}
+
+.cell.no-cell {
+	background: #777;
+}
+
+.cell.layer_plain {
+	background: #12A637;
+}
+
+.cell.layer_hill {
+	background: #BF4936;
+}
+
+.cell.layer_water {
+	background: #296CF2;
+}
+
+.cell.layer_forest {
+	background: #00701C;
 }
 
 .row {

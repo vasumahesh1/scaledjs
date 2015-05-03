@@ -1,7 +1,13 @@
-// ----- Construct -----    
+// ----- Construct -----
 var Commons = {
 	debug: false,
 	allowedLogs: ['all'],
+	validLogKeys : {
+		mapInitializeLogKey : 'mapInit',
+		diamondSquareLogKey : 'diamondSquare',
+		mapValidationLogKey : 'mapValidation'
+	},
+	showProgressUpdate: function() {}
 };
 
 // ----- Declare Vars Here -----
