@@ -333,16 +333,16 @@ ScaledMap.prototype.GenerateMapValues = function() {
 	Commons.Warn("Map Init Starting");
 	this.Init();
 	this.InitStartingConditions();
-	this.mapValidityReports = [];
+	this.PreGenerationCleanUp();
 	Commons.Warn("Diamond Square Algorithm Starting");
 	this.mapValues = diamondSquare(this.mapValues, this.rowSize - 1);
-	this.CleanMap();
+	this.PostGenerationCleanUp();
 };
 
 /**
  * Does a Final Clean up of the map values.
  */
-ScaledMap.prototype.CleanMap = function() {
+ScaledMap.prototype.PostGenerationCleanUp = function() {
 	for (var mapRow in this.mapValues) {
 		for (var mapColumn in this.mapValues) {
 			if (this.mapValues[mapRow][mapColumn] < 0) {
@@ -354,23 +354,35 @@ ScaledMap.prototype.CleanMap = function() {
 			}
 		}
 	}
+
+	this.mapValidityReports = [];
+};
+
+/**
+ * Does a Clean Up before the Generation
+ */
+ScaledMap.prototype.PreGenerationCleanUp = function() {
+	if(this.mapValidityReports.length !== 0) {
+		
+	}
 };
 
 /**
  * Modified Version of a Diamond Square Algorithm with extra Variation Added
  * @param  {Array}		mapValues   Map on which Diamond Square to be applied
  * @param  {integer}	boxSize 	Size of the Box. (Last Index of the box)
- * @return {Array}		Final Modified Map
+ * @param  {Array}		repairSalt 	Contains information regarding the Repair needed
+ * @return {Array}		mapValues 	Final Modified Map
  */
-var diamondSquare = function(mapValues, boxSize) {
+var diamondSquare = function(mapValues, boxSize, repairSalt) {
 	Commons.Warn("Diamond Step Starting");
-	diamondStep(mapValues, boxSize / 2, boxSize / 2, boxSize);
+	diamondStep(mapValues, boxSize / 2, boxSize / 2, boxSize, repairSalt);
 	Commons.Warn("Square Step Starting");
-	squareStep(mapValues, boxSize / 2, boxSize / 2, boxSize);
+	squareStep(mapValues, boxSize / 2, boxSize / 2, boxSize, repairSalt);
 	return mapValues;
 };
 
-function diamondStep(mapValues, posX, posY, boxSize) {
+function diamondStep(mapValues, posX, posY, boxSize, repairSalt) {
 	var halfBoxSize = Math.floor(boxSize / 2);
 	var quartBoxSize = Math.floor(halfBoxSize / 2);
 
@@ -405,7 +417,7 @@ function diamondStep(mapValues, posX, posY, boxSize) {
 	}
 }
 
-function squareStep(mapValues, posX, posY, boxSize) {
+function squareStep(mapValues, posX, posY, boxSize, repairSalt) {
 	var halfBoxSize = Math.floor(boxSize / 2);
 	var quartBoxSize = Math.floor(halfBoxSize / 2);
 
