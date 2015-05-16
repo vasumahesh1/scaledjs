@@ -1,50 +1,69 @@
 var ScaledTerrain = function() {
-	this.terrainUpperValue = -1;
-	this.terrainLowerValue = -1;
-	this.terrainLabel = -1;
 	this.terrainKey = -1;
-	this.terrainZLevel = -1;
-	this.terrainType = "terrain";
-	this.terrainDefault = false;
-	this.terrainStartCount = 0;
-	this.terrainStartPercent = 0;
-	this.terrainValidationMinPercent = -1;
-	this.terrainValidationMaxPercent = -1;
-};
+	var terrainUpperValue = -1;
+	var terrainLowerValue = -1;
+	var terrainLabel = -1;
+	var terrainZLevel = -1;
+	var terrainType = "terrain";
+	var terrainDefault = false;
+	var terrainStartCount = 0;
+	var terrainStartPercent = 0;
+	var terrainValidationMinPercent = -1;
+	var terrainValidationMaxPercent = -1;
 
-ScaledTerrain.prototype.CreateTerrain = function(terrainLabel, terrainKey, terrainUpperValue, terrainLowerValue, terrainZLevel) {
-	this.terrainUpperValue = terrainUpperValue;
-	this.terrainLowerValue = terrainLowerValue;
-	this.terrainKey = terrainKey;
-	this.terrainLabel = terrainLabel;
-	this.terrainZLevel = terrainZLevel;
-};
 
-ScaledTerrain.prototype.SetStartingCondition = function(terrainStartCount, terrainStartPercent) {
-	this.terrainStartPercent = terrainStartPercent;
-	this.terrainStartCount = terrainStartCount;
-};
+	this.CreateTerrain = function(_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
+		this.terrainKey = _terrainKey;
+		terrainUpperValue = _terrainUpperValue;
+		terrainLowerValue = _terrainLowerValue;
+		terrainLabel = _terrainLabel;
+		terrainZLevel = _terrainZLevel;
+	};
 
-ScaledTerrain.prototype.SetDefault = function() {
-	this.terrainDefault = true;
-};
+	this.SetStartingCondition = function(_terrainStartCount, _terrainStartPercent) {
+		terrainStartPercent = _terrainStartPercent;
+		terrainStartCount = _terrainStartCount;
+	};
 
-ScaledTerrain.prototype.SetType = function(terrainType) {
-	this.terrainType = terrainType;
-};
+	this.SetDefault = function() {
+		terrainDefault = true;
+	};
 
-ScaledTerrain.prototype.GetRandomTerrainValue = function() {
-	return Commons.Randomize(this.terrainLowerValue, this.terrainUpperValue);
-};
+	this.SetType = function(_terrainType) {
+		terrainType = _terrainType;
+	};
 
-ScaledTerrain.prototype.IsRegularTerrain = function() {
-	if (this.terrainType == "terrain") {
-		return true;
-	}
-	return false;
-};
+	this.GetRandomTerrainValue = function() {
+		return Commons.Randomize(terrainLowerValue, terrainUpperValue);
+	};
 
-ScaledTerrain.prototype.SetValidation = function(minValue, maxValue) {
-	this.terrainValidationMinPercent = minValue;
-	this.terrainValidationMaxPercent = maxValue;
+	this.IsRegularTerrain = function() {
+		if (terrainType == "terrain") {
+			return true;
+		}
+		return false;
+	};
+
+	this.SetValidation = function(minValue, maxValue) {
+		this.terrainValidationMinPercent = minValue;
+		this.terrainValidationMaxPercent = maxValue;
+	};
+
+	this.getData = function() {
+		var returnObject = {
+			terrainKey: this.terrainKey,
+			terrainUpperValue: terrainUpperValue,
+			terrainLowerValue: terrainLowerValue,
+			terrainLabel: terrainLabel,
+			terrainZLevel: terrainZLevel,
+			terrainType: terrainType,
+			terrainDefault: terrainDefault,
+			terrainStartCount: terrainStartCount,
+			terrainStartPercent: terrainStartPercent,
+			terrainValidationMinPercent: terrainValidationMinPercent,
+			terrainValidationMaxPercent: terrainValidationMaxPercent
+		};
+
+		return returnObject;
+	};
 };

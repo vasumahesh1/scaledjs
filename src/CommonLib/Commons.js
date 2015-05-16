@@ -5,7 +5,8 @@ var Commons = {
 	validLogKeys: {
 		mapInitializeLogKey: 'mapInit',
 		diamondSquareLogKey: 'diamondSquare',
-		mapValidationLogKey: 'mapValidation'
+		mapValidationLogKey: 'mapValidation',
+		mapRenderLogKey: 'mapRender',
 	},
 	showProgressUpdate: function() {}
 };
