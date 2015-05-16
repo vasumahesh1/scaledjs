@@ -4,9 +4,7 @@
 Fully compatible with Cocos 2D JS & Cordova Apps
 
 > **IMPORTANT:**
-> ScaledJS is **under construction and doesn't work fully at the moment**.
-> It was initially coded in C++, But due to limited usability porting to
-> JavaScript was important.
+> ScaledJS is **under construction** and doesn't work fully at the moment. Refer "What's working" Section.
 
 Features
 --------------------------------
@@ -20,7 +18,7 @@ Features
 Version
 --------------------------------
 
-0.0.2
+0.0.4
 
 Hey! What's working ?
 --------------------------------
