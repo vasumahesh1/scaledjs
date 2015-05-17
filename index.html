@@ -28,37 +28,22 @@ generator.AddTerrain({
 });
 
 generator.AddTerrain({
-	key : 'layer_bushes',
-	label : 'Bushes',
-	max : 50,
-	min : 30,
-	zLevel : 1,
-	type : 'decoration'
-});
-
-generator.AddTerrain({
-	key : 'layer_forest',
-	label : 'Forest',
-	max : 85,
-	min : 65
-});
-
-generator.AddTerrain({
-	key : 'layer_hill',
-	label : 'Hilly Terrain',
+	key : 'layer_snow',
+	label : 'Snpw',
 	max : 100,
-	min : 85
+	min : 30
 });
 
-generator.AddStartingCondition({
-	terrainKey: 'layer_hill', 
-	minCount: 1,
-	optionalPercent: 5
-});
+
+// generator.AddStartingCondition({
+// 	terrainKey: 'layer_hill', 
+// 	minCount: 1,
+// 	optionalPercent: 5
+// });
 
 generator.AddStartingCondition({
 	terrainKey: 'layer_water', 
-	minCount: 2,
+	minCount: 1,
 	optionalPercent: 25
 });
 
@@ -68,20 +53,176 @@ generator.AddStartingCondition({
 	optionalPercent: 35
 });
 
+generator.AddStartingCondition({
+	terrainKey: 'layer_snow', 
+	minCount: 1,
+	optionalPercent: 20
+});
+
 generator.AddValidationRule({
 	terrainKey : 'layer_water',
 	minPercent : 5
 });
 
-generator.AddValidationRule({
-	terrainKey : 'layer_hill',
-	maxPercent : 15
+generator.AddGidInfo({
+	terrainKey : 'layer_water',
+	gidData : {
+		other: {
+			full: 3
+		}
+	}	
 });
 
-generator.GenerateMap();
-var map = generator.GetMapValues(); // 2D Array of the entered size
+generator.AddGidInfo({
+	terrainKey : 'layer_plain',
+	gidData : {
+		enclosing: {
+			top: {
+				leftValue: 4,
+				rightValue: 6,
+				topValue: 5
+			},
+			bottom: {
+				leftValue: 18,
+				rightValue: 20,
+				bottomValue: 19
+			},
+			left: {
+				leftValue: 11
+			},
+			right: {
+				rightValue: 13
+			}
+		},
+		excluding: {
+			top: {
+				leftValue: 8,
+				rightValue: 9,
+			},
+			bottom: {
+				leftValue: 15,
+				rightValue: 16,
+			}
+		},
+		other: {
+			full: 2,
+			closedLoops : {
+				openEnds : {
+					top : 22,
+					right : 23,
+					bottom : 24,
+					left : 25,
+					none : 26,
+				},
+				twoWay : {
+					topBottom : 27,
+					leftRight : 28
+				}
+			},
+			openLoops : {
+				openEnds : {
+					top : 29,
+					right : 30,
+					bottom : 31,
+					left : 32,
+					none : 33
+				},
+				twoWay : {
+					topBottom : 34,
+					leftRight : 35
+				}
+			}
+		}
+	}	
+});
 
+
+generator.AddGidInfo({
+	terrainKey : 'layer_snow',
+	gidData : {
+		enclosing: {
+			top: {
+				leftValue: 46,
+				rightValue: 48,
+				topValue: 47
+			},
+			bottom: {
+				leftValue: 60,
+				rightValue: 62,
+				bottomValue: 61
+			},
+			left: {
+				leftValue: 53
+			},
+			right: {
+				rightValue: 55
+			}
+		},
+		excluding: {
+			top: {
+				leftValue: 50,
+				rightValue: 51,
+			},
+			bottom: {
+				leftValue: 57,
+				rightValue: 58,
+			}
+		},
+		other: {
+			full: 44,
+			closedLoops : {
+				openEnds : {
+					top : 64,
+					right : 65,
+					bottom : 66,
+					left : 67,
+					none : 68,
+				},
+				twoWay : {
+					topBottom : 69,
+					leftRight : 70
+				}
+			},
+			openLoops : {
+				openEnds : {
+					top : 71,
+					right : 72,
+					bottom : 73,
+					left : 74,
+					none : 75
+				},
+				twoWay : {
+					topBottom : 76,
+					leftRight : 77
+				}
+			}
+		}
+	}	
+});
+
+
+
+generator.AddLayerDomination({
+	dominationPriority: ['layer_water', 'layer_plain']
+});
+
+// For Generating Only 2D Array of Values:
+// generator.GenerateMapValues();
+// var map = generator.GetMapValues();
+
+// Full Generation - Map Array -> 3D Layer -> TMX Map
+// Use this If you want full generation from Scratch without any Custom Breakpoints 
+// between the Generation Process
+generator.GenerateMap();
+
+// For Displaying Map: (Array Values)
 generator.RenderMapValues('map-container');
+
+// For Getting Final TMX Map
+var TMX_XML = generator.GetTmxXml();
+console.log(TMX_XML);
+
+
 
 
 function updateFunction(progressValue) {
@@ -133,7 +274,7 @@ function updateFunction(progressValue) {
 	background: #296CF2;
 }
 
-.cell.layer_forest {
+.cell.layer_snow {
 	background: #00701C;
 }
 

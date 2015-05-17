@@ -7,56 +7,57 @@ var Commons = {
 		diamondSquareLogKey: 'diamondSquare',
 		mapValidationLogKey: 'mapValidation',
 		mapRenderLogKey: 'mapRender',
+		tmxRenderLogKey: 'tmxRender',
 	},
-	showProgressUpdate: function() {}
+	showProgressUpdate: function () {}
 };
 
 // ----- Declare Vars Here -----
 var PLUS_MINUS_BAR = 4;
 
 
-Commons.ConsoleLog = function(message, object) {
+Commons.ConsoleLog = function (message, object) {
 	if (this.debug === true) {
 		console.log("[ScaledGen] " + message + " : " + JSON.stringify(object));
 	}
 };
 
 
-Commons.Log = function(message, object, tag) {
+Commons.Log = function (message, object, tag) {
 	if (this.debug === true && (this.allowedLogs.indexOf(tag) != -1 || this.allowedLogs[0] == 'all')) {
 		this.ConsoleLog(message, object);
 	}
 };
 
 
-Commons.Warn = function(message) {
+Commons.Warn = function (message) {
 	if (this.debug === true) {
 		console.warn("[ScaledGen - Stage Change] " + message);
 	}
 };
 
-Commons.Error = function(message) {
+Commons.Error = function (message) {
 	if (this.debug === true) {
 		console.error("[ScaledGen - Stage Change] " + message);
 	}
 };
 
-Commons.RoundNumber = function(number) {
+Commons.RoundNumber = function (number) {
 	return Math.round(number);
 };
 
-Commons.Randomize = function(minValue, maxValue) {
+Commons.Randomize = function (minValue, maxValue) {
 	return Math.floor((Math.random() * (maxValue - minValue + 1)) + minValue);
 };
 
-Commons.RandomizeInArray = function(arrayList) {
+Commons.RandomizeInArray = function (arrayList) {
 	var minValue = 0;
 	var maxValue = arrayList.length - 1;
 	var index = this.Randomize(minValue, maxValue);
 	return arrayList[index];
 };
 
-Commons.RandomizeWithException = function(minValue, maxValue, exceptList) {
+Commons.RandomizeWithException = function (minValue, maxValue, exceptList) {
 	var value = -1;
 	do {
 		value = this.Randomize(minValue, maxValue);
@@ -66,7 +67,7 @@ Commons.RandomizeWithException = function(minValue, maxValue, exceptList) {
 
 };
 
-Commons.RandomizePlusMinus = function(minValue, maxValue) {
+Commons.RandomizePlusMinus = function (minValue, maxValue) {
 	var barValue = this.Randomize(1, 10);
 	var randomValue = this.Randomize(minValue, maxValue);
 	if (barValue <= PLUS_MINUS_BAR) {
@@ -76,7 +77,7 @@ Commons.RandomizePlusMinus = function(minValue, maxValue) {
 };
 
 
-Commons.GetAverage = function(arrayList) {
+Commons.GetAverage = function (arrayList) {
 	this.Log("Array Came", arrayList);
 	var sum = 0;
 	var count = 0;
@@ -92,11 +93,71 @@ Commons.GetAverage = function(arrayList) {
 };
 
 
-Commons.TryGetArrayValue = function(arrayList, posX, posY) {
+Commons.TryGetArrayValue = function (arrayList, posX, posY) {
 	if (posX in arrayList) {
 		if (posY in arrayList[posX]) {
 			return arrayList[posX][posY];
 		}
 	}
 	return -1;
+};
+
+
+
+Commons.GetDefaultTerrain = function (terrains) {
+	for (var key in terrains) {
+		if (terrains[key].getData().terrainDefault === true) {
+			return terrains[key];
+		}
+	}
+};
+
+
+Commons.GetMainTerrains = function (terrains) {
+	var regularTerrains = [];
+	for (var key in terrains) {
+		if (terrains[key].getData().terrainType == "terrain") {
+			regularTerrains.push(terrains[key].getData());
+		}
+	}
+	return regularTerrains;
+};
+
+
+Commons.GetTerrainByKey = function (terrains, terrainKeyValue) {
+	for (var key in terrains) {
+		if (terrains[key].terrainKey == terrainKeyValue) {
+			return terrains[key];
+		}
+	}
+};
+
+
+Commons.GetTerrainMaximum = function (terrains) {
+	var maxValue = -1;
+	var responsibleTerrain = null;
+	for (var key in terrains) {
+		if (terrains[key].IsRegularTerrain() === true) {
+			if(terrains[key].getData().terrainUpperValue > maxValue) {
+				maxValue = terrains[key].getData().terrainUpperValue;
+				responsibleTerrain = terrains[key];
+			}
+		}
+	}
+	return responsibleTerrain;
+};
+
+
+Commons.GetTerrainMinimum = function (terrains) {
+	var minValue = 101;
+	var responsibleTerrain = null;
+	for (var key in terrains) {
+		if (terrains[key].IsRegularTerrain() === true) {
+			if(terrains[key].getData().terrainLowerValue < minValue) {
+				minValue = terrains[key].getData().terrainLowerValue;
+				responsibleTerrain = terrains[key];
+			}
+		}
+	}
+	return responsibleTerrain;
 };

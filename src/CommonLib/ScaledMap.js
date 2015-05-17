@@ -1,9 +1,10 @@
 /**
  * Constructor for Main Map Object
  */
-var ScaledMap = function() {
+var ScaledMap = function () {
 	var terrains = [];
 	var mapValues = [];
+	var mapValuesNormalized = [];
 	var mapValidityReports = [];
 	var rowSize = 33;
 	var columnSize = 33;
@@ -13,44 +14,17 @@ var ScaledMap = function() {
 	var startTerrainValues = [];
 	var isInited = false;
 
-	var GetDefaultTerrain = function() {
-		for (var key in terrains) {
-			if (terrains[key].terrainDefault === true) {
-				return terrains[key];
-			}
-		}
-	};
-
-
-	var GetMainTerrains = function() {
-		var regularTerrains = [];
-		for (var key in terrains) {
-			if (terrains[key].getData().terrainType == "terrain") {
-				regularTerrains.push(terrains[key].getData());
-			}
-		}
-		return regularTerrains;
-	};
-
-	var GetTerrainByKey = function(terrainKeyValue) {
-		for (var key in terrains) {
-			if (terrains[key].terrainKey == terrainKeyValue) {
-				return terrains[key];
-			}
-		}
-	};
-
 	/**
 	 * Gets the Percentage for a Particular Layer
 	 * @param {string}	layerKey	Contains the key associated to the layer
 	 */
-	var GetLayerPercentage = function(layerKey) {
+	var GetLayerPercentage = function (layerKey) {
 		var selectedCount = 0;
 		var totalCount = rowSize * columnSize;
-		var terrainObject = GetTerrainByKey(layerKey);
+		var terrainObject = Commons.GetTerrainByKey(terrains, layerKey);
 		for (var mapRow in mapValues) {
 			for (var mapColumn in mapValues) {
-				if (mapValues[mapRow][mapColumn] <= terrainObject.terrainUpperValue && mapValues[mapRow][mapColumn] >= terrainObject.terrainLowerValue) {
+				if (mapValues[mapRow][mapColumn] <= terrainObject.getData().terrainUpperValue && mapValues[mapRow][mapColumn] >= terrainObject.getData().terrainLowerValue) {
 					selectedCount++;
 				}
 			}
@@ -58,7 +32,7 @@ var ScaledMap = function() {
 
 		var percent = (selectedCount / totalCount) * 100;
 
-		Commons.Log(terrainObject.terrainKey + " Percentage of Terrain", percent, Commons.validLogKeys.mapValidationLogKey);
+		Commons.Log(terrainObject.getData().terrainKey + " Percentage of Terrain", percent, Commons.validLogKeys.mapValidationLogKey);
 
 		return percent;
 	};
@@ -66,7 +40,7 @@ var ScaledMap = function() {
 	/**
 	 * Initializes the Map
 	 */
-	var Init = function() {
+	var Init = function () {
 		if (isInited === false) {
 			if (hasDefaultTerrain === false) {
 				terrains[0].SetDefault();
@@ -88,7 +62,7 @@ var ScaledMap = function() {
 	/**
 	 * Initializes the Starting Conditions of the Map
 	 */
-	var InitStartingConditions = function() {
+	var InitStartingConditions = function () {
 
 		// Init Global Vars - Important If the Generation is Re Done
 		startTerrainKeys = ["", "", "", ""];
@@ -99,7 +73,7 @@ var ScaledMap = function() {
 
 		// Get Valid Terrains
 		// i.e. Main Terrains Only
-		var regularTerrains = GetMainTerrains();
+		var regularTerrains = Commons.GetMainTerrains(terrains);
 		Commons.Log("Regular Terrains", regularTerrains, Commons.validLogKeys.mapInitializeLogKey);
 
 		/* 
@@ -118,7 +92,7 @@ var ScaledMap = function() {
 		}
 
 		// Descending Order Sort - based on the Count
-		minCountArray.sort(function(a, b) {
+		minCountArray.sort(function (a, b) {
 			return b["count"] - a["count"];
 		});
 
@@ -180,7 +154,7 @@ var ScaledMap = function() {
 					var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
 					slotsUsed.push(remainingValue);
 
-					var randomPercent = Commons.Randomize(0, 100);
+					var randomPercent = Commons.Randomize(0, totalOptional);
 					var terrainToUse = null;
 					var found = false;
 					for (var optionalKey in optionalArray) {
@@ -204,7 +178,7 @@ var ScaledMap = function() {
 		Commons.Log("Start Terrain Keys", startTerrainKeys, Commons.validLogKeys.mapInitializeLogKey);
 
 		for (var startTerrainKey in startTerrainKeys) {
-			var terrainObject = GetTerrainByKey(startTerrainKeys[startTerrainKey]);
+			var terrainObject = Commons.GetTerrainByKey(terrains, startTerrainKeys[startTerrainKey]);
 			startTerrainValues.push(terrainObject.GetRandomTerrainValue());
 		}
 
@@ -223,15 +197,18 @@ var ScaledMap = function() {
 	/**
 	 * Does a Final Clean up of the map values.
 	 */
-	var PostGenerationCleanUp = function() {
+	var PostGenerationCleanUp = function () {
+		var maxTerrainValue = Commons.GetTerrainMaximum(terrains).getData().terrainUpperValue;
+		var minTerrainValue = Commons.GetTerrainMinimum(terrains).getData().terrainLowerValue;
+
 		for (var mapRow in mapValues) {
 			for (var mapColumn in mapValues) {
-				if (mapValues[mapRow][mapColumn] < 0) {
-					mapValues[mapRow][mapColumn] = 0;
+				if (mapValues[mapRow][mapColumn] < minTerrainValue) {
+					mapValues[mapRow][mapColumn] = minTerrainValue;
 				}
 
-				if (mapValues[mapRow][mapColumn] > 100) {
-					mapValues[mapRow][mapColumn] = 100;
+				if (mapValues[mapRow][mapColumn] > maxTerrainValue) {
+					mapValues[mapRow][mapColumn] = maxTerrainValue;
 				}
 			}
 		}
@@ -242,7 +219,7 @@ var ScaledMap = function() {
 	/**
 	 * Does a Clean Up before the Generation
 	 */
-	var PreGenerationCleanUp = function() {
+	var PreGenerationCleanUp = function () {
 		if (mapValidityReports.length !== 0) {
 
 		}
@@ -256,14 +233,14 @@ var ScaledMap = function() {
 	 * @param  {Array}		repairSalt 	Contains information regarding the Repair needed
 	 * @return {Array}		mapValues 	Final Modified Map
 	 */
-	var diamondSquare = function(boxSize, repairSalt) {
+	var diamondSquare = function (boxSize, repairSalt) {
 		Commons.Warn("Diamond Step Starting");
 		diamondStep(boxSize / 2, boxSize / 2, boxSize, repairSalt);
 		Commons.Warn("Square Step Starting");
 		squareStep(boxSize / 2, boxSize / 2, boxSize, repairSalt);
 	};
 
-	var diamondStep = function(posX, posY, boxSize, repairSalt) {
+	var diamondStep = function (posX, posY, boxSize, repairSalt) {
 
 		//Commons.Log("MAP VALUES BEFORE STEP", mapValues, Commons.validLogKeys.diamondSquareLogKey);
 
@@ -302,7 +279,7 @@ var ScaledMap = function() {
 		}
 	};
 
-	var squareStep = function(posX, posY, boxSize, repairSalt) {
+	var squareStep = function (posX, posY, boxSize, repairSalt) {
 		var halfBoxSize = Math.floor(boxSize / 2);
 		var quartBoxSize = Math.floor(halfBoxSize / 2);
 
@@ -398,7 +375,7 @@ var ScaledMap = function() {
 	 * @param {integer}	rowSize Size of the Row
 	 * @param {integer} columnSize Size of the Column
 	 */
-	this.SetDimensions = function(_rowSize, _columnSize) {
+	this.SetDimensions = function (_rowSize, _columnSize) {
 		rowSize = _rowSize;
 		columnSize = _columnSize;
 	};
@@ -407,7 +384,7 @@ var ScaledMap = function() {
 	 * Adds a Scaled Terrain Object to a Map Instance
 	 * @param {object}	terrainObject	Object containing information about the terrain
 	 */
-	this.AddTerrain = function(terrainObject) {
+	this.AddTerrain = function (terrainObject) {
 		var terrainData = new ScaledTerrain();
 		if ('zLevel' in terrainObject) {
 			terrainData.CreateTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, terrainObject.zLevel);
@@ -431,8 +408,8 @@ var ScaledMap = function() {
 	 * Assigns Starting Condition to a Particular Layer
 	 * @param {object}	conditionObject Object containing information about the starting condition
 	 */
-	this.AddStartingCondition = function(conditionObject) {
-		var terrainObject = GetTerrainByKey(conditionObject["terrainKey"]);
+	this.AddStartingCondition = function (conditionObject) {
+		var terrainObject = Commons.GetTerrainByKey(terrains, conditionObject["terrainKey"]);
 		terrainObject.SetStartingCondition(conditionObject["minCount"], conditionObject["optionalPercent"]);
 	};
 
@@ -441,7 +418,7 @@ var ScaledMap = function() {
 	 * Assigns a Validation Rule to a Particular Layer
 	 * @param {object} Object containing information about the rule
 	 */
-	this.AddValidationRule = function(ruleObject) {
+	this.AddValidationRule = function (ruleObject) {
 		var terrainKey = ruleObject["terrainKey"];
 		var minValue = -1;
 		var maxValue = -1;
@@ -454,14 +431,27 @@ var ScaledMap = function() {
 			maxValue = ruleObject["maxPercent"];
 		}
 
-		GetTerrainByKey(terrainKey).SetValidation(minValue, maxValue);
+		Commons.GetTerrainByKey(terrains, terrainKey).SetValidation(minValue, maxValue);
+	};
+
+
+	/**
+	 * Adds GID Information about the Specified Terrain
+	 * @param {object} Object containing information about GID & Terrain Key
+	 */
+	this.AddGidInfo = function (gidObject) {
+		var terrainKey = gidObject["terrainKey"];
+		var gidData = gidObject["gidData"];
+
+
+		Commons.GetTerrainByKey(terrains, terrainKey).SetGidInfo(gidData);
 	};
 
 	/**
 	 * Checks the Validity of the Main Terrains. Based on the Validation Rules set.
 	 */
-	this.CheckRegularTerrainValidity = function() {
-		var regularTerrains = GetMainTerrains();
+	this.CheckRegularTerrainValidity = function () {
+		var regularTerrains = Commons.GetMainTerrains(terrains);
 		var validStatus = true;
 		for (var key in regularTerrains) {
 			var percent = GetLayerPercentage(regularTerrains[key].terrainKey);
@@ -495,14 +485,16 @@ var ScaledMap = function() {
 	/**
 	 * Main Function invoked to Generate the Map from scratch.
 	 */
-	this.GenerateMapValues = function() {
+	this.GenerateMapValues = function () {
 		Commons.Warn("Map Init Starting");
 		Commons.Log("Terrains Before Map Generation", terrains, Commons.validLogKeys.mapInitializeLogKey);
 		Init();
 		InitStartingConditions();
+		Commons.Warn("Pre Generation Clean Up");
 		PreGenerationCleanUp();
 		Commons.Warn("Diamond Square Algorithm Starting");
 		diamondSquare(rowSize - 1, null);
+		Commons.Warn("Post Generation Clean Up");
 		PostGenerationCleanUp();
 	};
 
@@ -510,7 +502,7 @@ var ScaledMap = function() {
 	 * Specifies the List of layers to which the particular Cell Value belongs to
 	 * @param {double}	terrainValue   Value of the Cell
 	 */
-	this.GetLayersFromValue = function(terrainValue) {
+	this.GetLayersFromValue = function (terrainValue) {
 		var selectedTerrains = [];
 		for (var key in terrains) {
 			if (terrains[key].getData().terrainUpperValue >= terrainValue && terrains[key].getData().terrainLowerValue <= terrainValue) {
@@ -522,9 +514,45 @@ var ScaledMap = function() {
 
 
 	/**
+	 * Gets a Normalized Version of the Map
+	 */
+	this.GetNormalizedMap = function () {
+		for (var rowKey in mapValues) {
+			var tempRow = [];
+			for (var columnKey in mapValues[rowKey]) {
+				var responsibleTerrains = this.GetLayersFromValue(mapValues[rowKey][columnKey]);
+				for (var key in responsibleTerrains) {
+					if (responsibleTerrains[key].IsRegularTerrain() === true) {
+						terrainKey = responsibleTerrains[key].getData().terrainKey;
+						break;
+					}
+				}
+				tempRow.push(terrainKey);
+			}
+			mapValuesNormalized.push(tempRow);
+		}
+		return mapValuesNormalized;
+	};
+
+
+	/**
+	 * Gets Settings Data for ScaledTmx
+	 */
+	this.GetTmxSettings = function () {
+		this.GetNormalizedMap();
+		var returnObject = {
+			mapValues: mapValuesNormalized,
+			terrains: terrains
+		};
+
+		return returnObject;
+	};
+
+
+	/**
 	 * Main Function invoked to Generate the Map from scratch.
 	 */
-	this.GetMapValues = function() {
+	this.GetMapValues = function () {
 		return mapValues;
 	};
 

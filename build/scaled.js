@@ -6,7 +6,8 @@ var Commons = {
         mapInitializeLogKey: "mapInit",
         diamondSquareLogKey: "diamondSquare",
         mapValidationLogKey: "mapValidation",
-        mapRenderLogKey: "mapRender"
+        mapRenderLogKey: "mapRender",
+        tmxRenderLogKey: "tmxRender"
     },
     showProgressUpdate: function() {}
 };
@@ -94,12 +95,225 @@ Commons.TryGetArrayValue = function(arrayList, posX, posY) {
     return -1;
 };
 
+Commons.GetDefaultTerrain = function(terrains) {
+    for (var key in terrains) {
+        if (terrains[key].getData().terrainDefault === true) {
+            return terrains[key];
+        }
+    }
+};
+
+Commons.GetMainTerrains = function(terrains) {
+    var regularTerrains = [];
+    for (var key in terrains) {
+        if (terrains[key].getData().terrainType == "terrain") {
+            regularTerrains.push(terrains[key].getData());
+        }
+    }
+    return regularTerrains;
+};
+
+Commons.GetTerrainByKey = function(terrains, terrainKeyValue) {
+    for (var key in terrains) {
+        if (terrains[key].terrainKey == terrainKeyValue) {
+            return terrains[key];
+        }
+    }
+};
+
+Commons.GetTerrainMaximum = function(terrains) {
+    var maxValue = -1;
+    var responsibleTerrain = null;
+    for (var key in terrains) {
+        if (terrains[key].IsRegularTerrain() === true) {
+            if (terrains[key].getData().terrainUpperValue > maxValue) {
+                maxValue = terrains[key].getData().terrainUpperValue;
+                responsibleTerrain = terrains[key];
+            }
+        }
+    }
+    return responsibleTerrain;
+};
+
+Commons.GetTerrainMinimum = function(terrains) {
+    var minValue = 101;
+    var responsibleTerrain = null;
+    for (var key in terrains) {
+        if (terrains[key].IsRegularTerrain() === true) {
+            if (terrains[key].getData().terrainLowerValue < minValue) {
+                minValue = terrains[key].getData().terrainLowerValue;
+                responsibleTerrain = terrains[key];
+            }
+        }
+    }
+    return responsibleTerrain;
+};
+
+var ScaledEdgeDetector = function(edgeSettings) {
+    var terrains = edgeSettings.terrains;
+    var domination = edgeSettings.domination;
+    var domPriority = domination.dominationPriority;
+    var GetDominationValue = function(terrainKey) {
+        return domPriority.indexOf(terrainKey);
+    };
+    var GetLowestDomination = function(primaryValue, arrayValues) {
+        var primaryDomination = primaryValue;
+        var primaryDominationValue = GetDominationValue(primaryValue);
+        for (var key in arrayValues) {
+            if (arrayValues[key] !== -1) {
+                var dominationValue = GetDominationValue(arrayValues[key]);
+                if (dominationValue < primaryDominationValue) {
+                    primaryDominationValue = dominationValue;
+                    primaryDomination = arrayValues[key];
+                }
+            }
+        }
+        return primaryDomination;
+    };
+    var GetAdjacentSimilarity = function(primaryValue, adjacentValues) {
+        var similarity = {
+            top: false,
+            left: false,
+            right: false,
+            bottom: false,
+            count: 0
+        };
+        if (adjacentValues[0] == primaryValue) {
+            similarity.top = true;
+            similarity.count++;
+        }
+        if (adjacentValues[1] == primaryValue) {
+            similarity.right = true;
+            similarity.count++;
+        }
+        if (adjacentValues[2] == primaryValue) {
+            similarity.bottom = true;
+            similarity.count++;
+        }
+        if (adjacentValues[3] == primaryValue) {
+            similarity.left = true;
+            similarity.count++;
+        }
+        return similarity;
+    };
+    var GetDiagonalSimilarity = function(primaryValue, diagonalValues) {
+        var similarity = {
+            topLeft: false,
+            topRight: false,
+            bottomRight: false,
+            bottomLeft: false,
+            count: 0
+        };
+        if (diagonalValues[0] == primaryValue) {
+            similarity.topLeft = true;
+            similarity.count++;
+        }
+        if (diagonalValues[1] == primaryValue) {
+            similarity.topRight = true;
+            similarity.count++;
+        }
+        if (diagonalValues[2] == primaryValue) {
+            similarity.bottomRight = true;
+            similarity.count++;
+        }
+        if (diagonalValues[3] == primaryValue) {
+            similarity.bottomLeft = true;
+            similarity.count++;
+        }
+        return similarity;
+    };
+    var AllSquareSidesSimilar = function(similarity) {
+        if (similarity.top === true && similarity.left === true && similarity.right === true && similarity.bottom === true) {
+            return true;
+        }
+        return false;
+    };
+    this.ResolveTileValue = function(primaryValue, adjacentValues, diagonalValues) {
+        if (Commons.GetDefaultTerrain(terrains).terrainKey == primaryValue) {
+            return [];
+        }
+        Commons.Log("Primary Cell Layer", primaryValue, Commons.validLogKeys.tmxRenderLogKey);
+        Commons.Log("Adjacent Values", adjacentValues, Commons.validLogKeys.tmxRenderLogKey);
+        Commons.Log("Diagonal Values", diagonalValues, Commons.validLogKeys.tmxRenderLogKey);
+        var finalTiles = [];
+        var primaryTileInfo = Commons.GetTerrainByKey(terrains, primaryValue).getGidInfo();
+        var lowestDomination = GetLowestDomination(primaryValue, adjacentValues);
+        if (lowestDomination != primaryValue) {
+            Commons.Log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
+            var lowestDominationTile = Commons.GetTerrainByKey(terrains, lowestDomination).getGidInfo().other.full;
+        }
+        var similarity = GetAdjacentSimilarity(primaryValue, adjacentValues);
+        var diagonalSimilarity = GetDiagonalSimilarity(primaryValue, diagonalValues);
+        Commons.Log("Similarity", similarity, Commons.validLogKeys.tmxRenderLogKey);
+        // All Similar or Not
+        if (AllSquareSidesSimilar(similarity) === true) {
+            // All Similar
+            // 
+            finalTiles.push(primaryTileInfo.other.full);
+        } else {
+            // Nothing Similar : Calls for Closed Loops
+            if (similarity.count === 0) {
+                finalTiles.push(primaryTileInfo.other.openLoops.openEnds.none);
+            } else {
+                // All Sides Not Similar
+                // Enclose Mode for 3 Side Adjacent Similarity
+                if (similarity.top === true && similarity.left === true && similarity.right === true) {
+                    finalTiles.push(primaryTileInfo.enclosing.top.topValue);
+                } else if (similarity.bottom === true && similarity.left === true && similarity.right === true) {
+                    finalTiles.push(primaryTileInfo.enclosing.bottom.bottomValue);
+                } else if (similarity.top === true && similarity.bottom === true && similarity.right === true) {
+                    finalTiles.push(primaryTileInfo.enclosing.right.rightValue);
+                } else if (similarity.top === true && similarity.bottom === true && similarity.left === true) {
+                    finalTiles.push(primaryTileInfo.enclosing.left.leftValue);
+                } else if (similarity.top === true && similarity.left === true) {
+                    finalTiles.push(primaryTileInfo.excluding.bottom.rightValue);
+                } else if (similarity.top === true && similarity.right === true) {
+                    finalTiles.push(primaryTileInfo.excluding.bottom.leftValue);
+                } else if (similarity.bottom === true && similarity.left === true) {
+                    finalTiles.push(primaryTileInfo.excluding.top.rightValue);
+                } else if (similarity.bottom === true && similarity.right === true) {
+                    finalTiles.push(primaryTileInfo.excluding.top.leftValue);
+                } else if (similarity.bottom === true && similarity.top === true) {
+                    finalTiles.push(primaryTileInfo.other.openLoops.twoWay.topBottom);
+                } else if (similarity.left === true && similarity.right === true) {
+                    finalTiles.push(primaryTileInfo.other.openLoops.twoWay.leftRight);
+                } else if (similarity.top === true) {
+                    finalTiles.push(primaryTileInfo.other.openLoops.openEnds.top);
+                } else if (similarity.right === true) {
+                    finalTiles.push(primaryTileInfo.other.openLoops.openEnds.right);
+                } else if (similarity.left === true) {
+                    finalTiles.push(primaryTileInfo.other.openLoops.openEnds.left);
+                } else if (similarity.bottom === true) {
+                    finalTiles.push(primaryTileInfo.other.openLoops.openEnds.bottom);
+                }
+            }
+        }
+        if (AllSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
+            if (diagonalSimilarity.topLeft === false) {
+                finalTiles.push(primaryTileInfo.enclosing.bottom.rightValue);
+            }
+            if (diagonalSimilarity.topRight === false) {
+                finalTiles.push(primaryTileInfo.enclosing.bottom.leftValue);
+            }
+            if (diagonalSimilarity.bottomLeft === false) {
+                finalTiles.push(primaryTileInfo.enclosing.top.rightValue);
+            }
+            if (diagonalSimilarity.bottomRight === false) {
+                finalTiles.push(primaryTileInfo.enclosing.top.leftValue);
+            }
+        }
+        Commons.Log("Final Tiles", finalTiles, Commons.validLogKeys.tmxRenderLogKey);
+        return finalTiles;
+    };
+};
+
 /**
  * Constructor for Main Map Object
  */
 var ScaledMap = function() {
     var terrains = [];
     var mapValues = [];
+    var mapValuesNormalized = [];
     var mapValidityReports = [];
     var rowSize = 33;
     var columnSize = 33;
@@ -108,29 +322,6 @@ var ScaledMap = function() {
     var startTerrainKeys = [ "", "", "", "" ];
     var startTerrainValues = [];
     var isInited = false;
-    var GetDefaultTerrain = function() {
-        for (var key in terrains) {
-            if (terrains[key].terrainDefault === true) {
-                return terrains[key];
-            }
-        }
-    };
-    var GetMainTerrains = function() {
-        var regularTerrains = [];
-        for (var key in terrains) {
-            if (terrains[key].getData().terrainType == "terrain") {
-                regularTerrains.push(terrains[key].getData());
-            }
-        }
-        return regularTerrains;
-    };
-    var GetTerrainByKey = function(terrainKeyValue) {
-        for (var key in terrains) {
-            if (terrains[key].terrainKey == terrainKeyValue) {
-                return terrains[key];
-            }
-        }
-    };
     /**
 	 * Gets the Percentage for a Particular Layer
 	 * @param {string}	layerKey	Contains the key associated to the layer
@@ -138,16 +329,16 @@ var ScaledMap = function() {
     var GetLayerPercentage = function(layerKey) {
         var selectedCount = 0;
         var totalCount = rowSize * columnSize;
-        var terrainObject = GetTerrainByKey(layerKey);
+        var terrainObject = Commons.GetTerrainByKey(terrains, layerKey);
         for (var mapRow in mapValues) {
             for (var mapColumn in mapValues) {
-                if (mapValues[mapRow][mapColumn] <= terrainObject.terrainUpperValue && mapValues[mapRow][mapColumn] >= terrainObject.terrainLowerValue) {
+                if (mapValues[mapRow][mapColumn] <= terrainObject.getData().terrainUpperValue && mapValues[mapRow][mapColumn] >= terrainObject.getData().terrainLowerValue) {
                     selectedCount++;
                 }
             }
         }
         var percent = selectedCount / totalCount * 100;
-        Commons.Log(terrainObject.terrainKey + " Percentage of Terrain", percent, Commons.validLogKeys.mapValidationLogKey);
+        Commons.Log(terrainObject.getData().terrainKey + " Percentage of Terrain", percent, Commons.validLogKeys.mapValidationLogKey);
         return percent;
     };
     /**
@@ -180,7 +371,7 @@ var ScaledMap = function() {
         var totalMin = 0;
         // Get Valid Terrains
         // i.e. Main Terrains Only
-        var regularTerrains = GetMainTerrains();
+        var regularTerrains = Commons.GetMainTerrains(terrains);
         Commons.Log("Regular Terrains", regularTerrains, Commons.validLogKeys.mapInitializeLogKey);
         /* 
 		 * Store Terrains whose 'minCount' has been specified
@@ -250,7 +441,7 @@ var ScaledMap = function() {
                     // Getting a Random Slot from  0 to 3 with Exception of certain slots to Exclude
                     var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
                     slotsUsed.push(remainingValue);
-                    var randomPercent = Commons.Randomize(0, 100);
+                    var randomPercent = Commons.Randomize(0, totalOptional);
                     var terrainToUse = null;
                     var found = false;
                     for (var optionalKey in optionalArray) {
@@ -269,7 +460,7 @@ var ScaledMap = function() {
         }
         Commons.Log("Start Terrain Keys", startTerrainKeys, Commons.validLogKeys.mapInitializeLogKey);
         for (var startTerrainKey in startTerrainKeys) {
-            var terrainObject = GetTerrainByKey(startTerrainKeys[startTerrainKey]);
+            var terrainObject = Commons.GetTerrainByKey(terrains, startTerrainKeys[startTerrainKey]);
             startTerrainValues.push(terrainObject.GetRandomTerrainValue());
         }
         Commons.Log("Start Terrain Values", startTerrainValues, Commons.validLogKeys.mapInitializeLogKey);
@@ -283,13 +474,15 @@ var ScaledMap = function() {
 	 * Does a Final Clean up of the map values.
 	 */
     var PostGenerationCleanUp = function() {
+        var maxTerrainValue = Commons.GetTerrainMaximum(terrains).getData().terrainUpperValue;
+        var minTerrainValue = Commons.GetTerrainMinimum(terrains).getData().terrainLowerValue;
         for (var mapRow in mapValues) {
             for (var mapColumn in mapValues) {
-                if (mapValues[mapRow][mapColumn] < 0) {
-                    mapValues[mapRow][mapColumn] = 0;
+                if (mapValues[mapRow][mapColumn] < minTerrainValue) {
+                    mapValues[mapRow][mapColumn] = minTerrainValue;
                 }
-                if (mapValues[mapRow][mapColumn] > 100) {
-                    mapValues[mapRow][mapColumn] = 100;
+                if (mapValues[mapRow][mapColumn] > maxTerrainValue) {
+                    mapValues[mapRow][mapColumn] = maxTerrainValue;
                 }
             }
         }
@@ -390,7 +583,7 @@ var ScaledMap = function() {
 	 * @param {object}	conditionObject Object containing information about the starting condition
 	 */
     this.AddStartingCondition = function(conditionObject) {
-        var terrainObject = GetTerrainByKey(conditionObject["terrainKey"]);
+        var terrainObject = Commons.GetTerrainByKey(terrains, conditionObject["terrainKey"]);
         terrainObject.SetStartingCondition(conditionObject["minCount"], conditionObject["optionalPercent"]);
     };
     /**
@@ -407,13 +600,22 @@ var ScaledMap = function() {
         if ("maxPercent" in ruleObject) {
             maxValue = ruleObject["maxPercent"];
         }
-        GetTerrainByKey(terrainKey).SetValidation(minValue, maxValue);
+        Commons.GetTerrainByKey(terrains, terrainKey).SetValidation(minValue, maxValue);
+    };
+    /**
+	 * Adds GID Information about the Specified Terrain
+	 * @param {object} Object containing information about GID & Terrain Key
+	 */
+    this.AddGidInfo = function(gidObject) {
+        var terrainKey = gidObject["terrainKey"];
+        var gidData = gidObject["gidData"];
+        Commons.GetTerrainByKey(terrains, terrainKey).SetGidInfo(gidData);
     };
     /**
 	 * Checks the Validity of the Main Terrains. Based on the Validation Rules set.
 	 */
     this.CheckRegularTerrainValidity = function() {
-        var regularTerrains = GetMainTerrains();
+        var regularTerrains = Commons.GetMainTerrains(terrains);
         var validStatus = true;
         for (var key in regularTerrains) {
             var percent = GetLayerPercentage(regularTerrains[key].terrainKey);
@@ -445,9 +647,11 @@ var ScaledMap = function() {
         Commons.Log("Terrains Before Map Generation", terrains, Commons.validLogKeys.mapInitializeLogKey);
         Init();
         InitStartingConditions();
+        Commons.Warn("Pre Generation Clean Up");
         PreGenerationCleanUp();
         Commons.Warn("Diamond Square Algorithm Starting");
         diamondSquare(rowSize - 1, null);
+        Commons.Warn("Post Generation Clean Up");
         PostGenerationCleanUp();
     };
     /**
@@ -462,6 +666,37 @@ var ScaledMap = function() {
             }
         }
         return selectedTerrains;
+    };
+    /**
+	 * Gets a Normalized Version of the Map
+	 */
+    this.GetNormalizedMap = function() {
+        for (var rowKey in mapValues) {
+            var tempRow = [];
+            for (var columnKey in mapValues[rowKey]) {
+                var responsibleTerrains = this.GetLayersFromValue(mapValues[rowKey][columnKey]);
+                for (var key in responsibleTerrains) {
+                    if (responsibleTerrains[key].IsRegularTerrain() === true) {
+                        terrainKey = responsibleTerrains[key].getData().terrainKey;
+                        break;
+                    }
+                }
+                tempRow.push(terrainKey);
+            }
+            mapValuesNormalized.push(tempRow);
+        }
+        return mapValuesNormalized;
+    };
+    /**
+	 * Gets Settings Data for ScaledTmx
+	 */
+    this.GetTmxSettings = function() {
+        this.GetNormalizedMap();
+        var returnObject = {
+            mapValues: mapValuesNormalized,
+            terrains: terrains
+        };
+        return returnObject;
     };
     /**
 	 * Main Function invoked to Generate the Map from scratch.
@@ -483,6 +718,7 @@ var ScaledTerrain = function() {
     var terrainStartPercent = 0;
     var terrainValidationMinPercent = -1;
     var terrainValidationMaxPercent = -1;
+    var terrainGidInfo = -1;
     this.CreateTerrain = function(_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
         this.terrainKey = _terrainKey;
         terrainUpperValue = _terrainUpperValue;
@@ -510,8 +746,14 @@ var ScaledTerrain = function() {
         return false;
     };
     this.SetValidation = function(minValue, maxValue) {
-        this.terrainValidationMinPercent = minValue;
-        this.terrainValidationMaxPercent = maxValue;
+        terrainValidationMinPercent = minValue;
+        terrainValidationMaxPercent = maxValue;
+    };
+    this.SetGidInfo = function(gidInfo) {
+        terrainGidInfo = gidInfo;
+    };
+    this.getGidInfo = function() {
+        return terrainGidInfo;
     };
     this.getData = function() {
         var returnObject = {
@@ -525,9 +767,165 @@ var ScaledTerrain = function() {
             terrainStartCount: terrainStartCount,
             terrainStartPercent: terrainStartPercent,
             terrainValidationMinPercent: terrainValidationMinPercent,
-            terrainValidationMaxPercent: terrainValidationMaxPercent
+            terrainValidationMaxPercent: terrainValidationMaxPercent,
+            terrainGidInfo: terrainGidInfo
         };
         return returnObject;
+    };
+};
+
+var ScaledTmxGen = function(settingsData) {
+    var BLANK_GID_VALUE = 1;
+    var templateString = "";
+    var terrains = [];
+    var mapValues = [];
+    var mapValuesTmx = [];
+    var edgeHandler = null;
+    var edgeHandlerSettings = null;
+    var dominationObject = null;
+    if (settingsData) {
+        if ("mapValues" in settingsData && settingsData["mapValues"]) {
+            mapValues = settingsData["mapValues"];
+        }
+        if ("terrains" in settingsData && settingsData["terrains"]) {
+            terrains = settingsData["terrains"];
+        }
+        if ("domSettings" in settingsData && settingsData["domSettings"]) {
+            dominationObject = settingsData["domSettings"];
+        }
+    }
+    edgeHandlerSettings = {
+        terrains: terrains,
+        domination: dominationObject
+    };
+    edgeHandler = new ScaledEdgeDetector(edgeHandlerSettings);
+    var GetAdjacentValues = function(posX, posY) {
+        var points = [];
+        posX = parseInt(posX);
+        posY = parseInt(posY);
+        points.push(Commons.TryGetArrayValue(mapValues, posX - 1, posY));
+        points.push(Commons.TryGetArrayValue(mapValues, posX, posY + 1));
+        points.push(Commons.TryGetArrayValue(mapValues, posX + 1, posY));
+        points.push(Commons.TryGetArrayValue(mapValues, posX, posY - 1));
+        return points;
+    };
+    var GetDiagonalValues = function(posX, posY) {
+        var points = [];
+        posX = parseInt(posX);
+        posY = parseInt(posY);
+        points.push(Commons.TryGetArrayValue(mapValues, posX - 1, posY - 1));
+        points.push(Commons.TryGetArrayValue(mapValues, posX - 1, posY + 1));
+        points.push(Commons.TryGetArrayValue(mapValues, posX + 1, posY + 1));
+        points.push(Commons.TryGetArrayValue(mapValues, posX + 1, posY - 1));
+        return points;
+    };
+    var CreateEmptyLayer = function() {
+        var tempMap = [];
+        for (var rowKey in mapValues) {
+            var tempRow = [];
+            for (var columnKey in mapValues[rowKey]) {
+                tempRow.push(BLANK_GID_VALUE);
+            }
+            tempMap.push(tempRow);
+        }
+        mapValuesTmx.push(tempMap);
+    };
+    var InitLayeredMap = function() {
+        var defautGidValue = Commons.GetDefaultTerrain(terrains).getGidInfo().other.full;
+        var tempMap = [];
+        for (var rowKey in mapValues) {
+            var tempRow = [];
+            for (var columnKey in mapValues[rowKey]) {
+                tempRow.push(defautGidValue);
+            }
+            tempMap.push(tempRow);
+        }
+        mapValuesTmx.push(tempMap);
+    };
+    var ValueExists = function(value, posX, posY) {
+        for (var layerKey in mapValuesTmx) {
+            if (mapValuesTmx[layerKey][posX][posY] == value) {
+                return true;
+            }
+        }
+        return false;
+    };
+    var GetLayerLevelForInsert = function(posX, posY) {
+        for (var layerKey in mapValuesTmx) {
+            if (mapValuesTmx[layerKey][posX][posY] === BLANK_GID_VALUE) {
+                return layerKey;
+            }
+        }
+        return -1;
+    };
+    var InsertTilesIntoMap = function(tileValues, posX, posY) {
+        if (mapValuesTmx.length === 1) {
+            CreateEmptyLayer();
+        }
+        posX = parseInt(posX);
+        posY = parseInt(posY);
+        for (var key in tileValues) {
+            var currentValue = tileValues[key];
+            if (ValueExists(currentValue, posX, posY) === false) {
+                var layerLevel = GetLayerLevelForInsert(posX, posY);
+                if (layerLevel !== -1) {
+                    mapValuesTmx[layerLevel][posX][posY] = currentValue;
+                } else {
+                    var nextLevel = mapValuesTmx.length;
+                    CreateEmptyLayer();
+                    mapValuesTmx[nextLevel][posX][posY] = currentValue;
+                }
+            }
+        }
+    };
+    var StartNewLayer = function(layerIndex) {
+        templateString += '<layer name="layer_' + layerIndex + '" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '">';
+        templateString += "<data>";
+    };
+    var EndNewLayer = function() {
+        templateString += "</data>";
+        templateString += "</layer>";
+    };
+    var AppendTileRow = function(gidValue) {
+        templateString += '<tile gid="' + gidValue + '" />';
+    };
+    this.GenerateMapTmx = function() {
+        Commons.Warn("TMX - Generating Layered Map");
+        this.GenerateLayeredMap();
+        Commons.Warn("TMX - Generating Map XML");
+        this.GenerateMapXml();
+    };
+    this.GetTmxXml = function() {
+        return templateString;
+    };
+    this.GenerateLayeredMap = function() {
+        InitLayeredMap();
+        for (var rowKey in mapValues) {
+            for (var columnKey in mapValues[rowKey]) {
+                Commons.Log("Primary Pos", rowKey + "," + columnKey, Commons.validLogKeys.tmxRenderLogKey);
+                var adjacentInfo = GetAdjacentValues(rowKey, columnKey);
+                var diagonalInfo = GetDiagonalValues(rowKey, columnKey);
+                var tileValues = edgeHandler.ResolveTileValue(mapValues[rowKey][columnKey], adjacentInfo, diagonalInfo);
+                InsertTilesIntoMap(tileValues, rowKey, columnKey);
+            }
+        }
+    };
+    this.GenerateMapXml = function() {
+        templateString += '<?xml version="1.0" encoding="UTF-8"?>';
+        templateString += '<map version="1.0" orientation="orthogonal" renderorder="left-up" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '" tilewidth="32" tileheight="32" nextobjectid="1">';
+        templateString += '<tileset firstgid="1" name="tileset" tilewidth="32" tileheight="32">';
+        templateString += '<image source="origin_tileset_3_layers.png" trans="ffffff" width="224" height="352"/>';
+        templateString += "</tileset>";
+        for (var layerKey in mapValuesTmx) {
+            StartNewLayer(layerKey);
+            for (var rowKey in mapValuesTmx[layerKey]) {
+                for (var columnKey in mapValuesTmx[layerKey][rowKey]) {
+                    AppendTileRow(mapValuesTmx[layerKey][rowKey][columnKey]);
+                }
+            }
+            EndNewLayer();
+        }
+        templateString += "</map>";
     };
 };
 
@@ -568,6 +966,8 @@ var ScaledAutoReview = function(terrainObject, validityReport) {
 function ScaledGen(settingsData) {
     var maxTries = 10;
     var mainMap = new ScaledMap();
+    var scaledTmx = null;
+    var domSettings = null;
     if (settingsData) {
         if ("debug" in settingsData && settingsData["debug"] === true) {
             Commons.debug = true;
@@ -586,7 +986,7 @@ function ScaledGen(settingsData) {
 	 * Gets the Map Values (2D Array) for the User
 	 */
     this.GetMapValues = function() {
-        return mainMap.mapValues;
+        return mainMap.GetMapValues();
     };
     /**
 	 * Sets the Map Size
@@ -594,8 +994,7 @@ function ScaledGen(settingsData) {
 	 * @param {integer} columnSize Size of the Column
 	 */
     this.SetMapSize = function(rowSize, columnSize) {
-        mainMap["rowSize"] = rowSize;
-        mainMap["columnSize"] = columnSize;
+        mainMap.SetDimensions(rowSize, columnSize);
     };
     /**
 	 * Adds a Scaled Terrain Object to a Map Instance
@@ -619,10 +1018,20 @@ function ScaledGen(settingsData) {
         mainMap.AddValidationRule(ruleData);
     };
     /**
+	 * Assigns a Validation Rule to a Particular Layer
+	 * @param {object}	ruleData Object containing information about the rule
+	 */
+    this.AddLayerDomination = function(dominationData) {
+        domSettings = dominationData;
+    };
+    this.AddGidInfo = function(gidData) {
+        mainMap.AddGidInfo(gidData);
+    };
+    /**
 	 * Main Function to start the Map Generation Process
 	 * Process goes on until a valid map has been generated or the max tries have finished
 	 */
-    this.GenerateMap = function() {
+    this.GenerateMapValues = function() {
         var validStatus = false;
         var tries = 0;
         do {
@@ -633,6 +1042,20 @@ function ScaledGen(settingsData) {
         if (validStatus === false) {
             Commons.Error("Unable to Validate Map. Perhaps Conditions set are too Strict.");
         }
+    };
+    this.GenerateMap = function() {
+        this.GenerateMapValues();
+        if (domSettings) {
+            var scaledTmxSettings = mainMap.GetTmxSettings();
+            scaledTmxSettings.domSettings = domSettings;
+            scaledTmx = new ScaledTmxGen(scaledTmxSettings);
+            scaledTmx.GenerateMapTmx();
+        } else {
+            Commons.Warn("No Domination Settings provided skipping TMX Generation");
+        }
+    };
+    this.GetTmxXml = function() {
+        return scaledTmx.GetTmxXml();
     };
     /**
 	 * Generates an HTML Representation of the 2D Matrix generated by ScaledJS
