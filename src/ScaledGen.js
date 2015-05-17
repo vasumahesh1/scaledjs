@@ -32,6 +32,7 @@ function ScaledGen(settingsData) {
 	var mainMap = new ScaledMap();
 	var scaledTmx = null;
 	var domSettings = null;
+	var tilesetSettings = null;
 
 	if (settingsData) {
 		if (("debug" in settingsData) && settingsData["debug"] === true) {
@@ -97,10 +98,19 @@ function ScaledGen(settingsData) {
 
 	/**
 	 * Assigns a Validation Rule to a Particular Layer
-	 * @param {object}	ruleData Object containing information about the rule
+	 * @param {object}	dominationData Object containing information about the rule
 	 */
 	this.AddLayerDomination = function (dominationData) {
 		domSettings = dominationData;
+	};
+
+
+	/**
+	 * Adds TileSet Settings to be Used in TMX XML
+	 * @param {object}	tilesetData Object containing information about the rule
+	 */
+	this.AddTileset = function (tilesetData) {
+		tilesetSettings = tilesetData;
 	};
 
 
@@ -131,13 +141,14 @@ function ScaledGen(settingsData) {
 
 	this.GenerateMap = function () {
 		this.GenerateMapValues();
-		if (domSettings) {
+		if (domSettings && tilesetSettings) {
 			var scaledTmxSettings = mainMap.GetTmxSettings();
 			scaledTmxSettings.domSettings = domSettings;
+			scaledTmxSettings.tilesetSettings = tilesetSettings;
 			scaledTmx = new ScaledTmxGen(scaledTmxSettings);
 			scaledTmx.GenerateMapTmx();
 		} else {
-			Commons.Warn("No Domination Settings provided skipping TMX Generation");
+			Commons.Warn("No Domination Settings / TileSet Settings provided skipping TMX Generation");
 		}
 	};
 

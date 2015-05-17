@@ -5,6 +5,8 @@ Fully compatible with Cocos 2D JS & Cordova Apps
 
 > **IMPORTANT:**
 > ScaledJS is **under construction** and doesn't work fully at the moment. Refer "What's working" Section.
+> Currently works awesome with Two Terrain Layers. When Terrain has 3 or more 
+> You will have certain issues with inter layer Edge Detection
 
 Features
 --------------------------------
@@ -18,7 +20,7 @@ Features
 Version
 --------------------------------
 
-0.0.4
+0.0.5
 
 Hey! What's working ?
 --------------------------------
@@ -27,8 +29,10 @@ Hey! What's working ?
 * Starting Conditions of the Map
 * Adding more Terrains
 * Terrain Generation based off Diamond Square Algorithm
-* ~~Conversion of Value Matrix to 3D Layered Matrix~~
-* ~~Conversion of 3D Matrix to TMX Tiled Map Format~~
+* Conversion of Value Matrix to 3D Layered Matrix
+* Conversion of 3D Matrix to TMX Tiled Map Format
+* ~~Support for Variable Textures (Like Textures of Variable Trees etc.)~~
+* ~~Enabling More Terrain Layer Support~~
 
 
 
@@ -39,7 +43,11 @@ Refer index.html for a live development example
 
 ```js
 // Main Instance of the Generator
-var generator = new ScaledGen();
+var generator = new ScaledGen({
+    debug : true,
+    logs : ['tmxRender'],
+    maxTries : 20
+});
 
 // Set the Map Size you want to Generate
 generator.SetMapSize(17,17);
@@ -49,7 +57,7 @@ generator.SetMapSize(17,17);
 generator.AddTerrain({
 	key : 'layer_water',
 	label : 'Water',
-	max : 25,
+	max : 30,
 	min : 0,
 	default : true
 });
@@ -57,50 +65,15 @@ generator.AddTerrain({
 generator.AddTerrain({
 	key : 'layer_plain',
 	label : 'Plain',
-	max : 50,
-	min : 25
-});
-
-// Terrains that act as decorations or aren't 
-// part of the Land generation must be marked as 'decoration'
-// This is because Layers that take part in the actual Terrain generation
-// process must be seperate from decoration items like Trees or Bushes
-// This will be useful when the 3D Layered Map is generated, Thereby Keeping 
-// decoration items above the actual terrain
-generator.AddTerrain({
-	key : 'layer_bushes',
-	label : 'Bushes',
-	max : 50,
-	min : 25,
-	zLevel : 1,
-	type : 'decoration'
-});
-
-generator.AddTerrain({
-	key : 'layer_forest',
-	label : 'Forest',
-	max : 75,
-	min : 50
-});
-
-generator.AddTerrain({
-	key : 'layer_hill',
-	label : 'Hilly Terrain',
-	max : 100,
-	min : 75
+	max : 65,
+	min : 30
 });
 
 // Define How the Map will look by specifying the 
 // Starting Condition of the map
 generator.AddStartingCondition({
-	terrainKey: 'layer_hill', 
-	minCount: 1,
-	optionalPercent: 5
-});
-
-generator.AddStartingCondition({
 	terrainKey: 'layer_water', 
-	minCount: 2,
+	minCount: 1,
 	optionalPercent: 25
 });
 
@@ -110,6 +83,7 @@ generator.AddStartingCondition({
 	optionalPercent: 35
 });
 
+
 // Define Validation Rules
 // So that the Generator will only generate a Map that
 // meets the Rules you have given
@@ -118,16 +92,116 @@ generator.AddValidationRule({
 	minPercent : 5
 });
 
-generator.AddValidationRule({
-	terrainKey : 'layer_hill',
-	maxPercent : 15
+
+// If you are generating Full TMX Map. Provide the GID Values (Explained Below)
+// for each Layer. Default Layers Need only one Data Provided the Full Tile image.
+generator.AddGidInfo({
+	terrainKey : 'layer_water',
+	gidData : {
+		other: {
+			full: 3
+		}
+	}	
 });
 
-// Final Command to Run and Execute the Map Generation
-generator.GenerateMap();
-var map = generator.GetMapValues(); // 2D Array of the entered size
+// This is how a regular layer will look like. You can provide textures for 
+// different types of Edges & intersections
+generator.AddGidInfo({
+	terrainKey : 'layer_plain',
+	gidData : {
+		enclosing: {
+			top: {
+				leftValue: 4,
+				rightValue: 6,
+				topValue: 5
+			},
+			bottom: {
+				leftValue: 18,
+				rightValue: 20,
+				bottomValue: 19
+			},
+			left: {
+				leftValue: 11
+			},
+			right: {
+				rightValue: 13
+			}
+		},
+		excluding: {
+			top: {
+				leftValue: 8,
+				rightValue: 9,
+			},
+			bottom: {
+				leftValue: 15,
+				rightValue: 16,
+			}
+		},
+		other: {
+			full: 2,
+			closedLoops : {
+				openEnds : {
+					top : 22,
+					right : 23,
+					bottom : 24,
+					left : 25,
+					none : 26,
+				},
+				twoWay : {
+					topBottom : 27,
+					leftRight : 28
+				}
+			},
+			openLoops : {
+				openEnds : {
+					top : 29,
+					right : 30,
+					bottom : 31,
+					left : 32,
+					none : 33
+				},
+				twoWay : {
+					topBottom : 34,
+					leftRight : 35
+				}
+			}
+		}
+	}	
+});
 
+
+// This is Important for Layer Hierarchy
+// Larger the Index the more Dominant it is.
+// Layer Dominance is in BETA havent tested it out fully. Just make sure that 
+// The layer you want to stay at the top most, stays at the end of this Array
+generator.AddLayerDomination({
+	dominationPriority: ['layer_water', 'layer_plain']
+});
+
+// Tileset Information for the Tiled Map
+generator.AddTileset({
+	source: 'origin_tileset.png',
+	height:160,
+	width:224,
+	tileWidth:32,
+	tileHeight:32
+});
+
+// For Generating Only 2D Array of Values:
+// generator.GenerateMapValues();
+// var map = generator.GetMapValues();
+
+// Full Generation - Map Array -> 3D Layer -> TMX Map
+// Use this If you want full generation from Scratch without any Custom Breakpoints 
+// between the Generation Process
+generator.GenerateMap();
+
+// For Displaying Map: (Array Values)
 generator.RenderMapValues('map-container');
+
+// For Getting Final TMX Map
+var TMX_XML = generator.GetTmxXml();
+console.log(TMX_XML);
 ```
 
 Customizations
@@ -160,7 +234,9 @@ Parameters that can be consumed:
 	[
 		'mapInit',
 		'diamondSquare',
-		'mapValidation'
+		'mapValidation',
+		'mapRender',
+		'tmxRender'
 	]
 	```
 
@@ -279,7 +355,7 @@ The above code basically says:
 * Furthermore the rest free slots of the map will have a 65% chance of being a Plain Terrain
 
 
-#### ScaledGen.prototype.AddValidationRule(ruleData)
+#### ScaledGen.AddValidationRule(ruleData)
 
 Add a Validation Rule for the Generation.
 
@@ -308,6 +384,114 @@ generator.AddValidationRule({
 * `maxPercent` - int - Range (0,100) (Inclusive)
 
 	Maximum Percentage of that Terrain must be in the Map.
+
+
+#### ScaledGen.AddGidInfo(gidData)
+
+Add Texture Information About each Layer.
+
+Gid Data is given as:
+
+```js
+{
+	terrainKey : 'layer_plain',
+	gidData : {
+		enclosing: {
+			top: {
+				leftValue: 4,
+				rightValue: 6,
+				topValue: 5
+			},
+			bottom: {
+				leftValue: 18,
+				rightValue: 20,
+				bottomValue: 19
+			},
+			left: {
+				leftValue: 11
+			},
+			right: {
+				rightValue: 13
+			}
+		},
+		excluding: {
+			top: {
+				leftValue: 8,
+				rightValue: 9,
+			},
+			bottom: {
+				leftValue: 15,
+				rightValue: 16,
+			}
+		},
+		other: {
+			full: 2,
+			closedLoops : {
+				openEnds : {
+					top : 22,
+					right : 23,
+					bottom : 24,
+					left : 25,
+					none : 26,
+				},
+				twoWay : {
+					topBottom : 27,
+					leftRight : 28
+				}
+			},
+			openLoops : {
+				openEnds : {
+					top : 29,
+					right : 30,
+					bottom : 31,
+					left : 32,
+					none : 33
+				},
+				twoWay : {
+					topBottom : 34,
+					leftRight : 35
+				}
+			}
+		}
+	}	
+}
+```
+
+
+#### ScaledGen.AddLayerDomination(dominationData)
+
+Currently Specifies the Priority in which the layers standout to each other. Based on that the TMX is rendered. This will be usefull when you have 3 or more types of Terrain Layers.
+
+```js
+{
+	dominationPriority: ['layer_water', 'layer_plain']
+}
+```
+
+#### ScaledGen.AddTileset(tilesetData)
+
+Add Information Regarding the TileSet used in your TMX Map.
+
+```js
+{
+	source: 'origin_tileset.png',
+	height:160,
+	width:224,
+	tileWidth:32,
+	tileHeight:32
+}
+```
+
+
+#### ScaledGen.GenerateMap()
+
+Main Function which starts the Map Generation Process.
+
+
+#### ScaledGen.GetTmxXml()
+
+Function to return TMX Map XML which can further be used in Cocos or other Game Engines
+
 
 License
 --------------------------------

@@ -3,15 +3,19 @@
 </div>
 <script src='build/scaled.js'></script>
 <script>
+
+// Main Instance of the Generator
 var generator = new ScaledGen({
     debug : true,
-    logs : [],
+    logs : ['tmxRender'],
     maxTries : 20
 });
 
-
+// Set the Map Size you want to Generate
 generator.SetMapSize(17,17);
 
+
+// Add Terrains that meet your needs
 generator.AddTerrain({
 	key : 'layer_water',
 	label : 'Water',
@@ -27,20 +31,16 @@ generator.AddTerrain({
 	min : 30
 });
 
-generator.AddTerrain({
-	key : 'layer_snow',
-	label : 'Snpw',
-	max : 100,
-	min : 30
-});
-
-
-// generator.AddStartingCondition({
-// 	terrainKey: 'layer_hill', 
-// 	minCount: 1,
-// 	optionalPercent: 5
+// generator.AddTerrain({
+// 	key : 'layer_snow',
+// 	label : 'Snpw',
+// 	max : 100,
+// 	min : 30
 // });
 
+
+// Define How the Map will look by specifying the 
+// Starting Condition of the map
 generator.AddStartingCondition({
 	terrainKey: 'layer_water', 
 	minCount: 1,
@@ -53,17 +53,24 @@ generator.AddStartingCondition({
 	optionalPercent: 35
 });
 
-generator.AddStartingCondition({
-	terrainKey: 'layer_snow', 
-	minCount: 1,
-	optionalPercent: 20
-});
+// generator.AddStartingCondition({
+// 	terrainKey: 'layer_snow', 
+// 	minCount: 1,
+// 	optionalPercent: 20
+// });
 
+
+// Define Validation Rules
+// So that the Generator will only generate a Map that
+// meets the Rules you have given
 generator.AddValidationRule({
 	terrainKey : 'layer_water',
 	minPercent : 5
 });
 
+
+// If you are generating Full TMX Map. Provide the GID Values (Explained Below)
+// for each Layer. Default Layers Need only one Data Provided the Full Tile image.
 generator.AddGidInfo({
 	terrainKey : 'layer_water',
 	gidData : {
@@ -73,6 +80,8 @@ generator.AddGidInfo({
 	}	
 });
 
+// This is how a regular layer will look like. You can provide textures for 
+// different types of Edges & intersections
 generator.AddGidInfo({
 	terrainKey : 'layer_plain',
 	gidData : {
@@ -137,73 +146,85 @@ generator.AddGidInfo({
 });
 
 
-generator.AddGidInfo({
-	terrainKey : 'layer_snow',
-	gidData : {
-		enclosing: {
-			top: {
-				leftValue: 46,
-				rightValue: 48,
-				topValue: 47
-			},
-			bottom: {
-				leftValue: 60,
-				rightValue: 62,
-				bottomValue: 61
-			},
-			left: {
-				leftValue: 53
-			},
-			right: {
-				rightValue: 55
-			}
-		},
-		excluding: {
-			top: {
-				leftValue: 50,
-				rightValue: 51,
-			},
-			bottom: {
-				leftValue: 57,
-				rightValue: 58,
-			}
-		},
-		other: {
-			full: 44,
-			closedLoops : {
-				openEnds : {
-					top : 64,
-					right : 65,
-					bottom : 66,
-					left : 67,
-					none : 68,
-				},
-				twoWay : {
-					topBottom : 69,
-					leftRight : 70
-				}
-			},
-			openLoops : {
-				openEnds : {
-					top : 71,
-					right : 72,
-					bottom : 73,
-					left : 74,
-					none : 75
-				},
-				twoWay : {
-					topBottom : 76,
-					leftRight : 77
-				}
-			}
-		}
-	}	
-});
+// generator.AddGidInfo({
+// 	terrainKey : 'layer_snow',
+// 	gidData : {
+// 		enclosing: {
+// 			top: {
+// 				leftValue: 46,
+// 				rightValue: 48,
+// 				topValue: 47
+// 			},
+// 			bottom: {
+// 				leftValue: 60,
+// 				rightValue: 62,
+// 				bottomValue: 61
+// 			},
+// 			left: {
+// 				leftValue: 53
+// 			},
+// 			right: {
+// 				rightValue: 55
+// 			}
+// 		},
+// 		excluding: {
+// 			top: {
+// 				leftValue: 50,
+// 				rightValue: 51,
+// 			},
+// 			bottom: {
+// 				leftValue: 57,
+// 				rightValue: 58,
+// 			}
+// 		},
+// 		other: {
+// 			full: 44,
+// 			closedLoops : {
+// 				openEnds : {
+// 					top : 64,
+// 					right : 65,
+// 					bottom : 66,
+// 					left : 67,
+// 					none : 68,
+// 				},
+// 				twoWay : {
+// 					topBottom : 69,
+// 					leftRight : 70
+// 				}
+// 			},
+// 			openLoops : {
+// 				openEnds : {
+// 					top : 71,
+// 					right : 72,
+// 					bottom : 73,
+// 					left : 74,
+// 					none : 75
+// 				},
+// 				twoWay : {
+// 					topBottom : 76,
+// 					leftRight : 77
+// 				}
+// 			}
+// 		}
+// 	}	
+// });
 
 
-
+// This is Important for Layer Hierarchy
+// Larger the Index the more Dominant it is.
+// Layer Dominance is in BETA havent tested it out fully. Just make sure that 
+// The layer you want to stay at the top most, stays at the end of this Array
 generator.AddLayerDomination({
 	dominationPriority: ['layer_water', 'layer_plain']
+});
+
+// Tileset Information for the Tiled Map
+generator.AddTileset({
+	source: 'origin_tileset.png',
+	height:160,
+	width:224,
+	tileWidth:32,
+	tileHeight:32
 });
 
 // For Generating Only 2D Array of Values:

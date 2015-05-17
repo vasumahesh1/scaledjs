@@ -112,7 +112,7 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		if (lowestDomination != primaryValue) {
 			Commons.Log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
 			var lowestDominationTile = Commons.GetTerrainByKey(terrains, lowestDomination).getGidInfo().other.full;
-			//finalTiles.push(lowestDominationTile);
+			finalTiles.push(lowestDominationTile);
 		}
 
 		var similarity = GetAdjacentSimilarity(primaryValue, adjacentValues);

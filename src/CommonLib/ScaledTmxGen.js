@@ -6,6 +6,7 @@ var ScaledTmxGen = function (settingsData) {
 	var terrains = [];
 	var mapValues = [];
 	var mapValuesTmx = [];
+	var tilesetObject = null;
 	var edgeHandler = null;
 	var edgeHandlerSettings = null;
 	var dominationObject = null;
@@ -17,6 +18,10 @@ var ScaledTmxGen = function (settingsData) {
 
 		if (("terrains" in settingsData) && settingsData["terrains"]) {
 			terrains = settingsData["terrains"];
+		}
+
+		if (("tilesetSettings" in settingsData) && settingsData["tilesetSettings"]) {
+			tilesetObject = settingsData["tilesetSettings"];
 		}
 
 		if (("domSettings" in settingsData) && settingsData["domSettings"]) {
@@ -173,9 +178,9 @@ var ScaledTmxGen = function (settingsData) {
 	this.GenerateMapXml = function () {
 
 		templateString += '<?xml version="1.0" encoding="UTF-8"?>';
-		templateString += '<map version="1.0" orientation="orthogonal" renderorder="left-up" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '" tilewidth="32" tileheight="32" nextobjectid="1">';
-		templateString += '<tileset firstgid="1" name="tileset" tilewidth="32" tileheight="32">';
-		templateString += '<image source="origin_tileset_3_layers.png" trans="ffffff" width="224" height="352"/>';
+		templateString += '<map version="1.0" orientation="orthogonal" renderorder="left-up" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '" tilewidth="' + tilesetObject.tileWidth + '" tileheight="' + tilesetObject.tileHeight + '" nextobjectid="1">';
+		templateString += '<tileset firstgid="1" name="tileset" tilewidth="' + tilesetObject.tileWidth + '" tileheight="' + tilesetObject.tileHeight + '">';
+		templateString += '<image source="' + tilesetObject.source + '" trans="ffffff" width="' + tilesetObject.width + '" height="' + tilesetObject.height + '"/>';
 		templateString += '</tileset>';
 
 		for (var layerKey in mapValuesTmx) {

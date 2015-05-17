@@ -241,6 +241,7 @@ var ScaledEdgeDetector = function(edgeSettings) {
         if (lowestDomination != primaryValue) {
             Commons.Log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
             var lowestDominationTile = Commons.GetTerrainByKey(terrains, lowestDomination).getGidInfo().other.full;
+            finalTiles.push(lowestDominationTile);
         }
         var similarity = GetAdjacentSimilarity(primaryValue, adjacentValues);
         var diagonalSimilarity = GetDiagonalSimilarity(primaryValue, diagonalValues);
@@ -780,6 +781,7 @@ var ScaledTmxGen = function(settingsData) {
     var terrains = [];
     var mapValues = [];
     var mapValuesTmx = [];
+    var tilesetObject = null;
     var edgeHandler = null;
     var edgeHandlerSettings = null;
     var dominationObject = null;
@@ -789,6 +791,9 @@ var ScaledTmxGen = function(settingsData) {
         }
         if ("terrains" in settingsData && settingsData["terrains"]) {
             terrains = settingsData["terrains"];
+        }
+        if ("tilesetSettings" in settingsData && settingsData["tilesetSettings"]) {
+            tilesetObject = settingsData["tilesetSettings"];
         }
         if ("domSettings" in settingsData && settingsData["domSettings"]) {
             dominationObject = settingsData["domSettings"];
@@ -912,9 +917,9 @@ var ScaledTmxGen = function(settingsData) {
     };
     this.GenerateMapXml = function() {
         templateString += '<?xml version="1.0" encoding="UTF-8"?>';
-        templateString += '<map version="1.0" orientation="orthogonal" renderorder="left-up" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '" tilewidth="32" tileheight="32" nextobjectid="1">';
-        templateString += '<tileset firstgid="1" name="tileset" tilewidth="32" tileheight="32">';
-        templateString += '<image source="origin_tileset_3_layers.png" trans="ffffff" width="224" height="352"/>';
+        templateString += '<map version="1.0" orientation="orthogonal" renderorder="left-up" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '" tilewidth="' + tilesetObject.tileWidth + '" tileheight="' + tilesetObject.tileHeight + '" nextobjectid="1">';
+        templateString += '<tileset firstgid="1" name="tileset" tilewidth="' + tilesetObject.tileWidth + '" tileheight="' + tilesetObject.tileHeight + '">';
+        templateString += '<image source="' + tilesetObject.source + '" trans="ffffff" width="' + tilesetObject.width + '" height="' + tilesetObject.height + '"/>';
         templateString += "</tileset>";
         for (var layerKey in mapValuesTmx) {
             StartNewLayer(layerKey);
@@ -968,6 +973,7 @@ function ScaledGen(settingsData) {
     var mainMap = new ScaledMap();
     var scaledTmx = null;
     var domSettings = null;
+    var tilesetSettings = null;
     if (settingsData) {
         if ("debug" in settingsData && settingsData["debug"] === true) {
             Commons.debug = true;
@@ -1019,10 +1025,17 @@ function ScaledGen(settingsData) {
     };
     /**
 	 * Assigns a Validation Rule to a Particular Layer
-	 * @param {object}	ruleData Object containing information about the rule
+	 * @param {object}	dominationData Object containing information about the rule
 	 */
     this.AddLayerDomination = function(dominationData) {
         domSettings = dominationData;
+    };
+    /**
+	 * Adds TileSet Settings to be Used in TMX XML
+	 * @param {object}	tilesetData Object containing information about the rule
+	 */
+    this.AddTileset = function(tilesetData) {
+        tilesetSettings = tilesetData;
     };
     this.AddGidInfo = function(gidData) {
         mainMap.AddGidInfo(gidData);
@@ -1045,13 +1058,14 @@ function ScaledGen(settingsData) {
     };
     this.GenerateMap = function() {
         this.GenerateMapValues();
-        if (domSettings) {
+        if (domSettings && tilesetSettings) {
             var scaledTmxSettings = mainMap.GetTmxSettings();
             scaledTmxSettings.domSettings = domSettings;
+            scaledTmxSettings.tilesetSettings = tilesetSettings;
             scaledTmx = new ScaledTmxGen(scaledTmxSettings);
             scaledTmx.GenerateMapTmx();
         } else {
-            Commons.Warn("No Domination Settings provided skipping TMX Generation");
+            Commons.Warn("No Domination Settings / TileSet Settings provided skipping TMX Generation");
         }
     };
     this.GetTmxXml = function() {
