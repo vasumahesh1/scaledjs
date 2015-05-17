@@ -3,6 +3,8 @@
 
 Fully compatible with Cocos 2D JS & Cordova Apps
 
+![alt text][banner]
+
 > **IMPORTANT:**
 > ScaledJS is **under construction** and doesn't work fully at the moment. Refer "What's working" Section.
 > Currently works awesome with Two Terrain Layers. When Terrain has 3 or more 
@@ -20,7 +22,7 @@ Features
 Version
 --------------------------------
 
-0.0.5
+0.0.6
 
 Hey! What's working ?
 --------------------------------
@@ -498,3 +500,6 @@ License
 
 MIT
 
+
+
+[banner]: screenshots/readme-image.jpg "Terrain Gen"
