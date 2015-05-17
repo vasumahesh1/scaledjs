@@ -459,6 +459,10 @@ Gid Data is given as:
 }
 ```
 
+This Image will help you understand what each part of the JSON signifies:
+
+![alt text][tiling]
+
 
 #### ScaledGen.AddLayerDomination(dominationData)
 
@@ -484,6 +488,8 @@ Add Information Regarding the TileSet used in your TMX Map.
 }
 ```
 
+Options are pretty self-explanatory
+
 
 #### ScaledGen.GenerateMap()
 
@@ -501,5 +507,9 @@ License
 MIT
 
 
+I don't own any textures used in this Image. They are used for Illustrative Purposes only.
+
+
 
 [banner]: screenshots/readme-image.jpg "Terrain Gen"
+[tiling]: screenshots/tiling-json.jpg "Tile Setup"
