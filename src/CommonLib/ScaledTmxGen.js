@@ -76,7 +76,9 @@ var ScaledTmxGen = function (settingsData) {
 
 
 	var InitLayeredMap = function () {
-		var defautGidValue = Commons.GetDefaultTerrain(terrains).getGidInfo().other.full;
+		var defautGidValue = Commons.GetDefaultTerrain(terrains)
+			.getGidInfo()
+			.other.full;
 		var tempMap = [];
 		for (var rowKey in mapValues) {
 			var tempRow = [];
@@ -152,6 +154,8 @@ var ScaledTmxGen = function (settingsData) {
 	this.GenerateMapTmx = function () {
 		Commons.Warn("TMX - Generating Layered Map");
 		this.GenerateLayeredMap();
+		// Commons.Warn("TMX - Fixing Layer Borders");
+		// this.FixLayerBorders();
 		Commons.Warn("TMX - Generating Map XML");
 		this.GenerateMapXml();
 	};
@@ -172,6 +176,19 @@ var ScaledTmxGen = function (settingsData) {
 				InsertTilesIntoMap(tileValues, rowKey, columnKey);
 			}
 		}
+	};
+
+	this.FixLayerBorders = function () {
+		for (var rowKey in mapValuesTmx[0]) {
+			for (var columnKey in mapValuesTmx[0][rowKey]) {
+				// Irrespective of Layers
+				this.FixBorderAtCell(rowKey, columnKey);
+			}
+		}
+	};
+
+	this.FixBorderAtCell = function (posX, posY) {
+
 	};
 
 

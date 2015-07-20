@@ -18,7 +18,7 @@ var PLUS_MINUS_BAR = 4;
 
 Commons.ConsoleLog = function (message, object) {
 	if (this.debug === true) {
-		console.log("[ScaledGen] " + message + " : " + JSON.stringify(object));
+		console.log("[ScaledGen] " + message + " : ", object);
 	}
 };
 
@@ -102,11 +102,26 @@ Commons.TryGetArrayValue = function (arrayList, posX, posY) {
 	return -1;
 };
 
+Commons.IsPointAtEdge = function (arrayList, posX, posY) {
+	posX = parseInt(posX);
+	posY = parseInt(posY);
+	if (posX === 0 || posY === 0) {
+		return true;
+	}
+
+	if (posX == arrayList.length || posY == arrayList[0].length) {
+		return true;
+	}
+
+	return false;
+};
+
 
 
 Commons.GetDefaultTerrain = function (terrains) {
 	for (var key in terrains) {
-		if (terrains[key].getData().terrainDefault === true) {
+		if (terrains[key].getData()
+			.terrainDefault === true) {
 			return terrains[key];
 		}
 	}
@@ -116,7 +131,8 @@ Commons.GetDefaultTerrain = function (terrains) {
 Commons.GetMainTerrains = function (terrains) {
 	var regularTerrains = [];
 	for (var key in terrains) {
-		if (terrains[key].getData().terrainType == "terrain") {
+		if (terrains[key].getData()
+			.terrainType == "terrain") {
 			regularTerrains.push(terrains[key].getData());
 		}
 	}
@@ -138,8 +154,10 @@ Commons.GetTerrainMaximum = function (terrains) {
 	var responsibleTerrain = null;
 	for (var key in terrains) {
 		if (terrains[key].IsRegularTerrain() === true) {
-			if(terrains[key].getData().terrainUpperValue > maxValue) {
-				maxValue = terrains[key].getData().terrainUpperValue;
+			if (terrains[key].getData()
+				.terrainUpperValue > maxValue) {
+				maxValue = terrains[key].getData()
+					.terrainUpperValue;
 				responsibleTerrain = terrains[key];
 			}
 		}
@@ -153,8 +171,10 @@ Commons.GetTerrainMinimum = function (terrains) {
 	var responsibleTerrain = null;
 	for (var key in terrains) {
 		if (terrains[key].IsRegularTerrain() === true) {
-			if(terrains[key].getData().terrainLowerValue < minValue) {
-				minValue = terrains[key].getData().terrainLowerValue;
+			if (terrains[key].getData()
+				.terrainLowerValue < minValue) {
+				minValue = terrains[key].getData()
+					.terrainLowerValue;
 				responsibleTerrain = terrains[key];
 			}
 		}

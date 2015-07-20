@@ -7,20 +7,81 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		return domPriority.indexOf(terrainKey);
 	};
 
+	var GetDominationKey = function (dominationIndex) {
+		return domPriority[dominationIndex];
+	};
+
+
+	var sortDominationAscending = function (a, b) {
+		return a - b;
+	};
+
+
+	var getUnique = function (arr) {
+		var u = {},
+			a = [];
+		for (var i = 0, l = arr.length; i < l; ++i) {
+			if (u.hasOwnProperty(arr[i])) {
+				continue;
+			}
+			a.push(arr[i]);
+			u[arr[i]] = 1;
+		}
+		return a;
+	};
+
+	var NormalizeAdjacency = function (primaryValue, arrayValues) {
+		var normalizedValues = [];
+		for (var key in arrayValues) {
+			if (GetDominationValue(arrayValues[key]) < GetDominationValue(primaryValue)) {
+				normalizedValues.push(arrayValues[key]);
+			} else {
+				normalizedValues.push(primaryValue);
+			}
+		}
+
+		return normalizedValues;
+	};
+
 	var GetLowestDomination = function (primaryValue, arrayValues) {
-		var primaryDomination = primaryValue;
+		var dominationValues = [];
+		var returnValue;
+		// var primaryDomination = primaryValue;
 		var primaryDominationValue = GetDominationValue(primaryValue);
 		for (var key in arrayValues) {
 			if (arrayValues[key] !== -1) {
 				var dominationValue = GetDominationValue(arrayValues[key]);
-				if (dominationValue < primaryDominationValue) {
-					primaryDominationValue = dominationValue;
-					primaryDomination = arrayValues[key];
-				}
+				dominationValues.push(dominationValue);
+				// if (dominationValue < primaryDominationValue) {
+				// 	primaryDominationValue = dominationValue;
+				// 	primaryDomination = arrayValues[key];
+				// }
 			}
 
 		}
-		return primaryDomination;
+		Commons.Log("Primary Value", primaryValue, Commons.validLogKeys.tmxRenderLogKey);
+		Commons.Log("Surroundings", arrayValues, Commons.validLogKeys.tmxRenderLogKey);
+
+		Commons.Log("Before Unique", dominationValues, Commons.validLogKeys.tmxRenderLogKey);
+		dominationValues = getUnique(dominationValues);
+		Commons.Log("After Unique", dominationValues, Commons.validLogKeys.tmxRenderLogKey);
+
+		dominationValues.sort(sortDominationAscending);
+		var lowestDomination = Math.min.apply(null, dominationValues);
+		if (lowestDomination == primaryDominationValue) {
+			returnValue = primaryDominationValue;
+		} else {
+			var primaryDominationIndex = dominationValues.indexOf(primaryDominationValue);
+			if (primaryDominationIndex !== 0 && primaryDominationIndex != -1) {
+				returnValue = dominationValues[primaryDominationIndex - 1];
+			} else {
+				returnValue = dominationValues[0];
+			}
+		}
+
+
+		Commons.Log("Returning", GetDominationKey(returnValue), Commons.validLogKeys.tmxRenderLogKey);
+		return GetDominationKey(returnValue);
 
 	};
 
@@ -100,28 +161,32 @@ var ScaledEdgeDetector = function (edgeSettings) {
 	};
 
 	this.ResolveTileValue = function (primaryValue, adjacentValues, diagonalValues) {
-		if (Commons.GetDefaultTerrain(terrains).terrainKey == primaryValue) {
+		if (Commons.GetDefaultTerrain(terrains)
+			.terrainKey == primaryValue) {
 			return [];
 		}
 		Commons.Log("Primary Cell Layer", primaryValue, Commons.validLogKeys.tmxRenderLogKey);
 		Commons.Log("Adjacent Values", adjacentValues, Commons.validLogKeys.tmxRenderLogKey);
 		Commons.Log("Diagonal Values", diagonalValues, Commons.validLogKeys.tmxRenderLogKey);
 		var finalTiles = [];
-		var primaryTileInfo = Commons.GetTerrainByKey(terrains, primaryValue).getGidInfo();
+		var primaryTileInfo = Commons.GetTerrainByKey(terrains, primaryValue)
+			.getGidInfo();
 		var lowestDomination = GetLowestDomination(primaryValue, adjacentValues);
-		if (lowestDomination != primaryValue) {
-			Commons.Log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
-			var lowestDominationTile = Commons.GetTerrainByKey(terrains, lowestDomination).getGidInfo().other.full;
-			finalTiles.push(lowestDominationTile);
-		}
+		Commons.Log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
+		var lowestDominationTile = Commons.GetTerrainByKey(terrains, lowestDomination)
+			.getGidInfo()
+			.other.full;
+		finalTiles.push(lowestDominationTile);
 
-		var similarity = GetAdjacentSimilarity(primaryValue, adjacentValues);
-		var diagonalSimilarity = GetDiagonalSimilarity(primaryValue, diagonalValues);
+		var normalizedAdjacentValues = NormalizeAdjacency(primaryValue, adjacentValues);
+		var normalizedDiagonalValues = NormalizeAdjacency(primaryValue, diagonalValues);
+
+		var similarity = GetAdjacentSimilarity(primaryValue, normalizedAdjacentValues);
+		var diagonalSimilarity = GetDiagonalSimilarity(primaryValue, normalizedDiagonalValues);
 		Commons.Log("Similarity", similarity, Commons.validLogKeys.tmxRenderLogKey);
 		// All Similar or Not
 		if (AllSquareSidesSimilar(similarity) === true) {
 			// All Similar
-			// 
 			finalTiles.push(primaryTileInfo.other.full);
 
 		} else {
@@ -171,16 +236,16 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		}
 
 		if (AllSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
-			if(diagonalSimilarity.topLeft === false) {
+			if (diagonalSimilarity.topLeft === false) {
 				finalTiles.push(primaryTileInfo.enclosing.bottom.rightValue);
 			}
-			if(diagonalSimilarity.topRight === false) {
+			if (diagonalSimilarity.topRight === false) {
 				finalTiles.push(primaryTileInfo.enclosing.bottom.leftValue);
 			}
-			if(diagonalSimilarity.bottomLeft === false) {
+			if (diagonalSimilarity.bottomLeft === false) {
 				finalTiles.push(primaryTileInfo.enclosing.top.rightValue);
 			}
-			if(diagonalSimilarity.bottomRight === false) {
+			if (diagonalSimilarity.bottomRight === false) {
 				finalTiles.push(primaryTileInfo.enclosing.top.leftValue);
 			}
 		}

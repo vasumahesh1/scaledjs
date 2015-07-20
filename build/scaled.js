@@ -17,7 +17,7 @@ var PLUS_MINUS_BAR = 4;
 
 Commons.ConsoleLog = function(message, object) {
     if (this.debug === true) {
-        console.log("[ScaledGen] " + message + " : " + JSON.stringify(object));
+        console.log("[ScaledGen] " + message + " : ", object);
     }
 };
 
@@ -95,6 +95,18 @@ Commons.TryGetArrayValue = function(arrayList, posX, posY) {
     return -1;
 };
 
+Commons.IsPointAtEdge = function(arrayList, posX, posY) {
+    posX = parseInt(posX);
+    posY = parseInt(posY);
+    if (posX === 0 || posY === 0) {
+        return true;
+    }
+    if (posX == arrayList.length || posY == arrayList[0].length) {
+        return true;
+    }
+    return false;
+};
+
 Commons.GetDefaultTerrain = function(terrains) {
     for (var key in terrains) {
         if (terrains[key].getData().terrainDefault === true) {
@@ -156,19 +168,64 @@ var ScaledEdgeDetector = function(edgeSettings) {
     var GetDominationValue = function(terrainKey) {
         return domPriority.indexOf(terrainKey);
     };
+    var GetDominationKey = function(dominationIndex) {
+        return domPriority[dominationIndex];
+    };
+    var sortDominationAscending = function(a, b) {
+        return a - b;
+    };
+    var getUnique = function(arr) {
+        var u = {}, a = [];
+        for (var i = 0, l = arr.length; i < l; ++i) {
+            if (u.hasOwnProperty(arr[i])) {
+                continue;
+            }
+            a.push(arr[i]);
+            u[arr[i]] = 1;
+        }
+        return a;
+    };
+    var NormalizeAdjacency = function(primaryValue, arrayValues) {
+        var normalizedValues = [];
+        for (var key in arrayValues) {
+            if (GetDominationValue(arrayValues[key]) < GetDominationValue(primaryValue)) {
+                normalizedValues.push(arrayValues[key]);
+            } else {
+                normalizedValues.push(primaryValue);
+            }
+        }
+        return normalizedValues;
+    };
     var GetLowestDomination = function(primaryValue, arrayValues) {
-        var primaryDomination = primaryValue;
+        var dominationValues = [];
+        var returnValue;
+        // var primaryDomination = primaryValue;
         var primaryDominationValue = GetDominationValue(primaryValue);
         for (var key in arrayValues) {
             if (arrayValues[key] !== -1) {
                 var dominationValue = GetDominationValue(arrayValues[key]);
-                if (dominationValue < primaryDominationValue) {
-                    primaryDominationValue = dominationValue;
-                    primaryDomination = arrayValues[key];
-                }
+                dominationValues.push(dominationValue);
             }
         }
-        return primaryDomination;
+        Commons.Log("Primary Value", primaryValue, Commons.validLogKeys.tmxRenderLogKey);
+        Commons.Log("Surroundings", arrayValues, Commons.validLogKeys.tmxRenderLogKey);
+        Commons.Log("Before Unique", dominationValues, Commons.validLogKeys.tmxRenderLogKey);
+        dominationValues = getUnique(dominationValues);
+        Commons.Log("After Unique", dominationValues, Commons.validLogKeys.tmxRenderLogKey);
+        dominationValues.sort(sortDominationAscending);
+        var lowestDomination = Math.min.apply(null, dominationValues);
+        if (lowestDomination == primaryDominationValue) {
+            returnValue = primaryDominationValue;
+        } else {
+            var primaryDominationIndex = dominationValues.indexOf(primaryDominationValue);
+            if (primaryDominationIndex !== 0 && primaryDominationIndex != -1) {
+                returnValue = dominationValues[primaryDominationIndex - 1];
+            } else {
+                returnValue = dominationValues[0];
+            }
+        }
+        Commons.Log("Returning", GetDominationKey(returnValue), Commons.validLogKeys.tmxRenderLogKey);
+        return GetDominationKey(returnValue);
     };
     var GetAdjacentSimilarity = function(primaryValue, adjacentValues) {
         var similarity = {
@@ -238,18 +295,17 @@ var ScaledEdgeDetector = function(edgeSettings) {
         var finalTiles = [];
         var primaryTileInfo = Commons.GetTerrainByKey(terrains, primaryValue).getGidInfo();
         var lowestDomination = GetLowestDomination(primaryValue, adjacentValues);
-        if (lowestDomination != primaryValue) {
-            Commons.Log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
-            var lowestDominationTile = Commons.GetTerrainByKey(terrains, lowestDomination).getGidInfo().other.full;
-            finalTiles.push(lowestDominationTile);
-        }
-        var similarity = GetAdjacentSimilarity(primaryValue, adjacentValues);
-        var diagonalSimilarity = GetDiagonalSimilarity(primaryValue, diagonalValues);
+        Commons.Log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
+        var lowestDominationTile = Commons.GetTerrainByKey(terrains, lowestDomination).getGidInfo().other.full;
+        finalTiles.push(lowestDominationTile);
+        var normalizedAdjacentValues = NormalizeAdjacency(primaryValue, adjacentValues);
+        var normalizedDiagonalValues = NormalizeAdjacency(primaryValue, diagonalValues);
+        var similarity = GetAdjacentSimilarity(primaryValue, normalizedAdjacentValues);
+        var diagonalSimilarity = GetDiagonalSimilarity(primaryValue, normalizedDiagonalValues);
         Commons.Log("Similarity", similarity, Commons.validLogKeys.tmxRenderLogKey);
         // All Similar or Not
         if (AllSquareSidesSimilar(similarity) === true) {
             // All Similar
-            // 
             finalTiles.push(primaryTileInfo.other.full);
         } else {
             // Nothing Similar : Calls for Closed Loops
@@ -897,6 +953,8 @@ var ScaledTmxGen = function(settingsData) {
     this.GenerateMapTmx = function() {
         Commons.Warn("TMX - Generating Layered Map");
         this.GenerateLayeredMap();
+        // Commons.Warn("TMX - Fixing Layer Borders");
+        // this.FixLayerBorders();
         Commons.Warn("TMX - Generating Map XML");
         this.GenerateMapXml();
     };
@@ -915,6 +973,15 @@ var ScaledTmxGen = function(settingsData) {
             }
         }
     };
+    this.FixLayerBorders = function() {
+        for (var rowKey in mapValuesTmx[0]) {
+            for (var columnKey in mapValuesTmx[0][rowKey]) {
+                // Irrespective of Layers
+                this.FixBorderAtCell(rowKey, columnKey);
+            }
+        }
+    };
+    this.FixBorderAtCell = function(posX, posY) {};
     this.GenerateMapXml = function() {
         templateString += '<?xml version="1.0" encoding="UTF-8"?>';
         templateString += '<map version="1.0" orientation="orthogonal" renderorder="left-up" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '" tilewidth="' + tilesetObject.tileWidth + '" tileheight="' + tilesetObject.tileHeight + '" nextobjectid="1">';

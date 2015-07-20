@@ -31,12 +31,12 @@ generator.AddTerrain({
 	min : 30
 });
 
-// generator.AddTerrain({
-// 	key : 'layer_snow',
-// 	label : 'Snpw',
-// 	max : 100,
-// 	min : 30
-// });
+generator.AddTerrain({
+	key : 'layer_snow',
+	label : 'Snow',
+	max : 100,
+	min : 30
+});
 
 
 // Define How the Map will look by specifying the 
@@ -53,11 +53,11 @@ generator.AddStartingCondition({
 	optionalPercent: 35
 });
 
-// generator.AddStartingCondition({
-// 	terrainKey: 'layer_snow', 
-// 	minCount: 1,
-// 	optionalPercent: 20
-// });
+generator.AddStartingCondition({
+	terrainKey: 'layer_snow', 
+	minCount: 1,
+	optionalPercent: 20
+});
 
 
 // Define Validation Rules
@@ -146,68 +146,68 @@ generator.AddGidInfo({
 });
 
 
-// generator.AddGidInfo({
-// 	terrainKey : 'layer_snow',
-// 	gidData : {
-// 		enclosing: {
-// 			top: {
-// 				leftValue: 46,
-// 				rightValue: 48,
-// 				topValue: 47
-// 			},
-// 			bottom: {
-// 				leftValue: 60,
-// 				rightValue: 62,
-// 				bottomValue: 61
-// 			},
-// 			left: {
-// 				leftValue: 53
-// 			},
-// 			right: {
-// 				rightValue: 55
-// 			}
-// 		},
-// 		excluding: {
-// 			top: {
-// 				leftValue: 50,
-// 				rightValue: 51,
-// 			},
-// 			bottom: {
-// 				leftValue: 57,
-// 				rightValue: 58,
-// 			}
-// 		},
-// 		other: {
-// 			full: 44,
-// 			closedLoops : {
-// 				openEnds : {
-// 					top : 64,
-// 					right : 65,
-// 					bottom : 66,
-// 					left : 67,
-// 					none : 68,
-// 				},
-// 				twoWay : {
-// 					topBottom : 69,
-// 					leftRight : 70
-// 				}
-// 			},
-// 			openLoops : {
-// 				openEnds : {
-// 					top : 71,
-// 					right : 72,
-// 					bottom : 73,
-// 					left : 74,
-// 					none : 75
-// 				},
-// 				twoWay : {
-// 					topBottom : 76,
-// 					leftRight : 77
-// 				}
-// 			}
-// 		}
-// 	}	
-// });
+generator.AddGidInfo({
+	terrainKey : 'layer_snow',
+	gidData : {
+		enclosing: {
+			top: {
+				leftValue: 46,
+				rightValue: 48,
+				topValue: 47
+			},
+			bottom: {
+				leftValue: 60,
+				rightValue: 62,
+				bottomValue: 61
+			},
+			left: {
+				leftValue: 53
+			},
+			right: {
+				rightValue: 55
+			}
+		},
+		excluding: {
+			top: {
+				leftValue: 50,
+				rightValue: 51,
+			},
+			bottom: {
+				leftValue: 57,
+				rightValue: 58,
+			}
+		},
+		other: {
+			full: 44,
+			closedLoops : {
+				openEnds : {
+					top : 64,
+					right : 65,
+					bottom : 66,
+					left : 67,
+					none : 68,
+				},
+				twoWay : {
+					topBottom : 69,
+					leftRight : 70
+				}
+			},
+			openLoops : {
+				openEnds : {
+					top : 71,
+					right : 72,
+					bottom : 73,
+					left : 74,
+					none : 75
+				},
+				twoWay : {
+					topBottom : 76,
+					leftRight : 77
+				}
+			}
+		}
+	}	
+});
 
 
 // This is Important for Layer Hierarchy
@@ -215,12 +215,12 @@ generator.AddGidInfo({
 // Layer Dominance is in BETA havent tested it out fully. Just make sure that 
 // The layer you want to stay at the top most, stays at the end of this Array
 generator.AddLayerDomination({
-	dominationPriority: ['layer_water', 'layer_plain']
+	dominationPriority: ['layer_water', 'layer_plain', 'layer_snow']
 });
 
 // Tileset Information for the Tiled Map
 generator.AddTileset({
-	source: 'origin_tileset.png',
+	source: 'origin_tileset_3_layers.png',
 	height:160,
 	width:224,
 	tileWidth:32,
