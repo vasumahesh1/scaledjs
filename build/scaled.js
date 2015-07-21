@@ -188,7 +188,7 @@ var ScaledEdgeDetector = function(edgeSettings) {
     var NormalizeAdjacency = function(primaryValue, arrayValues) {
         var normalizedValues = [];
         for (var key in arrayValues) {
-            if (GetDominationValue(arrayValues[key]) < GetDominationValue(primaryValue)) {
+            if (arrayValues[key] !== -1 && GetDominationValue(arrayValues[key]) < GetDominationValue(primaryValue)) {
                 normalizedValues.push(arrayValues[key]);
             } else {
                 normalizedValues.push(primaryValue);

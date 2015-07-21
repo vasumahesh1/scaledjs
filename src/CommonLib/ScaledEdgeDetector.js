@@ -33,7 +33,7 @@ var ScaledEdgeDetector = function (edgeSettings) {
 	var NormalizeAdjacency = function (primaryValue, arrayValues) {
 		var normalizedValues = [];
 		for (var key in arrayValues) {
-			if (GetDominationValue(arrayValues[key]) < GetDominationValue(primaryValue)) {
+			if (arrayValues[key] !== -1 && GetDominationValue(arrayValues[key]) < GetDominationValue(primaryValue)) {
 				normalizedValues.push(arrayValues[key]);
 			} else {
 				normalizedValues.push(primaryValue);
@@ -165,18 +165,22 @@ var ScaledEdgeDetector = function (edgeSettings) {
 			.terrainKey == primaryValue) {
 			return [];
 		}
+
 		Commons.Log("Primary Cell Layer", primaryValue, Commons.validLogKeys.tmxRenderLogKey);
 		Commons.Log("Adjacent Values", adjacentValues, Commons.validLogKeys.tmxRenderLogKey);
 		Commons.Log("Diagonal Values", diagonalValues, Commons.validLogKeys.tmxRenderLogKey);
 		var finalTiles = [];
 		var primaryTileInfo = Commons.GetTerrainByKey(terrains, primaryValue)
 			.getGidInfo();
+
+
 		var lowestDomination = GetLowestDomination(primaryValue, adjacentValues);
 		Commons.Log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
 		var lowestDominationTile = Commons.GetTerrainByKey(terrains, lowestDomination)
 			.getGidInfo()
 			.other.full;
 		finalTiles.push(lowestDominationTile);
+
 
 		var normalizedAdjacentValues = NormalizeAdjacency(primaryValue, adjacentValues);
 		var normalizedDiagonalValues = NormalizeAdjacency(primaryValue, diagonalValues);
