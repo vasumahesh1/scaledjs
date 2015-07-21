@@ -1,5 +1,5 @@
 {
-  "name": "scaled-js",
+  "name": "scaledjs",
   "version": "0.0.7",
   "homepage": "https://github.com/vasumahesh1/scaledjs",
   "authors": [
@@ -9,7 +9,11 @@
   "keywords": [
     "terrain",
     "games",
-    "procedural"
+    "procedural",
+    "html5",
+    "cocos",
+    "cordova",
+    "tmx"
   ],
   "license": "MIT",
   "ignore": [

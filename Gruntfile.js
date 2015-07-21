@@ -37,6 +37,25 @@ module.exports = function(grunt) {
     watch: {
       files: ['<%= uglify.build.src %>'],
       tasks: ['jshint' , 'uglify:build' , 'uglify:min']
+    },
+    release: {
+      options: {
+        changelog: false,
+        additionalFiles: ['bower.json'],
+        add: true,
+        commit: true,
+        tag: false,
+        push: true,
+        pushTags: false,
+        npm: false,
+        npmtag: false,
+        commitMessage: '[ScaledJS] Release Commit <%= version %>',
+        tagMessage: 'Release Build <%= version %>',
+        github: {
+          repo: 'vasumahesh1/scaledjs',
+          accessTokenVar: 'GITHUB_ACCESS_TOKEN'
+        }
+      }
     }
   });
 
@@ -44,6 +63,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-release');
   // Default task(s).
   grunt.registerTask('default', ['jshint']);
   grunt.registerTask('build', ['jshint', 'uglify:build']);

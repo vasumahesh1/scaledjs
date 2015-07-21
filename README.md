@@ -6,9 +6,19 @@ Fully compatible with Cocos 2D JS & Cordova Apps
 ![alt text][banner]
 
 > **IMPORTANT:**
-> ScaledJS is **under construction** and doesn't work fully at the moment. Refer "What's working" Section.
-> Currently works awesome with Two Terrain Layers. When Terrain has 3 or more 
+> ScaledJS is **under construction** and might have some quirks. Refer "What's working" Section.
+> Currently works awesome with Three Terrain Layers. When Terrain has 4 or more may lead to 
+> Unexpected Behaviour 
 > You will have certain issues with inter layer Edge Detection
+
+Installation
+--------------------------------
+You can install it via Bower:
+```sh
+bower install scaledjs --save
+```
+
+Or download a release build in Github.
 
 Features
 --------------------------------
@@ -19,11 +29,6 @@ Features
 * Inbuilt Generator for TMX Tiled Format Maps - For Runtime Tiled Map
   Generation (rather than having a static XML map)
 
-Version
---------------------------------
-
-0.0.6
-
 Hey! What's working ?
 --------------------------------
 
@@ -33,9 +38,10 @@ Hey! What's working ?
 * Terrain Generation based off Diamond Square Algorithm
 * Conversion of Value Matrix to 3D Layered Matrix
 * Conversion of 3D Matrix to TMX Tiled Map Format
+* ~~Panoramic Maps - Allowing Maps to continue Horizontally, Vertically or Both!~~
 * ~~Support for Variable Textures (Like Textures of Variable Trees etc.)~~
-* ~~Enabling More Terrain Layer Support~~
-
+* ~~Enabling More Terrain Layer Support~~ - As of Now Works Upto 3 Layers.
+* ~~Optional Hook for Developers when the Actual Adjacency Placement Rules are applied~~
 
 
 Basic Usage
