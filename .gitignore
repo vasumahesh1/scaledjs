@@ -38,3 +38,4 @@ profile
 
 # Scaled JS Ignore
 resources/Test*.tmx
+*.token
