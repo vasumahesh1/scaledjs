@@ -138,7 +138,10 @@ function ScaledGen(settingsData) {
 		}
 	};
 
-
+	/**
+	 * Generates the Entire Map from
+  	 * From 2D Array to 3D Layered Maps to TMX Tiled XML
+	 */
 	this.GenerateMap = function () {
 		this.GenerateMapValues();
 		if (domSettings && tilesetSettings) {

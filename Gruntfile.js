@@ -1,4 +1,4 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 
   // Project configuration.
   grunt.initConfig({
@@ -36,7 +36,7 @@ module.exports = function(grunt) {
     },
     watch: {
       files: ['<%= uglify.build.src %>'],
-      tasks: ['jshint' , 'uglify:build' , 'uglify:min']
+      tasks: ['jshint', 'uglify:build', 'uglify:min']
     },
     release: {
       options: {
@@ -56,19 +56,25 @@ module.exports = function(grunt) {
           accessTokenVar: 'GITHUB_ACCESS_TOKEN'
         }
       }
+    },
+    version: {
+      scaledVersion: {
+        src: ['package.json', 'bower.json']
+      }
     }
   });
 
-  // Load the plugin that provides the "uglify" task.
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-release');
-  // Default task(s).
+  grunt.loadNpmTasks('grunt-version');
+
+  // Tasks
   grunt.registerTask('default', ['jshint']);
   grunt.registerTask('build', ['jshint', 'uglify:build']);
   grunt.registerTask('min', ['jshint', 'uglify:min']);
-  grunt.registerTask('buildAll', ['jshint', 'uglify:build' , 'uglify:min']);
+  grunt.registerTask('buildAll', ['jshint', 'uglify:build', 'uglify:min']);
   grunt.registerTask('dev', ['watch']);
 
 };
