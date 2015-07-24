@@ -13,6 +13,7 @@ var ScaledMap = function () {
 	var startTerrainKeys = ["", "", "", ""];
 	var startTerrainValues = [];
 	var isInited = false;
+	var possibleTerrains = ["terrain", "decoration"];
 
 	/**
 	 * Gets the Percentage for a Particular Layer
@@ -393,7 +394,11 @@ var ScaledMap = function () {
 		}
 
 		if ('type' in terrainObject) {
-			terrainData.SetType(terrainObject.type);
+			if(possibleTerrains.indexOf(terrainObject.type) !== -1) {
+				terrainData.SetType(terrainObject.type);
+			} else {
+				Commons.Error("Error Adding Terrain Type : " + terrainObject.type);
+			}
 		}
 
 		if ('default' in terrainObject && hasDefaultTerrain === false) {

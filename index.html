@@ -32,6 +32,14 @@ generator.AddTerrain({
 });
 
 generator.AddTerrain({
+	key : 'layer_trees',
+	label : 'Trees',
+	max : 65,
+	min : 30,
+	type : "decoration"
+});
+
+generator.AddTerrain({
 	key : 'layer_snow',
 	label : 'Snow',
 	max : 100,
@@ -208,6 +216,35 @@ generator.AddGidInfo({
 		}
 	}	
 });
+
+
+/**
+ * GID Info for Decoration Layers
+ * Not Yet Active
+ */
+// generator.AddGidInfo({
+// 	terrainKey : 'layer_trees',
+// 	gidData : {
+// 		optionalPercent: 35,
+// 		other : [
+// 			{
+// 				key: "orchid_tree",
+// 				value: 77,
+// 				weight: 1000
+// 			},
+// 			{
+// 				key: "apple_tree",
+// 				value: 78,
+// 				weight: 1
+// 			},
+// 			{
+// 				key: "pear_tree",
+// 				value: 79,
+// 				weight: 1
+// 			}
+// 		]	
+// 	}
+// });
 
 //
 // This is Important for Layer Hierarchy
