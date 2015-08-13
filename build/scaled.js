@@ -1,3 +1,181 @@
+// The MIT License (MIT)
+// Copyright (c) 2015 Vasu Mahesh (vasu.mahesh@[yahoo|hotmail|gmail].com)
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+// 
+// 
+/**
+ * Main Function for the Generator Object
+ * @param {object}	settingsData	Configuring Settings of the Generator
+ */
+function ScaledGen(settingsData) {
+    var maxTries = 10;
+    var mainMap = new ScaledMap();
+    var scaledTmx = null;
+    var domSettings = null;
+    var tilesetSettings = null;
+    if (settingsData) {
+        if ("debug" in settingsData && settingsData["debug"] === true) {
+            Commons.debug = true;
+        }
+        if ("logs" in settingsData) {
+            Commons.allowedLogs = settingsData["logs"];
+        }
+        if ("maxTries" in settingsData) {
+            maxTries = settingsData["maxTries"];
+        }
+        if ("onProgressUpdate" in settingsData) {
+            Commons.showProgressUpdate = settingsData["onProgressUpdate"];
+        }
+    }
+    /**
+	 * Gets the Map Values (2D Array) for the User
+	 */
+    this.GetMapValues = function() {
+        return mainMap.GetMapValues();
+    };
+    /**
+	 * Sets the Map Size
+	 * @param {integer}	rowSize Size of the Row
+	 * @param {integer} columnSize Size of the Column
+	 */
+    this.SetMapSize = function(rowSize, columnSize) {
+        mainMap.SetDimensions(rowSize, columnSize);
+    };
+    /**
+	 * Adds a Scaled Terrain Object to a Map Instance
+	 * @param {object}	terrainData	Object containing information about the terrain
+	 */
+    this.AddTerrain = function(terrainData) {
+        mainMap.AddTerrain(terrainData);
+    };
+    /**
+	 * Assigns Starting Condition to a Particular Layer
+	 * @param {object}	conditionData Object containing information about the starting condition
+	 */
+    this.AddStartingCondition = function(conditionData) {
+        mainMap.AddStartingCondition(conditionData);
+    };
+    /**
+	 * Assigns a Validation Rule to a Particular Layer
+	 * @param {object}	ruleData Object containing information about the rule
+	 */
+    this.AddValidationRule = function(ruleData) {
+        mainMap.AddValidationRule(ruleData);
+    };
+    /**
+	 * Assigns a Validation Rule to a Particular Layer
+	 * @param {object}	dominationData Object containing information about the rule
+	 */
+    this.AddLayerDomination = function(dominationData) {
+        domSettings = dominationData;
+    };
+    /**
+	 * Adds TileSet Settings to be Used in TMX XML
+	 * @param {object}	tilesetData Object containing information about the rule
+	 */
+    this.AddTileset = function(tilesetData) {
+        tilesetSettings = tilesetData;
+    };
+    this.AddGidInfo = function(gidData) {
+        mainMap.AddGidInfo(gidData);
+    };
+    /**
+	 * Main Function to start the Map Generation Process
+	 * Process goes on until a valid map has been generated or the max tries have finished
+	 */
+    this.GenerateMapValues = function() {
+        var validStatus = false;
+        var tries = 0;
+        do {
+            mainMap.GenerateMapValues();
+            validStatus = mainMap.CheckRegularTerrainValidity();
+            tries++;
+        } while (validStatus === false && tries < maxTries);
+        if (validStatus === false) {
+            Commons.Error("Unable to Validate Map. Perhaps Conditions set are too Strict.");
+        }
+    };
+    /**
+	 * Generates the Entire Map from
+  	 * From 2D Array to 3D Layered Maps to TMX Tiled XML
+	 */
+    this.GenerateMap = function() {
+        this.GenerateMapValues();
+        if (domSettings && tilesetSettings) {
+            var scaledTmxSettings = mainMap.GetTmxSettings();
+            scaledTmxSettings.domSettings = domSettings;
+            scaledTmxSettings.tilesetSettings = tilesetSettings;
+            scaledTmx = new ScaledTmxGen(scaledTmxSettings);
+            scaledTmx.GenerateMapTmx();
+        } else {
+            Commons.Warn("No Domination Settings / TileSet Settings provided skipping TMX Generation");
+        }
+    };
+    this.GetTmxXml = function() {
+        return scaledTmx.GetTmxXml();
+    };
+    /**
+	 * Generates an HTML Representation of the 2D Matrix generated by ScaledJS
+	 */
+    this.RenderMapValues = function(identifier) {
+        var map_element = document.getElementById(identifier);
+        map_element.innerHTML = "";
+        var mapValues = mainMap.GetMapValues();
+        var mapHtml = "";
+        for (var rowKey in mapValues) {
+            mapHtml += GenerateRow(mapValues[rowKey]);
+        }
+        map_element.innerHTML = mapHtml;
+    };
+    /**
+	 * Generates an HTML Row for the Map
+	 * @param {Array} rowValues	Contains an Array of Values
+	 */
+    var GenerateRow = function(rowValues) {
+        var rowHtml = "<div class='row'>";
+        for (var columnKey in rowValues) {
+            rowHtml += GenerateCell(rowValues[columnKey]);
+        }
+        rowHtml += "</div>";
+        return rowHtml;
+    };
+    /**
+	 * Generates an HTML Cell for the Map
+	 * @param {integer} cellValue Cell Value
+	 */
+    var GenerateCell = function(cellValue) {
+        var responsibleTerrains = mainMap.GetLayersFromValue(cellValue);
+        Commons.Log("Terrains For Cell Value : " + cellValue, responsibleTerrains, Commons.validLogKeys.mapRenderLogKey);
+        var terrainKey = "no-cell";
+        for (var key in responsibleTerrains) {
+            if (responsibleTerrains[key].IsRegularTerrain() === true) {
+                terrainKey = responsibleTerrains[key].getData().terrainKey;
+                break;
+            }
+        }
+        var html = "";
+        html += "<div class='cell " + terrainKey + " ";
+        html += "data-value='" + cellValue + "' ";
+        html += "'>";
+        html += "</div>";
+        return html;
+    };
+}
+
 // ----- Construct -----
 var Commons = {
     debug: false,
@@ -45,7 +223,7 @@ Commons.Log = function(message, logObject, tag) {
  */
 Commons.Warn = function(message) {
     if (this.debug === true) {
-        console.warn("[ScaledGen - Stage Change] " + message);
+        console.warn("[ScaledGen - Warning] " + message);
     }
 };
 
@@ -532,8 +710,8 @@ var ScaledMap = function() {
             }
         }
         // Descending Order Sort - based on the Count
-        minCountArray.sort(function(a, b) {
-            return b["count"] - a["count"];
+        minCountArray.sort(function(itemA, itemB) {
+            return itemB["count"] - itemA["count"];
         });
         var remainingSlots = 4;
         var slotsUsed = [];
@@ -557,6 +735,7 @@ var ScaledMap = function() {
         Commons.Log("Empty Non Optional Slots to Use", remainingSlots, Commons.validLogKeys.mapInitializeLogKey);
         // If free slots left. i.e. User has not given all 4 edge details
         if (remainingSlots !== 0) {
+            var optionalKey = 0;
             var totalOptional = 0;
             var optionalArray = [];
             var nonOptionalArray = [];
@@ -579,27 +758,29 @@ var ScaledMap = function() {
                 }
             }
             if (totalOptional > 100) {
-                console.warn("Please make sure your optional percentages are not over 100");
-            } else {
-                for (i = 0; i < remainingSlots; i++) {
-                    // Getting a Random Slot from  0 to 3 with Exception of certain slots to Exclude
-                    var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
-                    slotsUsed.push(remainingValue);
-                    var randomPercent = Commons.Randomize(0, totalOptional);
-                    var terrainToUse = null;
-                    var found = false;
-                    for (var optionalKey in optionalArray) {
-                        if (randomPercent <= optionalArray[optionalKey]["cumulativePercent"]) {
-                            found = true;
-                            terrainToUse = optionalArray[optionalKey]["terrainKey"];
-                            break;
-                        }
-                    }
-                    if (found === false) {
-                        terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainKey"];
-                    }
-                    startTerrainKeys[remainingValue] = terrainToUse;
+                Commons.Warn("Optional percentages are not over 100, Normalizing Values to 0 to 100 Range");
+                for (optionalKey in optionalArray) {
+                    optionalArray[optionalKey]["cumulativePercent"] = optionalArray[optionalKey]["cumulativePercent"] / totalOptional * 100;
                 }
+            }
+            for (i = 0; i < remainingSlots; i++) {
+                // Getting a Random Slot from  0 to 3 with Exception of certain slots to Exclude
+                var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
+                slotsUsed.push(remainingValue);
+                var randomPercent = Commons.Randomize(0, totalOptional);
+                var terrainToUse = null;
+                var found = false;
+                for (optionalKey in optionalArray) {
+                    if (randomPercent <= optionalArray[optionalKey]["cumulativePercent"]) {
+                        found = true;
+                        terrainToUse = optionalArray[optionalKey]["terrainKey"];
+                        break;
+                    }
+                }
+                if (found === false) {
+                    terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainKey"];
+                }
+                startTerrainKeys[remainingValue] = terrainToUse;
             }
         }
         Commons.Log("Start Terrain Keys", startTerrainKeys, Commons.validLogKeys.mapInitializeLogKey);
@@ -1102,181 +1283,3 @@ var ScaledAutoReview = function(terrainObject, validityReport) {
     this.terrain = terrainObject;
     this.validityReport = validityReport;
 };
-
-// The MIT License (MIT)
-// Copyright (c) 2015 Vasu Mahesh (vasu.mahesh@[yahoo|hotmail|gmail].com)
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-// 
-// 
-/**
- * Main Function for the Generator Object
- * @param {object}	settingsData	Configuring Settings of the Generator
- */
-function ScaledGen(settingsData) {
-    var maxTries = 10;
-    var mainMap = new ScaledMap();
-    var scaledTmx = null;
-    var domSettings = null;
-    var tilesetSettings = null;
-    if (settingsData) {
-        if ("debug" in settingsData && settingsData["debug"] === true) {
-            Commons.debug = true;
-        }
-        if ("logs" in settingsData) {
-            Commons.allowedLogs = settingsData["logs"];
-        }
-        if ("maxTries" in settingsData) {
-            maxTries = settingsData["maxTries"];
-        }
-        if ("onProgressUpdate" in settingsData) {
-            Commons.showProgressUpdate = settingsData["onProgressUpdate"];
-        }
-    }
-    /**
-	 * Gets the Map Values (2D Array) for the User
-	 */
-    this.GetMapValues = function() {
-        return mainMap.GetMapValues();
-    };
-    /**
-	 * Sets the Map Size
-	 * @param {integer}	rowSize Size of the Row
-	 * @param {integer} columnSize Size of the Column
-	 */
-    this.SetMapSize = function(rowSize, columnSize) {
-        mainMap.SetDimensions(rowSize, columnSize);
-    };
-    /**
-	 * Adds a Scaled Terrain Object to a Map Instance
-	 * @param {object}	terrainData	Object containing information about the terrain
-	 */
-    this.AddTerrain = function(terrainData) {
-        mainMap.AddTerrain(terrainData);
-    };
-    /**
-	 * Assigns Starting Condition to a Particular Layer
-	 * @param {object}	conditionData Object containing information about the starting condition
-	 */
-    this.AddStartingCondition = function(conditionData) {
-        mainMap.AddStartingCondition(conditionData);
-    };
-    /**
-	 * Assigns a Validation Rule to a Particular Layer
-	 * @param {object}	ruleData Object containing information about the rule
-	 */
-    this.AddValidationRule = function(ruleData) {
-        mainMap.AddValidationRule(ruleData);
-    };
-    /**
-	 * Assigns a Validation Rule to a Particular Layer
-	 * @param {object}	dominationData Object containing information about the rule
-	 */
-    this.AddLayerDomination = function(dominationData) {
-        domSettings = dominationData;
-    };
-    /**
-	 * Adds TileSet Settings to be Used in TMX XML
-	 * @param {object}	tilesetData Object containing information about the rule
-	 */
-    this.AddTileset = function(tilesetData) {
-        tilesetSettings = tilesetData;
-    };
-    this.AddGidInfo = function(gidData) {
-        mainMap.AddGidInfo(gidData);
-    };
-    /**
-	 * Main Function to start the Map Generation Process
-	 * Process goes on until a valid map has been generated or the max tries have finished
-	 */
-    this.GenerateMapValues = function() {
-        var validStatus = false;
-        var tries = 0;
-        do {
-            mainMap.GenerateMapValues();
-            validStatus = mainMap.CheckRegularTerrainValidity();
-            tries++;
-        } while (validStatus === false && tries < maxTries);
-        if (validStatus === false) {
-            Commons.Error("Unable to Validate Map. Perhaps Conditions set are too Strict.");
-        }
-    };
-    /**
-	 * Generates the Entire Map from
-  	 * From 2D Array to 3D Layered Maps to TMX Tiled XML
-	 */
-    this.GenerateMap = function() {
-        this.GenerateMapValues();
-        if (domSettings && tilesetSettings) {
-            var scaledTmxSettings = mainMap.GetTmxSettings();
-            scaledTmxSettings.domSettings = domSettings;
-            scaledTmxSettings.tilesetSettings = tilesetSettings;
-            scaledTmx = new ScaledTmxGen(scaledTmxSettings);
-            scaledTmx.GenerateMapTmx();
-        } else {
-            Commons.Warn("No Domination Settings / TileSet Settings provided skipping TMX Generation");
-        }
-    };
-    this.GetTmxXml = function() {
-        return scaledTmx.GetTmxXml();
-    };
-    /**
-	 * Generates an HTML Representation of the 2D Matrix generated by ScaledJS
-	 */
-    this.RenderMapValues = function(identifier) {
-        var map_element = document.getElementById(identifier);
-        map_element.innerHTML = "";
-        var mapValues = mainMap.GetMapValues();
-        var mapHtml = "";
-        for (var rowKey in mapValues) {
-            mapHtml += GenerateRow(mapValues[rowKey]);
-        }
-        map_element.innerHTML = mapHtml;
-    };
-    /**
-	 * Generates an HTML Row for the Map
-	 * @param {Array} rowValues	Contains an Array of Values
-	 */
-    var GenerateRow = function(rowValues) {
-        var rowHtml = "<div class='row'>";
-        for (var columnKey in rowValues) {
-            rowHtml += GenerateCell(rowValues[columnKey]);
-        }
-        rowHtml += "</div>";
-        return rowHtml;
-    };
-    /**
-	 * Generates an HTML Cell for the Map
-	 * @param {integer} cellValue Cell Value
-	 */
-    var GenerateCell = function(cellValue) {
-        var responsibleTerrains = mainMap.GetLayersFromValue(cellValue);
-        Commons.Log("Terrains For Cell Value : " + cellValue, responsibleTerrains, Commons.validLogKeys.mapRenderLogKey);
-        var terrainKey = "no-cell";
-        for (var key in responsibleTerrains) {
-            if (responsibleTerrains[key].IsRegularTerrain() === true) {
-                terrainKey = responsibleTerrains[key].getData().terrainKey;
-                break;
-            }
-        }
-        var html = "";
-        html += "<div class='cell " + terrainKey + " ";
-        html += "data-value='" + cellValue + "' ";
-        html += "'>";
-        html += "</div>";
-        return html;
-    };
-}

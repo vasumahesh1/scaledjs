@@ -45,7 +45,7 @@ Commons.Log = function (message, logObject, tag) {
  */
 Commons.Warn = function (message) {
 	if (this.debug === true) {
-		console.warn("[ScaledGen - Stage Change] " + message);
+		console.warn("[ScaledGen - Warning] " + message);
 	}
 };
 

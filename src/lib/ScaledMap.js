@@ -93,8 +93,8 @@ var ScaledMap = function () {
 		}
 
 		// Descending Order Sort - based on the Count
-		minCountArray.sort(function (a, b) {
-			return b["count"] - a["count"];
+		minCountArray.sort(function (itemA, itemB) {
+			return itemB["count"] - itemA["count"];
 		});
 
 		var remainingSlots = 4;
@@ -123,7 +123,7 @@ var ScaledMap = function () {
 
 		// If free slots left. i.e. User has not given all 4 edge details
 		if (remainingSlots !== 0) {
-
+			var optionalKey = 0;
 			var totalOptional = 0;
 			var optionalArray = [];
 			var nonOptionalArray = [];
@@ -148,31 +148,36 @@ var ScaledMap = function () {
 			}
 
 			if (totalOptional > 100) {
-				console.warn("Please make sure your optional percentages are not over 100");
-			} else {
-				for (i = 0; i < remainingSlots; i++) {
-					// Getting a Random Slot from  0 to 3 with Exception of certain slots to Exclude
-					var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
-					slotsUsed.push(remainingValue);
+				Commons.Warn("Optional percentages are not over 100, Normalizing Values to 0 to 100 Range");
 
-					var randomPercent = Commons.Randomize(0, totalOptional);
-					var terrainToUse = null;
-					var found = false;
-					for (var optionalKey in optionalArray) {
-						if (randomPercent <= optionalArray[optionalKey]["cumulativePercent"]) {
-							found = true;
-							terrainToUse = optionalArray[optionalKey]["terrainKey"];
-							break;
-						}
-
-					}
-
-					if (found === false) {
-						terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainKey"];
-					}
-
-					startTerrainKeys[remainingValue] = terrainToUse;
+				for (optionalKey in optionalArray) {
+					optionalArray[optionalKey]["cumulativePercent"] = (optionalArray[optionalKey]["cumulativePercent"] / totalOptional) * 100;
 				}
+
+			}
+
+			for (i = 0; i < remainingSlots; i++) {
+				// Getting a Random Slot from  0 to 3 with Exception of certain slots to Exclude
+				var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
+				slotsUsed.push(remainingValue);
+
+				var randomPercent = Commons.Randomize(0, totalOptional);
+				var terrainToUse = null;
+				var found = false;
+				for (optionalKey in optionalArray) {
+					if (randomPercent <= optionalArray[optionalKey]["cumulativePercent"]) {
+						found = true;
+						terrainToUse = optionalArray[optionalKey]["terrainKey"];
+						break;
+					}
+
+				}
+
+				if (found === false) {
+					terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainKey"];
+				}
+
+				startTerrainKeys[remainingValue] = terrainToUse;
 			}
 		}
 
@@ -394,7 +399,7 @@ var ScaledMap = function () {
 		}
 
 		if ('type' in terrainObject) {
-			if(possibleTerrains.indexOf(terrainObject.type) !== -1) {
+			if (possibleTerrains.indexOf(terrainObject.type) !== -1) {
 				terrainData.SetType(terrainObject.type);
 			} else {
 				Commons.Error("Error Adding Terrain Type : " + terrainObject.type);
