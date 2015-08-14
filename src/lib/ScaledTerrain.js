@@ -13,7 +13,7 @@ var ScaledTerrain = function () {
 	var terrainGidInfo = -1;
 
 
-	this.CreateTerrain = function (_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
+	this.createTerrain = function (_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
 		this.terrainKey = _terrainKey;
 		terrainUpperValue = _terrainUpperValue;
 		terrainLowerValue = _terrainLowerValue;
@@ -21,37 +21,37 @@ var ScaledTerrain = function () {
 		terrainZLevel = _terrainZLevel;
 	};
 
-	this.SetStartingCondition = function (_terrainStartCount, _terrainStartPercent) {
+	this.setStartingCondition = function (_terrainStartCount, _terrainStartPercent) {
 		terrainStartPercent = _terrainStartPercent;
 		terrainStartCount = _terrainStartCount;
 	};
 
-	this.SetDefault = function () {
+	this.setDefault = function () {
 		terrainDefault = true;
 	};
 
-	this.SetType = function (_terrainType) {
+	this.setType = function (_terrainType) {
 		terrainType = _terrainType;
 	};
 
-	this.GetRandomTerrainValue = function () {
-		return Commons.Randomize(terrainLowerValue, terrainUpperValue);
+	this.getRandomTerrainValue = function () {
+		return Commons.randomize(terrainLowerValue, terrainUpperValue);
 	};
 
-	this.IsRegularTerrain = function () {
+	this.isRegularTerrain = function () {
 		if (terrainType == "terrain") {
 			return true;
 		}
 		return false;
 	};
 
-	this.SetValidation = function (minValue, maxValue) {
+	this.setValidation = function (minValue, maxValue) {
 		terrainValidationMinPercent = minValue;
 		terrainValidationMaxPercent = maxValue;
 	};
 
 
-	this.SetGidInfo = function (gidInfo) {
+	this.addTileInfo = function (gidInfo) {
 		terrainGidInfo = gidInfo;
 	};
 

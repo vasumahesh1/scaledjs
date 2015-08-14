@@ -3,11 +3,11 @@ var ScaledEdgeDetector = function (edgeSettings) {
 	var domination = edgeSettings.domination;
 	var domPriority = domination.dominationPriority;
 
-	var GetDominationValue = function (terrainKey) {
+	var getDominationValue = function (terrainKey) {
 		return domPriority.indexOf(terrainKey);
 	};
 
-	var GetDominationKey = function (dominationIndex) {
+	var getDominationKey = function (dominationIndex) {
 		return domPriority[dominationIndex];
 	};
 
@@ -30,10 +30,10 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		return a;
 	};
 
-	var NormalizeAdjacency = function (primaryValue, arrayValues) {
+	var normalizeAdjacency = function (primaryValue, arrayValues) {
 		var normalizedValues = [];
 		for (var key in arrayValues) {
-			if (arrayValues[key] !== -1 && GetDominationValue(arrayValues[key]) < GetDominationValue(primaryValue)) {
+			if (arrayValues[key] !== -1 && getDominationValue(arrayValues[key]) < getDominationValue(primaryValue)) {
 				normalizedValues.push(arrayValues[key]);
 			} else {
 				normalizedValues.push(primaryValue);
@@ -43,14 +43,14 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		return normalizedValues;
 	};
 
-	var GetLowestDomination = function (primaryValue, arrayValues) {
+	var getLowestDomination = function (primaryValue, arrayValues) {
 		var dominationValues = [];
 		var returnValue;
 		// var primaryDomination = primaryValue;
-		var primaryDominationValue = GetDominationValue(primaryValue);
+		var primaryDominationValue = getDominationValue(primaryValue);
 		for (var key in arrayValues) {
 			if (arrayValues[key] !== -1) {
-				var dominationValue = GetDominationValue(arrayValues[key]);
+				var dominationValue = getDominationValue(arrayValues[key]);
 				dominationValues.push(dominationValue);
 				// if (dominationValue < primaryDominationValue) {
 				// 	primaryDominationValue = dominationValue;
@@ -59,12 +59,12 @@ var ScaledEdgeDetector = function (edgeSettings) {
 			}
 
 		}
-		Commons.Log("Primary Value", primaryValue, Commons.validLogKeys.tmxRenderLogKey);
-		Commons.Log("Surroundings", arrayValues, Commons.validLogKeys.tmxRenderLogKey);
+		Commons.log("Primary Value", primaryValue, Commons.validLogKeys.tmxRenderLogKey);
+		Commons.log("Surroundings", arrayValues, Commons.validLogKeys.tmxRenderLogKey);
 
-		Commons.Log("Before Unique", dominationValues, Commons.validLogKeys.tmxRenderLogKey);
+		Commons.log("Before Unique", dominationValues, Commons.validLogKeys.tmxRenderLogKey);
 		dominationValues = getUnique(dominationValues);
-		Commons.Log("After Unique", dominationValues, Commons.validLogKeys.tmxRenderLogKey);
+		Commons.log("After Unique", dominationValues, Commons.validLogKeys.tmxRenderLogKey);
 
 		dominationValues.sort(sortDominationAscending);
 		var lowestDomination = Math.min.apply(null, dominationValues);
@@ -80,13 +80,13 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		}
 
 
-		Commons.Log("Returning", GetDominationKey(returnValue), Commons.validLogKeys.tmxRenderLogKey);
-		return GetDominationKey(returnValue);
+		Commons.log("Returning", getDominationKey(returnValue), Commons.validLogKeys.tmxRenderLogKey);
+		return getDominationKey(returnValue);
 
 	};
 
 
-	var GetAdjacentSimilarity = function (primaryValue, adjacentValues) {
+	var getAdjacentSimilarity = function (primaryValue, adjacentValues) {
 		var similarity = {
 			top: false,
 			left: false,
@@ -120,7 +120,7 @@ var ScaledEdgeDetector = function (edgeSettings) {
 	};
 
 
-	var GetDiagonalSimilarity = function (primaryValue, diagonalValues) {
+	var getDiagonalSimilarity = function (primaryValue, diagonalValues) {
 		var similarity = {
 			topLeft: false,
 			topRight: false,
@@ -153,43 +153,43 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		return similarity;
 	};
 
-	var AllSquareSidesSimilar = function (similarity) {
+	var allSquareSidesSimilar = function (similarity) {
 		if (similarity.top === true && similarity.left === true && similarity.right === true && similarity.bottom === true) {
 			return true;
 		}
 		return false;
 	};
 
-	this.ResolveTileValue = function (primaryValue, adjacentValues, diagonalValues) {
-		if (Commons.GetDefaultTerrain(terrains)
+	this.resolveTileValue = function (primaryValue, adjacentValues, diagonalValues) {
+		if (Commons.getDefaultTerrain(terrains)
 			.terrainKey == primaryValue) {
 			return [];
 		}
 
-		Commons.Log("Primary Cell Layer", primaryValue, Commons.validLogKeys.tmxRenderLogKey);
-		Commons.Log("Adjacent Values", adjacentValues, Commons.validLogKeys.tmxRenderLogKey);
-		Commons.Log("Diagonal Values", diagonalValues, Commons.validLogKeys.tmxRenderLogKey);
+		Commons.log("Primary Cell Layer", primaryValue, Commons.validLogKeys.tmxRenderLogKey);
+		Commons.log("Adjacent Values", adjacentValues, Commons.validLogKeys.tmxRenderLogKey);
+		Commons.log("Diagonal Values", diagonalValues, Commons.validLogKeys.tmxRenderLogKey);
 		var finalTiles = [];
-		var primaryTileInfo = Commons.GetTerrainByKey(terrains, primaryValue)
+		var primaryTileInfo = Commons.getTerrainByKey(terrains, primaryValue)
 			.getGidInfo();
 
 
-		var lowestDomination = GetLowestDomination(primaryValue, adjacentValues);
-		Commons.Log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
-		var lowestDominationTile = Commons.GetTerrainByKey(terrains, lowestDomination)
+		var lowestDomination = getLowestDomination(primaryValue, adjacentValues);
+		Commons.log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
+		var lowestDominationTile = Commons.getTerrainByKey(terrains, lowestDomination)
 			.getGidInfo()
 			.other.full;
 		finalTiles.push(lowestDominationTile);
 
 
-		var normalizedAdjacentValues = NormalizeAdjacency(primaryValue, adjacentValues);
-		var normalizedDiagonalValues = NormalizeAdjacency(primaryValue, diagonalValues);
+		var normalizedAdjacentValues = normalizeAdjacency(primaryValue, adjacentValues);
+		var normalizedDiagonalValues = normalizeAdjacency(primaryValue, diagonalValues);
 
-		var similarity = GetAdjacentSimilarity(primaryValue, normalizedAdjacentValues);
-		var diagonalSimilarity = GetDiagonalSimilarity(primaryValue, normalizedDiagonalValues);
-		Commons.Log("Similarity", similarity, Commons.validLogKeys.tmxRenderLogKey);
+		var similarity = getAdjacentSimilarity(primaryValue, normalizedAdjacentValues);
+		var diagonalSimilarity = getDiagonalSimilarity(primaryValue, normalizedDiagonalValues);
+		Commons.log("Similarity", similarity, Commons.validLogKeys.tmxRenderLogKey);
 		// All Similar or Not
-		if (AllSquareSidesSimilar(similarity) === true) {
+		if (allSquareSidesSimilar(similarity) === true) {
 			// All Similar
 			finalTiles.push(primaryTileInfo.other.full);
 
@@ -239,7 +239,7 @@ var ScaledEdgeDetector = function (edgeSettings) {
 
 		}
 
-		if (AllSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
+		if (allSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
 			if (diagonalSimilarity.topLeft === false) {
 				finalTiles.push(primaryTileInfo.enclosing.bottom.rightValue);
 			}
@@ -258,7 +258,7 @@ var ScaledEdgeDetector = function (edgeSettings) {
 
 
 
-		Commons.Log("Final Tiles", finalTiles, Commons.validLogKeys.tmxRenderLogKey);
+		Commons.log("Final Tiles", finalTiles, Commons.validLogKeys.tmxRenderLogKey);
 		return finalTiles;
 	};
 };

@@ -19,10 +19,10 @@ var ScaledMap = function () {
 	 * Gets the Percentage for a Particular Layer
 	 * @param {string}	layerKey	Contains the key associated to the layer
 	 */
-	var GetLayerPercentage = function (layerKey) {
+	var getLayerPercentage = function (layerKey) {
 		var selectedCount = 0;
 		var totalCount = rowSize * columnSize;
-		var terrainObject = Commons.GetTerrainByKey(terrains, layerKey);
+		var terrainObject = Commons.getTerrainByKey(terrains, layerKey);
 		for (var mapRow in mapValues) {
 			for (var mapColumn in mapValues) {
 				if (mapValues[mapRow][mapColumn] <= terrainObject.getData().terrainUpperValue && mapValues[mapRow][mapColumn] >= terrainObject.getData().terrainLowerValue) {
@@ -33,7 +33,7 @@ var ScaledMap = function () {
 
 		var percent = (selectedCount / totalCount) * 100;
 
-		Commons.Log(terrainObject.getData().terrainKey + " Percentage of Terrain", percent, Commons.validLogKeys.mapValidationLogKey);
+		Commons.log(terrainObject.getData().terrainKey + " Percentage of Terrain", percent, Commons.validLogKeys.mapValidationLogKey);
 
 		return percent;
 	};
@@ -41,7 +41,7 @@ var ScaledMap = function () {
 	/**
 	 * Initializes the Map
 	 */
-	var Init = function () {
+	var init = function () {
 		if (isInited === false) {
 			if (hasDefaultTerrain === false) {
 				terrains[0].SetDefault();
@@ -54,7 +54,7 @@ var ScaledMap = function () {
 				}
 				mapValues.push(tempArray);
 			}
-			Commons.Log("Map Values Empty", mapValues, Commons.validLogKeys.mapInitializeLogKey);
+			Commons.log("Map Values Empty", mapValues, Commons.validLogKeys.mapInitializeLogKey);
 			isInited = true;
 		}
 	};
@@ -63,7 +63,7 @@ var ScaledMap = function () {
 	/**
 	 * Initializes the Starting Conditions of the Map
 	 */
-	var InitStartingConditions = function () {
+	var initStartingConditions = function () {
 
 		// Init Global Vars - Important If the Generation is Re Done
 		startTerrainKeys = ["", "", "", ""];
@@ -74,8 +74,8 @@ var ScaledMap = function () {
 
 		// Get Valid Terrains
 		// i.e. Main Terrains Only
-		var regularTerrains = Commons.GetMainTerrains(terrains);
-		Commons.Log("Regular Terrains", regularTerrains, Commons.validLogKeys.mapInitializeLogKey);
+		var regularTerrains = Commons.getMainTerrains(terrains);
+		Commons.log("Regular Terrains", regularTerrains, Commons.validLogKeys.mapInitializeLogKey);
 
 		/* 
 		 * Store Terrains whose 'minCount' has been specified
@@ -109,7 +109,7 @@ var ScaledMap = function () {
 			 */
 			for (var minKey in minCountArray) {
 				for (j = 0; j < minCountArray[minKey]["count"]; j++) {
-					var value = Commons.RandomizeWithException(0, 3, slotsUsed);
+					var value = Commons.randomizeWithException(0, 3, slotsUsed);
 					slotsUsed.push(value);
 					startTerrainKeys[value] = minCountArray[minKey]["terrainKey"];
 				}
@@ -119,7 +119,7 @@ var ScaledMap = function () {
 			console.warn("Cannot have more than 4 starting conditions as a Rectangular map has only 4 vertices");
 		}
 
-		Commons.Log("Empty Non Optional Slots to Use", remainingSlots, Commons.validLogKeys.mapInitializeLogKey);
+		Commons.log("Empty Non Optional Slots to Use", remainingSlots, Commons.validLogKeys.mapInitializeLogKey);
 
 		// If free slots left. i.e. User has not given all 4 edge details
 		if (remainingSlots !== 0) {
@@ -148,7 +148,7 @@ var ScaledMap = function () {
 			}
 
 			if (totalOptional > 100) {
-				Commons.Warn("Optional percentages are not over 100, Normalizing Values to 0 to 100 Range");
+				Commons.warn("Optional percentages are not over 100, Normalizing Values to 0 to 100 Range");
 
 				for (optionalKey in optionalArray) {
 					optionalArray[optionalKey]["cumulativePercent"] = (optionalArray[optionalKey]["cumulativePercent"] / totalOptional) * 100;
@@ -158,10 +158,10 @@ var ScaledMap = function () {
 
 			for (i = 0; i < remainingSlots; i++) {
 				// Getting a Random Slot from  0 to 3 with Exception of certain slots to Exclude
-				var remainingValue = Commons.RandomizeWithException(0, 3, slotsUsed);
+				var remainingValue = Commons.randomizeWithException(0, 3, slotsUsed);
 				slotsUsed.push(remainingValue);
 
-				var randomPercent = Commons.Randomize(0, totalOptional);
+				var randomPercent = Commons.randomize(0, totalOptional);
 				var terrainToUse = null;
 				var found = false;
 				for (optionalKey in optionalArray) {
@@ -174,28 +174,28 @@ var ScaledMap = function () {
 				}
 
 				if (found === false) {
-					terrainToUse = Commons.RandomizeInArray(nonOptionalArray)["terrainKey"];
+					terrainToUse = Commons.randomizeInArray(nonOptionalArray)["terrainKey"];
 				}
 
 				startTerrainKeys[remainingValue] = terrainToUse;
 			}
 		}
 
-		Commons.Log("Start Terrain Keys", startTerrainKeys, Commons.validLogKeys.mapInitializeLogKey);
+		Commons.log("Start Terrain Keys", startTerrainKeys, Commons.validLogKeys.mapInitializeLogKey);
 
 		for (var startTerrainKey in startTerrainKeys) {
-			var terrainObject = Commons.GetTerrainByKey(terrains, startTerrainKeys[startTerrainKey]);
-			startTerrainValues.push(terrainObject.GetRandomTerrainValue());
+			var terrainObject = Commons.getTerrainByKey(terrains, startTerrainKeys[startTerrainKey]);
+			startTerrainValues.push(terrainObject.getRandomTerrainValue());
 		}
 
-		Commons.Log("Start Terrain Values", startTerrainValues, Commons.validLogKeys.mapInitializeLogKey);
+		Commons.log("Start Terrain Values", startTerrainValues, Commons.validLogKeys.mapInitializeLogKey);
 
 		mapValues[0][0] = startTerrainValues[0];
 		mapValues[0][columnSize - 1] = startTerrainValues[1];
 		mapValues[rowSize - 1][0] = startTerrainValues[2];
 		mapValues[rowSize - 1][columnSize - 1] = startTerrainValues[3];
 
-		Commons.Log("Map Values After Starting Values", mapValues, Commons.validLogKeys.mapInitializeLogKey);
+		Commons.log("Map Values After Starting Values", mapValues, Commons.validLogKeys.mapInitializeLogKey);
 
 	};
 
@@ -203,9 +203,9 @@ var ScaledMap = function () {
 	/**
 	 * Does a Final Clean up of the map values.
 	 */
-	var PostGenerationCleanUp = function () {
-		var maxTerrainValue = Commons.GetTerrainMaximum(terrains).getData().terrainUpperValue;
-		var minTerrainValue = Commons.GetTerrainMinimum(terrains).getData().terrainLowerValue;
+	var postGenerationCleanUp = function () {
+		var maxTerrainValue = Commons.getTerrainMaximum(terrains).getData().terrainUpperValue;
+		var minTerrainValue = Commons.getTerrainMinimum(terrains).getData().terrainLowerValue;
 
 		for (var mapRow in mapValues) {
 			for (var mapColumn in mapValues) {
@@ -225,7 +225,7 @@ var ScaledMap = function () {
 	/**
 	 * Does a Clean Up before the Generation
 	 */
-	var PreGenerationCleanUp = function () {
+	var preGenerationCleanUp = function () {
 		if (mapValidityReports.length !== 0) {
 
 		}
@@ -240,24 +240,24 @@ var ScaledMap = function () {
 	 * @return {Array}		mapValues 	Final Modified Map
 	 */
 	var diamondSquare = function (boxSize, repairSalt) {
-		Commons.Warn("Diamond Step Starting");
+		Commons.warn("Diamond Step Starting");
 		diamondStep(boxSize / 2, boxSize / 2, boxSize, repairSalt);
-		Commons.Warn("Square Step Starting");
+		Commons.warn("Square Step Starting");
 		squareStep(boxSize / 2, boxSize / 2, boxSize, repairSalt);
 	};
 
 	var diamondStep = function (posX, posY, boxSize, repairSalt) {
 
-		//Commons.Log("MAP VALUES BEFORE STEP", mapValues, Commons.validLogKeys.diamondSquareLogKey);
+		//Commons.log("MAP VALUES BEFORE STEP", mapValues, Commons.validLogKeys.diamondSquareLogKey);
 
 
 		var halfBoxSize = Math.floor(boxSize / 2);
 		var quartBoxSize = Math.floor(halfBoxSize / 2);
 
-		Commons.Log("HalfBoxSize", halfBoxSize, Commons.validLogKeys.diamondSquareLogKey);
-		Commons.Log("QuarterBoxSize", quartBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+		Commons.log("HalfBoxSize", halfBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+		Commons.log("QuarterBoxSize", quartBoxSize, Commons.validLogKeys.diamondSquareLogKey);
 
-		Commons.Log(
+		Commons.log(
 			"Getting Average of", [
 				"[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
 				"[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
@@ -269,14 +269,14 @@ var ScaledMap = function () {
 
 
 
-		mapValues[posX][posY] = Commons.GetAverage([
+		mapValues[posX][posY] = Commons.getAverage([
 			mapValues[posX - halfBoxSize][posY - halfBoxSize],
 			mapValues[posX - halfBoxSize][posY + halfBoxSize],
 			mapValues[posX + halfBoxSize][posY - halfBoxSize],
 			mapValues[posX + halfBoxSize][posY + halfBoxSize],
 		]);
 
-		Commons.Log("Value of Center [" + posX + "][" + posY + "]", mapValues[posX][posY], Commons.validLogKeys.diamondSquareLogKey);
+		Commons.log("Value of Center [" + posX + "][" + posY + "]", mapValues[posX][posY], Commons.validLogKeys.diamondSquareLogKey);
 		if (halfBoxSize >= 2) {
 			diamondStep(posX - quartBoxSize, posY - quartBoxSize, halfBoxSize, repairSalt);
 			diamondStep(posX + quartBoxSize, posY - quartBoxSize, halfBoxSize, repairSalt);
@@ -289,10 +289,10 @@ var ScaledMap = function () {
 		var halfBoxSize = Math.floor(boxSize / 2);
 		var quartBoxSize = Math.floor(halfBoxSize / 2);
 
-		Commons.Log("HalfBoxSize", halfBoxSize, Commons.validLogKeys.diamondSquareLogKey);
-		Commons.Log("QuarterBoxSize", quartBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+		Commons.log("HalfBoxSize", halfBoxSize, Commons.validLogKeys.diamondSquareLogKey);
+		Commons.log("QuarterBoxSize", quartBoxSize, Commons.validLogKeys.diamondSquareLogKey);
 
-		Commons.Log(
+		Commons.log(
 			"Getting Average of", [
 				"[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
 				"[" + (posX) + "],[" + (posY) + "]",
@@ -301,16 +301,16 @@ var ScaledMap = function () {
 			],
 			Commons.validLogKeys.diamondSquareLogKey
 		);
-		mapValues[posX - halfBoxSize][posY] = Commons.GetAverage([
-			Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
-			Commons.TryGetArrayValue(mapValues, posX, posY),
-			Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
-			Commons.TryGetArrayValue(mapValues, posX - boxSize, posY)
-		]) + Commons.RandomizePlusMinus(0, 5);
-		Commons.Log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], Commons.validLogKeys.diamondSquareLogKey);
+		mapValues[posX - halfBoxSize][posY] = Commons.getAverage([
+			Commons.tryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
+			Commons.tryGetArrayValue(mapValues, posX, posY),
+			Commons.tryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
+			Commons.tryGetArrayValue(mapValues, posX - boxSize, posY)
+		]) + Commons.randomizePlusMinus(0, 5);
+		Commons.log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], Commons.validLogKeys.diamondSquareLogKey);
 
 
-		Commons.Log(
+		Commons.log(
 			"Getting Average of", [
 				"[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
 				"[" + (posX) + "],[" + (posY) + "]",
@@ -319,16 +319,16 @@ var ScaledMap = function () {
 			],
 			Commons.validLogKeys.diamondSquareLogKey
 		);
-		mapValues[posX + halfBoxSize][posY] = Commons.GetAverage([
-			Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
-			Commons.TryGetArrayValue(mapValues, posX, posY),
-			Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
-			Commons.TryGetArrayValue(mapValues, posX + boxSize, posY)
-		]) + Commons.RandomizePlusMinus(0, 5);
-		Commons.Log("Value of [" + (posX + halfBoxSize) + "][" + posY + "]", mapValues[posX + halfBoxSize][posY]);
+		mapValues[posX + halfBoxSize][posY] = Commons.getAverage([
+			Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
+			Commons.tryGetArrayValue(mapValues, posX, posY),
+			Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
+			Commons.tryGetArrayValue(mapValues, posX + boxSize, posY)
+		]) + Commons.randomizePlusMinus(0, 5);
+		Commons.log("Value of [" + (posX + halfBoxSize) + "][" + posY + "]", mapValues[posX + halfBoxSize][posY]);
 
 
-		Commons.Log(
+		Commons.log(
 			"Getting Average of", [
 				"[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
 				"[" + (posX) + "],[" + (posY) + "]",
@@ -336,16 +336,16 @@ var ScaledMap = function () {
 				"[" + (posX) + "],[" + (posY - boxSize) + "]"
 			],
 			Commons.validLogKeys.diamondSquareLogKey);
-		mapValues[posX][posY - halfBoxSize] = Commons.GetAverage([
-			Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
-			Commons.TryGetArrayValue(mapValues, posX, posY),
-			Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
-			Commons.TryGetArrayValue(mapValues, posX, posY - boxSize)
-		]) + Commons.RandomizePlusMinus(0, 5);
-		Commons.Log("Value of [" + (posX) + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
+		mapValues[posX][posY - halfBoxSize] = Commons.getAverage([
+			Commons.tryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
+			Commons.tryGetArrayValue(mapValues, posX, posY),
+			Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
+			Commons.tryGetArrayValue(mapValues, posX, posY - boxSize)
+		]) + Commons.randomizePlusMinus(0, 5);
+		Commons.log("Value of [" + (posX) + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
 
 
-		Commons.Log(
+		Commons.log(
 			"Getting Average of", [
 				"[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
 				"[" + (posX) + "],[" + (posY) + "]",
@@ -354,16 +354,16 @@ var ScaledMap = function () {
 			],
 			Commons.validLogKeys.diamondSquareLogKey
 		);
-		mapValues[posX][posY + halfBoxSize] = Commons.GetAverage([
-			Commons.TryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
-			Commons.TryGetArrayValue(mapValues, posX, posY),
-			Commons.TryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
-			Commons.TryGetArrayValue(mapValues, posX, posY + boxSize)
-		]) + Commons.RandomizePlusMinus(0, 5);
-		Commons.Log("Value of [" + (posX) + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
+		mapValues[posX][posY + halfBoxSize] = Commons.getAverage([
+			Commons.tryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
+			Commons.tryGetArrayValue(mapValues, posX, posY),
+			Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
+			Commons.tryGetArrayValue(mapValues, posX, posY + boxSize)
+		]) + Commons.randomizePlusMinus(0, 5);
+		Commons.log("Value of [" + (posX) + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
 
 
-		//Commons.Log("MAP VALUES AFTER STEP", mapValues, Commons.validLogKeys.diamondSquareLogKey);
+		//Commons.log("MAP VALUES AFTER STEP", mapValues, Commons.validLogKeys.diamondSquareLogKey);
 
 		if (halfBoxSize >= 2) {
 			squareStep(posX - quartBoxSize, posY - quartBoxSize, halfBoxSize, repairSalt);
@@ -381,36 +381,36 @@ var ScaledMap = function () {
 	 * @param {integer}	rowSize Size of the Row
 	 * @param {integer} columnSize Size of the Column
 	 */
-	this.SetDimensions = function (_rowSize, _columnSize) {
+	this.setDimensions = function (_rowSize, _columnSize) {
 		rowSize = _rowSize;
 		columnSize = _columnSize;
 	};
 
 	/**
 	 * Adds a Scaled Terrain Object to a Map Instance
-	 * @param {object}	terrainObject	Object containing information about the terrain
+	 * @param {object}	terrainObject	object containing information about the terrain
 	 */
-	this.AddTerrain = function (terrainObject) {
+	this.addTerrain = function (terrainObject) {
 		var terrainData = new ScaledTerrain();
 		if ('zLevel' in terrainObject) {
-			terrainData.CreateTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, terrainObject.zLevel);
+			terrainData.createTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, terrainObject.zLevel);
 		} else {
-			terrainData.CreateTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, 0);
+			terrainData.createTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, 0);
 		}
 
 		if ('type' in terrainObject) {
 			if (possibleTerrains.indexOf(terrainObject.type) !== -1) {
-				terrainData.SetType(terrainObject.type);
+				terrainData.setType(terrainObject.type);
 			} else {
-				Commons.Error("Error Adding Terrain Type : " + terrainObject.type);
+				Commons.error("Error Adding Terrain Type : " + terrainObject.type);
 			}
 		}
 
 		if ('default' in terrainObject && hasDefaultTerrain === false) {
 			hasDefaultTerrain = true;
-			terrainData.SetDefault();
+			terrainData.setDefault();
 		}
-		Commons.Log("Adding Terrain", terrainData.getData(), Commons.validLogKeys.mapInitializeLogKey);
+		Commons.log("Adding Terrain", terrainData.getData(), Commons.validLogKeys.mapInitializeLogKey);
 		terrains.push(terrainData);
 	};
 
@@ -418,9 +418,9 @@ var ScaledMap = function () {
 	 * Assigns Starting Condition to a Particular Layer
 	 * @param {object}	conditionObject Object containing information about the starting condition
 	 */
-	this.AddStartingCondition = function (conditionObject) {
-		var terrainObject = Commons.GetTerrainByKey(terrains, conditionObject["terrainKey"]);
-		terrainObject.SetStartingCondition(conditionObject["minCount"], conditionObject["optionalPercent"]);
+	this.addStartingCondition = function (conditionObject) {
+		var terrainObject = Commons.getTerrainByKey(terrains, conditionObject["terrainKey"]);
+		terrainObject.setStartingCondition(conditionObject["minCount"], conditionObject["optionalPercent"]);
 	};
 
 
@@ -428,7 +428,7 @@ var ScaledMap = function () {
 	 * Assigns a Validation Rule to a Particular Layer
 	 * @param {object} Object containing information about the rule
 	 */
-	this.AddValidationRule = function (ruleObject) {
+	this.addValidationRule = function (ruleObject) {
 		var terrainKey = ruleObject["terrainKey"];
 		var minValue = -1;
 		var maxValue = -1;
@@ -441,7 +441,7 @@ var ScaledMap = function () {
 			maxValue = ruleObject["maxPercent"];
 		}
 
-		Commons.GetTerrainByKey(terrains, terrainKey).SetValidation(minValue, maxValue);
+		Commons.getTerrainByKey(terrains, terrainKey).setValidation(minValue, maxValue);
 	};
 
 
@@ -449,22 +449,22 @@ var ScaledMap = function () {
 	 * Adds GID Information about the Specified Terrain
 	 * @param {object} Object containing information about GID & Terrain Key
 	 */
-	this.AddGidInfo = function (gidObject) {
+	this.addTileInfo = function (gidObject) {
 		var terrainKey = gidObject["terrainKey"];
 		var gidData = gidObject["gidData"];
 
 
-		Commons.GetTerrainByKey(terrains, terrainKey).SetGidInfo(gidData);
+		Commons.getTerrainByKey(terrains, terrainKey).addTileInfo(gidData);
 	};
 
 	/**
 	 * Checks the Validity of the Main Terrains. Based on the Validation Rules set.
 	 */
-	this.CheckRegularTerrainValidity = function () {
-		var regularTerrains = Commons.GetMainTerrains(terrains);
+	this.checkRegularTerrainValidity = function () {
+		var regularTerrains = Commons.getMainTerrains(terrains);
 		var validStatus = true;
 		for (var key in regularTerrains) {
-			var percent = GetLayerPercentage(regularTerrains[key].terrainKey);
+			var percent = getLayerPercentage(regularTerrains[key].terrainKey);
 			var validityReport = null;
 			if (regularTerrains[key].terrainValidationMinPercent != -1) {
 				if (percent < regularTerrains[key].terrainValidationMinPercent) {
@@ -485,7 +485,7 @@ var ScaledMap = function () {
 			}
 		}
 
-		Commons.Log("Validity Reports", mapValidityReports, Commons.validLogKeys.mapValidationLogKey);
+		Commons.log("Validity Reports", mapValidityReports, Commons.validLogKeys.mapValidationLogKey);
 
 		return validStatus;
 	};
@@ -495,24 +495,24 @@ var ScaledMap = function () {
 	/**
 	 * Main Function invoked to Generate the Map from scratch.
 	 */
-	this.GenerateMapValues = function () {
-		Commons.Warn("Map Init Starting");
-		Commons.Log("Terrains Before Map Generation", terrains, Commons.validLogKeys.mapInitializeLogKey);
-		Init();
-		InitStartingConditions();
-		Commons.Warn("Pre Generation Clean Up");
-		PreGenerationCleanUp();
-		Commons.Warn("Diamond Square Algorithm Starting");
+	this.generateMapValues = function () {
+		Commons.warn("Map Init Starting");
+		Commons.log("Terrains Before Map Generation", terrains, Commons.validLogKeys.mapInitializeLogKey);
+		init();
+		initStartingConditions();
+		Commons.warn("Pre Generation Clean Up");
+		preGenerationCleanUp();
+		Commons.warn("Diamond Square Algorithm Starting");
 		diamondSquare(rowSize - 1, null);
-		Commons.Warn("Post Generation Clean Up");
-		PostGenerationCleanUp();
+		Commons.warn("Post Generation Clean Up");
+		postGenerationCleanUp();
 	};
 
 	/**
 	 * Specifies the List of layers to which the particular Cell Value belongs to
 	 * @param {double}	terrainValue   Value of the Cell
 	 */
-	this.GetLayersFromValue = function (terrainValue) {
+	this.getLayersFromValue = function (terrainValue) {
 		var selectedTerrains = [];
 		for (var key in terrains) {
 			if (terrains[key].getData().terrainUpperValue >= terrainValue && terrains[key].getData().terrainLowerValue <= terrainValue) {
@@ -526,13 +526,13 @@ var ScaledMap = function () {
 	/**
 	 * Gets a Normalized Version of the Map
 	 */
-	this.GetNormalizedMap = function () {
+	this.getNormalizedMap = function () {
 		for (var rowKey in mapValues) {
 			var tempRow = [];
 			for (var columnKey in mapValues[rowKey]) {
-				var responsibleTerrains = this.GetLayersFromValue(mapValues[rowKey][columnKey]);
+				var responsibleTerrains = this.getLayersFromValue(mapValues[rowKey][columnKey]);
 				for (var key in responsibleTerrains) {
-					if (responsibleTerrains[key].IsRegularTerrain() === true) {
+					if (responsibleTerrains[key].isRegularTerrain() === true) {
 						terrainKey = responsibleTerrains[key].getData().terrainKey;
 						break;
 					}
@@ -548,8 +548,8 @@ var ScaledMap = function () {
 	/**
 	 * Gets Settings Data for ScaledTmx
 	 */
-	this.GetTmxSettings = function () {
-		this.GetNormalizedMap();
+	this.getTmxSettings = function () {
+		this.getNormalizedMap();
 		var returnObject = {
 			mapValues: mapValuesNormalized,
 			terrains: terrains
@@ -562,7 +562,7 @@ var ScaledMap = function () {
 	/**
 	 * Main Function invoked to Generate the Map from scratch.
 	 */
-	this.GetMapValues = function () {
+	this.getMapValues = function () {
 		return mapValues;
 	};
 

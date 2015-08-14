@@ -38,30 +38,30 @@ var ScaledTmxGen = function (settingsData) {
 	edgeHandler = new ScaledEdgeDetector(edgeHandlerSettings);
 
 
-	var GetAdjacentValues = function (posX, posY) {
+	var getAdjacentValues = function (posX, posY) {
 		var points = [];
 		posX = parseInt(posX);
 		posY = parseInt(posY);
-		points.push(Commons.TryGetArrayValue(mapValues, posX - 1, posY));
-		points.push(Commons.TryGetArrayValue(mapValues, posX, posY + 1));
-		points.push(Commons.TryGetArrayValue(mapValues, posX + 1, posY));
-		points.push(Commons.TryGetArrayValue(mapValues, posX, posY - 1));
+		points.push(Commons.tryGetArrayValue(mapValues, posX - 1, posY));
+		points.push(Commons.tryGetArrayValue(mapValues, posX, posY + 1));
+		points.push(Commons.tryGetArrayValue(mapValues, posX + 1, posY));
+		points.push(Commons.tryGetArrayValue(mapValues, posX, posY - 1));
 		return points;
 	};
 
-	var GetDiagonalValues = function (posX, posY) {
+	var getDiagonalValues = function (posX, posY) {
 		var points = [];
 		posX = parseInt(posX);
 		posY = parseInt(posY);
-		points.push(Commons.TryGetArrayValue(mapValues, posX - 1, posY - 1));
-		points.push(Commons.TryGetArrayValue(mapValues, posX - 1, posY + 1));
-		points.push(Commons.TryGetArrayValue(mapValues, posX + 1, posY + 1));
-		points.push(Commons.TryGetArrayValue(mapValues, posX + 1, posY - 1));
+		points.push(Commons.tryGetArrayValue(mapValues, posX - 1, posY - 1));
+		points.push(Commons.tryGetArrayValue(mapValues, posX - 1, posY + 1));
+		points.push(Commons.tryGetArrayValue(mapValues, posX + 1, posY + 1));
+		points.push(Commons.tryGetArrayValue(mapValues, posX + 1, posY - 1));
 
 		return points;
 	};
 
-	var CreateEmptyLayer = function () {
+	var createEmptyLayer = function () {
 		var tempMap = [];
 		for (var rowKey in mapValues) {
 			var tempRow = [];
@@ -75,8 +75,8 @@ var ScaledTmxGen = function (settingsData) {
 	};
 
 
-	var InitLayeredMap = function () {
-		var defautGidValue = Commons.GetDefaultTerrain(terrains)
+	var initLayeredMap = function () {
+		var defautGidValue = Commons.getDefaultTerrain(terrains)
 			.getGidInfo()
 			.other.full;
 		var tempMap = [];
@@ -91,7 +91,7 @@ var ScaledTmxGen = function (settingsData) {
 		mapValuesTmx.push(tempMap);
 	};
 
-	var ValueExists = function (value, posX, posY) {
+	var valueExists = function (value, posX, posY) {
 		for (var layerKey in mapValuesTmx) {
 			if (mapValuesTmx[layerKey][posX][posY] == value) {
 				return true;
@@ -101,7 +101,7 @@ var ScaledTmxGen = function (settingsData) {
 		return false;
 	};
 
-	var GetLayerLevelForInsert = function (posX, posY) {
+	var getLayerLevelForInsert = function (posX, posY) {
 		for (var layerKey in mapValuesTmx) {
 			if (mapValuesTmx[layerKey][posX][posY] === BLANK_GID_VALUE) {
 				return layerKey;
@@ -112,22 +112,22 @@ var ScaledTmxGen = function (settingsData) {
 	};
 
 
-	var InsertTilesIntoMap = function (tileValues, posX, posY) {
+	var insertTilesIntoMap = function (tileValues, posX, posY) {
 		if (mapValuesTmx.length === 1) {
-			CreateEmptyLayer();
+			createEmptyLayer();
 		}
 		posX = parseInt(posX);
 		posY = parseInt(posY);
 
 		for (var key in tileValues) {
 			var currentValue = tileValues[key];
-			if (ValueExists(currentValue, posX, posY) === false) {
-				var layerLevel = GetLayerLevelForInsert(posX, posY);
+			if (valueExists(currentValue, posX, posY) === false) {
+				var layerLevel = getLayerLevelForInsert(posX, posY);
 				if (layerLevel !== -1) {
 					mapValuesTmx[layerLevel][posX][posY] = currentValue;
 				} else {
 					var nextLevel = mapValuesTmx.length;
-					CreateEmptyLayer();
+					createEmptyLayer();
 					mapValuesTmx[nextLevel][posX][posY] = currentValue;
 				}
 			}
@@ -136,63 +136,63 @@ var ScaledTmxGen = function (settingsData) {
 	};
 
 
-	var StartNewLayer = function (layerIndex) {
+	var startNewLayer = function (layerIndex) {
 		templateString += '<layer name="layer_' + layerIndex + '" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '">';
 		templateString += '<data>';
 	};
 
 
-	var EndNewLayer = function () {
+	var endNewLayer = function () {
 		templateString += '</data>';
 		templateString += '</layer>';
 	};
 
-	var AppendTileRow = function (gidValue) {
+	var appendTileRow = function (gidValue) {
 		templateString += "<tile gid=\"" + gidValue + "\" />";
 	};
 
-	this.GenerateMapTmx = function () {
-		Commons.Warn("TMX - Generating Layered Map");
-		this.GenerateLayeredMap();
-		// Commons.Warn("TMX - Fixing Layer Borders");
-		// this.FixLayerBorders();
-		Commons.Warn("TMX - Generating Map XML");
-		this.GenerateMapXml();
+	this.generateMapTmx = function () {
+		Commons.warn("TMX - Generating Layered Map");
+		this.generateLayeredMap();
+		// Commons.warn("TMX - Fixing Layer Borders");
+		// this.fixLayerBorders();
+		Commons.warn("TMX - Generating Map XML");
+		this.generateMapXml();
 	};
 
-	this.GetTmxXml = function () {
+	this.getTmxXml = function () {
 		return templateString;
 	};
 
 
-	this.GenerateLayeredMap = function () {
-		InitLayeredMap();
+	this.generateLayeredMap = function () {
+		initLayeredMap();
 		for (var rowKey in mapValues) {
 			for (var columnKey in mapValues[rowKey]) {
-				Commons.Log("Primary Pos", rowKey + ',' + columnKey, Commons.validLogKeys.tmxRenderLogKey);
-				var adjacentInfo = GetAdjacentValues(rowKey, columnKey);
-				var diagonalInfo = GetDiagonalValues(rowKey, columnKey);
-				var tileValues = edgeHandler.ResolveTileValue(mapValues[rowKey][columnKey], adjacentInfo, diagonalInfo);
-				InsertTilesIntoMap(tileValues, rowKey, columnKey);
+				Commons.log("Primary Pos", rowKey + ',' + columnKey, Commons.validLogKeys.tmxRenderLogKey);
+				var adjacentInfo = getAdjacentValues(rowKey, columnKey);
+				var diagonalInfo = getDiagonalValues(rowKey, columnKey);
+				var tileValues = edgeHandler.resolveTileValue(mapValues[rowKey][columnKey], adjacentInfo, diagonalInfo);
+				insertTilesIntoMap(tileValues, rowKey, columnKey);
 			}
 		}
 	};
 
-	this.FixLayerBorders = function () {
+	this.fixLayerBorders = function () {
 		for (var rowKey in mapValuesTmx[0]) {
 			for (var columnKey in mapValuesTmx[0][rowKey]) {
 				// Irrespective of Layers
-				this.FixBorderAtCell(rowKey, columnKey);
+				this.fixBorderAtCell(rowKey, columnKey);
 			}
 		}
 	};
 
-	this.FixBorderAtCell = function (posX, posY) {
+	this.fixBorderAtCell = function (posX, posY) {
 
 	};
 
 
-	this.GenerateMapXml = function () {
+	this.generateMapXml = function () {
 
 		templateString += '<?xml version="1.0" encoding="UTF-8"?>';
 		templateString += '<map version="1.0" orientation="orthogonal" renderorder="left-up" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '" tilewidth="' + tilesetObject.tileWidth + '" tileheight="' + tilesetObject.tileHeight + '" nextobjectid="1">';
@@ -201,14 +201,14 @@ var ScaledTmxGen = function (settingsData) {
 		templateString += '</tileset>';
 
 		for (var layerKey in mapValuesTmx) {
-			StartNewLayer(layerKey);
+			startNewLayer(layerKey);
 
 			for (var rowKey in mapValuesTmx[layerKey]) {
 				for (var columnKey in mapValuesTmx[layerKey][rowKey]) {
-					AppendTileRow(mapValuesTmx[layerKey][rowKey][columnKey]);
+					appendTileRow(mapValuesTmx[layerKey][rowKey][columnKey]);
 				}
 			}
-			EndNewLayer();
+			endNewLayer();
 		}
 		templateString += '</map>';
 	};

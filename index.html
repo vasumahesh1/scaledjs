@@ -12,11 +12,11 @@ var generator = new ScaledGen({
 });
 
 // Set the Map Size you want to Generate
-generator.SetMapSize(17,17);
+generator.setMapSize(17,17);
 
 
 // Add Terrains that meet your needs
-generator.AddTerrain({
+generator.addTerrain({
 	key : 'layer_water',
 	label : 'Water',
 	max : 30,
@@ -24,14 +24,14 @@ generator.AddTerrain({
 	default : true
 });
 
-generator.AddTerrain({
+generator.addTerrain({
 	key : 'layer_plain',
 	label : 'Plain',
 	max : 65,
 	min : 30
 });
 
-generator.AddTerrain({
+generator.addTerrain({
 	key : 'layer_trees',
 	label : 'Trees',
 	max : 65,
@@ -39,7 +39,7 @@ generator.AddTerrain({
 	type : "decoration"
 });
 
-generator.AddTerrain({
+generator.addTerrain({
 	key : 'layer_snow',
 	label : 'Snow',
 	max : 100,
@@ -49,19 +49,19 @@ generator.AddTerrain({
 
 // Define How the Map will look by specifying the 
 // Starting Condition of the map
-generator.AddStartingCondition({
+generator.addStartingCondition({
 	terrainKey: 'layer_water', 
 	minCount: 1,
 	optionalPercent: 25
 });
 
-generator.AddStartingCondition({
+generator.addStartingCondition({
 	terrainKey: 'layer_plain', 
 	minCount: 1,
 	optionalPercent: 35
 });
 
-generator.AddStartingCondition({
+generator.addStartingCondition({
 	terrainKey: 'layer_snow', 
 	minCount: 1,
 	optionalPercent: 20
@@ -71,7 +71,7 @@ generator.AddStartingCondition({
 // Define Validation Rules
 // So that the Generator will only generate a Map that
 // meets the Rules you have given
-generator.AddValidationRule({
+generator.addValidationRule({
 	terrainKey : 'layer_water',
 	minPercent : 5
 });
@@ -79,7 +79,7 @@ generator.AddValidationRule({
 
 // If you are generating Full TMX Map. Provide the GID Values (Explained Below)
 // for each Layer. Default Layers Need only one Data Provided the Full Tile image.
-generator.AddGidInfo({
+generator.addTileInfo({
 	terrainKey : 'layer_water',
 	gidData : {
 		other: {
@@ -90,7 +90,7 @@ generator.AddGidInfo({
 
 // This is how a regular layer will look like. You can provide textures for 
 // different types of Edges & intersections
-generator.AddGidInfo({
+generator.addTileInfo({
 	terrainKey : 'layer_plain',
 	gidData : {
 		enclosing: {
@@ -154,7 +154,7 @@ generator.AddGidInfo({
 });
 
 
-generator.AddGidInfo({
+generator.addTileInfo({
 	terrainKey : 'layer_snow',
 	gidData : {
 		enclosing: {
@@ -222,7 +222,7 @@ generator.AddGidInfo({
  * GID Info for Decoration Layers
  * Not Yet Active
  */
-// generator.AddGidInfo({
+// generator.addTileInfo({
 // 	terrainKey : 'layer_trees',
 // 	gidData : {
 // 		optionalPercent: 35,
@@ -251,12 +251,12 @@ generator.AddGidInfo({
 // Larger the Index the more Dominant it is.
 // Just make sure that The layer you want to stay at the top most, stays at the end of this Array
 //
-generator.AddLayerDomination({
+generator.addLayerDomination({
 	dominationPriority: ['layer_water', 'layer_plain', 'layer_snow']
 });
 
 // Tileset Information for the Tiled Map
-generator.AddTileset({
+generator.addTileset({
 	source: 'origin_tileset_3_layers.png',
 	height:160,
 	width:224,
@@ -265,19 +265,19 @@ generator.AddTileset({
 });
 
 // For Generating Only 2D Array of Values:
-// generator.GenerateMapValues();
-// var map = generator.GetMapValues();
+// generator.generateMapValues();
+// var map = generator.getMapValues();
 
 // Full Generation - Map Array -> 3D Layer -> TMX Map
 // Use this If you want full generation from Scratch without any Custom Breakpoints 
 // between the Generation Process
-generator.GenerateMap();
+generator.generateMap();
 
 // For Displaying Map: (Array Values)
-generator.RenderMapValues('map-container');
+generator.renderMapValues('map-container');
 
 // For Getting Final TMX Map
-var TMX_XML = generator.GetTmxXml();
+var TMX_XML = generator.getTmxXml();
 console.log(TMX_XML);
 
 
