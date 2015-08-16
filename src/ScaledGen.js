@@ -213,3 +213,5 @@ function ScaledGen(settingsData) {
 
 
 }
+
+module.exports = ScaledGen;

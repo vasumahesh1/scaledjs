@@ -324,7 +324,7 @@ Add a new Terrain to the Map.
 
 Specify the Starting Condition of some part of the Map. Like: Telling the Map to have atleast one Hilly Area.
 
-There are 4 Starting slots namely the:
+There are 4 Starting slots:
 * Top Left
 * Top Right
 * Bottom Left
@@ -395,7 +395,7 @@ generator.addValidationRule({
 	Maximum Percentage of that Terrain must be in the Map.
 
 
-#### ScaledGen.addGidInfo(gidData)
+#### ScaledGen.addTileInfo(gidData)
 
 Add Texture Information About each Layer.
 

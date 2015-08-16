@@ -176,6 +176,8 @@ function ScaledGen(settingsData) {
     };
 }
 
+module.exports = ScaledGen;
+
 // ----- Construct -----
 var Commons = {
     debug: false,
