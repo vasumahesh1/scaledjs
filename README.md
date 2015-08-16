@@ -58,11 +58,11 @@ var generator = new ScaledGen({
 });
 
 // Set the Map Size you want to Generate
-generator.SetMapSize(17,17);
+generator.setMapSize(17,17);
 
 
 // Add Terrains that meet your needs
-generator.AddTerrain({
+generator.addTerrain({
 	key : 'layer_water',
 	label : 'Water',
 	max : 30,
@@ -70,7 +70,7 @@ generator.AddTerrain({
 	default : true
 });
 
-generator.AddTerrain({
+generator.addTerrain({
 	key : 'layer_plain',
 	label : 'Plain',
 	max : 65,
@@ -79,13 +79,13 @@ generator.AddTerrain({
 
 // Define How the Map will look by specifying the 
 // Starting Condition of the map
-generator.AddStartingCondition({
+generator.addStartingCondition({
 	terrainKey: 'layer_water', 
 	minCount: 1,
 	optionalPercent: 25
 });
 
-generator.AddStartingCondition({
+generator.addStartingCondition({
 	terrainKey: 'layer_plain', 
 	minCount: 1,
 	optionalPercent: 35
@@ -95,7 +95,7 @@ generator.AddStartingCondition({
 // Define Validation Rules
 // So that the Generator will only generate a Map that
 // meets the Rules you have given
-generator.AddValidationRule({
+generator.addValidationRule({
 	terrainKey : 'layer_water',
 	minPercent : 5
 });
@@ -183,12 +183,12 @@ generator.addTileInfo({
 // This is Important for Layer Hierarchy
 // Larger the Index the more Dominant it is.
 // The layer you want to stay at the top most, stays at the end of this Array
-generator.AddLayerDomination({
+generator.addLayerDomination({
 	dominationPriority: ['layer_water', 'layer_plain']
 });
 
 // Tileset Information for the Tiled Map
-generator.AddTileset({
+generator.addTileset({
 	source: 'origin_tileset.png',
 	height:160,
 	width:224,
@@ -197,19 +197,19 @@ generator.AddTileset({
 });
 
 // For Generating Only 2D Array of Values:
-// generator.GenerateMapValues();
-// var map = generator.GetMapValues();
+// generator.generateMapValues();
+// var map = generator.getMapValues();
 
 // Full Generation - Map Array -> 3D Layer -> TMX Map
 // Use this If you want full generation from Scratch without any Custom Breakpoints 
 // between the Generation Process
-generator.GenerateMap();
+generator.generateMap();
 
 // For Displaying Map: (Array Values)
-generator.RenderMapValues('map-container');
+generator.renderMapValues('map-container');
 
 // For Getting Final TMX Map
-var TMX_XML = generator.GetTmxXml();
+var TMX_XML = generator.getTmxXml();
 console.log(TMX_XML);
 ```
 
@@ -266,7 +266,7 @@ Parameters that can be consumed:
 	Specify the Maximum number of Iterations the Terrain Generator must perform incase of repeated validation failure by the Rules provided by the User
 
 
-#### ScaledGen.SetMapSize(rowSize, columnSize)
+#### ScaledGen.setMapSize(rowSize, columnSize)
 
 Sets the Size of the Map. Check Limitations Heading for indepth status of ScaledJS.
 
@@ -275,7 +275,7 @@ Rectangular Maps are right now **Not Supported**.
 **Supported Map Sizes:** 9, 17, 33, 65, 129, 257, 513, 1025, 2049, 4097, 8193
 
 
-#### ScaledGen.AddTerrain(terrainData)
+#### ScaledGen.addTerrain(terrainData)
 
 Add a new Terrain to the Map.
 
@@ -320,7 +320,7 @@ Add a new Terrain to the Map.
 
 	Mark one Layer as Default. Currently not being used.
 
-#### ScaledGen.AddStartingCondition(conditionData)
+#### ScaledGen.addStartingCondition(conditionData)
 
 Specify the Starting Condition of some part of the Map. Like: Telling the Map to have atleast one Hilly Area.
 
@@ -353,7 +353,7 @@ Areas of the Map.
 For eg:
 
 ```js
-generator.AddStartingCondition({
+generator.addStartingCondition({
 	terrainKey: 'layer_plain', 
 	minCount: 1,
 	optionalPercent: 65
@@ -364,7 +364,7 @@ The above code basically says:
 * Furthermore the rest free slots of the map will have a 65% chance of being a Plain Terrain
 
 
-#### ScaledGen.AddValidationRule(ruleData)
+#### ScaledGen.addValidationRule(ruleData)
 
 Add a Validation Rule for the Generation.
 
@@ -376,7 +376,7 @@ Add a Validation Rule for the Generation.
 > Generation will produce suitable output on second run.
 
 ```js
-generator.AddValidationRule({
+generator.addValidationRule({
 	terrainKey : 'layer_water',
 	minPercent : 5
 });
@@ -395,7 +395,7 @@ generator.AddValidationRule({
 	Maximum Percentage of that Terrain must be in the Map.
 
 
-#### ScaledGen.AddGidInfo(gidData)
+#### ScaledGen.addGidInfo(gidData)
 
 Add Texture Information About each Layer.
 
@@ -473,7 +473,7 @@ This Image will help you understand what each part of the JSON signifies:
 ![alt text][tiling]
 
 
-#### ScaledGen.AddLayerDomination(dominationData)
+#### ScaledGen.addLayerDomination(dominationData)
 
 Currently Specifies the Priority in which the layers standout to each other. Based on that the TMX is rendered. This will be usefull when you have 3 or more types of Terrain Layers.
 
@@ -483,7 +483,7 @@ Currently Specifies the Priority in which the layers standout to each other. Bas
 }
 ```
 
-#### ScaledGen.AddTileset(tilesetData)
+#### ScaledGen.addTileset(tilesetData)
 
 Add Information Regarding the TileSet used in your TMX Map.
 
@@ -500,12 +500,12 @@ Add Information Regarding the TileSet used in your TMX Map.
 Options are pretty self-explanatory
 
 
-#### ScaledGen.GenerateMap()
+#### ScaledGen.generateMap()
 
 Main Function which starts the Map Generation Process.
 
 
-#### ScaledGen.GetTmxXml()
+#### ScaledGen.getTmxXml()
 
 Function to return TMX Map XML which can further be used in Cocos or other Game Engines
 
