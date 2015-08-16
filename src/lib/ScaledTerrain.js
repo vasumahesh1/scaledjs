@@ -10,7 +10,7 @@ var ScaledTerrain = function () {
 	var terrainStartPercent = 0;
 	var terrainValidationMinPercent = -1;
 	var terrainValidationMaxPercent = -1;
-	var terrainGidInfo = -1;
+	var terrainTileInfo = -1;
 
 
 	this.createTerrain = function (_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
@@ -51,12 +51,36 @@ var ScaledTerrain = function () {
 	};
 
 
-	this.addTileInfo = function (gidInfo) {
-		terrainGidInfo = gidInfo;
+	this.addTileInfo = function (tileInfo) {
+		terrainTileInfo = tileInfo;
 	};
 
-	this.getGidInfo = function () {
-		return terrainGidInfo;
+	this.getTiles = function () {
+		return terrainTileInfo;
+	};
+
+	this.getTileData = function (tileType, tilePlacement, tileValue) {
+		var tiles = this.getTiles();
+		var selectedTile = false;
+
+		for (var key in tiles) {
+			if (tiles[key].type == tileType && tiles[key].placement == tilePlacement) {
+				selectedTile = tiles[key];
+				break;
+			}
+		}
+
+		if (selectedTile) {
+			if (selectedTile[tileValue]) {
+				return selectedTile[tileValue];
+			}
+
+			Commons.error("Can't Find Tile Information for Layer: " + terrainLabel + ", Tile Data: " + tileType + ", " + tilePlacement + ", " + tileValue);
+			return false;
+		}
+
+		Commons.error("Can't Find Tile Information for Layer: " + terrainLabel + ", Tile Data: " + tileType + ", " + tilePlacement + ", " + tileValue);
+		return false;
 	};
 
 
@@ -73,7 +97,7 @@ var ScaledTerrain = function () {
 			terrainStartPercent: terrainStartPercent,
 			terrainValidationMinPercent: terrainValidationMinPercent,
 			terrainValidationMaxPercent: terrainValidationMaxPercent,
-			terrainGidInfo: terrainGidInfo
+			terrainTileInfo: terrainTileInfo
 		};
 
 		return returnObject;

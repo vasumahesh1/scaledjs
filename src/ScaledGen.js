@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 
-// Copyright (c) 2015 Vasu Mahesh (vasu.mahesh@[yahoo|hotmail|gmail].com)
+// Copyright (c) 2015 Vasu Mahesh (vasu.mahesh@[gmail|yahoo|hotmail].com)
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -114,8 +114,8 @@ function ScaledGen(settingsData) {
 	};
 
 
-	this.addTileInfo = function (gidData) {
-		mainMap.addTileInfo(gidData);
+	this.addTileInfo = function (tileData) {
+		mainMap.addTileInfo(tileData);
 	};
 
 

@@ -449,12 +449,12 @@ var ScaledMap = function () {
 	 * Adds GID Information about the Specified Terrain
 	 * @param {object} Object containing information about GID & Terrain Key
 	 */
-	this.addTileInfo = function (gidObject) {
-		var terrainKey = gidObject["terrainKey"];
-		var gidData = gidObject["gidData"];
+	this.addTileInfo = function (tileObject) {
+		var terrainKey = tileObject["terrainKey"];
+		var tiles = tileObject["tiles"];
 
 
-		Commons.getTerrainByKey(terrains, terrainKey).addTileInfo(gidData);
+		Commons.getTerrainByKey(terrains, terrainKey).addTileInfo(tiles);
 	};
 
 	/**

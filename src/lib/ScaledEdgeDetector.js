@@ -170,15 +170,12 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		Commons.log("Adjacent Values", adjacentValues, Commons.validLogKeys.tmxRenderLogKey);
 		Commons.log("Diagonal Values", diagonalValues, Commons.validLogKeys.tmxRenderLogKey);
 		var finalTiles = [];
-		var primaryTileInfo = Commons.getTerrainByKey(terrains, primaryValue)
-			.getGidInfo();
+		var primaryTerrain = Commons.getTerrainByKey(terrains, primaryValue);
 
 
 		var lowestDomination = getLowestDomination(primaryValue, adjacentValues);
 		Commons.log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
-		var lowestDominationTile = Commons.getTerrainByKey(terrains, lowestDomination)
-			.getGidInfo()
-			.other.full;
+		var lowestDominationTile = Commons.getTerrainByKey(terrains, lowestDomination).getTileData("other-tiles", "all", "fullValue");
 		finalTiles.push(lowestDominationTile);
 
 
@@ -191,47 +188,47 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		// All Similar or Not
 		if (allSquareSidesSimilar(similarity) === true) {
 			// All Similar
-			finalTiles.push(primaryTileInfo.other.full);
+			finalTiles.push(primaryTerrain.getTileData("other-tiles", "all", "fullValue"));// .other.full);
 
 		} else {
 			// Nothing Similar : Calls for Closed Loops
 			if (similarity.count === 0) {
-				finalTiles.push(primaryTileInfo.other.openLoops.openEnds.none);
+				finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "noneValue"));// .other.openLoops.openEnds.none);
 			} else {
 				// All Sides Not Similar
 				// Enclose Mode for 3 Side Adjacent Similarity
 				if (similarity.top === true && similarity.left === true && similarity.right === true) {
-					finalTiles.push(primaryTileInfo.enclosing.top.topValue);
+					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "topValue"));// .enclosing.top.topValue);
 				} else if (similarity.bottom === true && similarity.left === true && similarity.right === true) {
-					finalTiles.push(primaryTileInfo.enclosing.bottom.bottomValue);
+					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "bottomValue"));// .enclosing.bottom.bottomValue);
 				} else if (similarity.top === true && similarity.bottom === true && similarity.right === true) {
-					finalTiles.push(primaryTileInfo.enclosing.right.rightValue);
+					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "right", "rightValue"));// .enclosing.right.rightValue);
 				} else if (similarity.top === true && similarity.bottom === true && similarity.left === true) {
-					finalTiles.push(primaryTileInfo.enclosing.left.leftValue);
+					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "left", "leftValue"));// .enclosing.left.leftValue);
 				}
 				// Exclose Mode for 2 Side Adjacent Similarity
 				else if (similarity.top === true && similarity.left === true) {
-					finalTiles.push(primaryTileInfo.excluding.bottom.rightValue);
+					finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "bottom", "rightValue"));// .excluding.bottom.rightValue);
 				} else if (similarity.top === true && similarity.right === true) {
-					finalTiles.push(primaryTileInfo.excluding.bottom.leftValue);
+					finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "bottom", "leftValue"));// .excluding.bottom.leftValue);
 				} else if (similarity.bottom === true && similarity.left === true) {
-					finalTiles.push(primaryTileInfo.excluding.top.rightValue);
+					finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "top", "rightValue"));// .excluding.top.rightValue);
 				} else if (similarity.bottom === true && similarity.right === true) {
-					finalTiles.push(primaryTileInfo.excluding.top.leftValue);
+					finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "top", "leftValue"));// .excluding.top.leftValue);
 				} else if (similarity.bottom === true && similarity.top === true) {
-					finalTiles.push(primaryTileInfo.other.openLoops.twoWay.topBottom);
+					finalTiles.push(primaryTerrain.getTileData("open-tiles", "parallel", "topBottomValue"));// .other.openLoops.twoWay.topBottom);
 				} else if (similarity.left === true && similarity.right === true) {
-					finalTiles.push(primaryTileInfo.other.openLoops.twoWay.leftRight);
+					finalTiles.push(primaryTerrain.getTileData("open-tiles", "parallel", "leftRightValue"));// .other.openLoops.twoWay.leftRight);
 				}
 				// Enclose Mode for 1 Side Similarity
 				else if (similarity.top === true) {
-					finalTiles.push(primaryTileInfo.other.openLoops.openEnds.top);
+					finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "topValue"));// .other.openLoops.openEnds.top);
 				} else if (similarity.right === true) {
-					finalTiles.push(primaryTileInfo.other.openLoops.openEnds.right);
+					finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "rightValue"));// .other.openLoops.openEnds.right);
 				} else if (similarity.left === true) {
-					finalTiles.push(primaryTileInfo.other.openLoops.openEnds.left);
+					finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "leftValue"));// .other.openLoops.openEnds.left);
 				} else if (similarity.bottom === true) {
-					finalTiles.push(primaryTileInfo.other.openLoops.openEnds.bottom);
+					finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "bottomValue"));// .other.openLoops.openEnds.bottom);
 				}
 			}
 
@@ -241,16 +238,16 @@ var ScaledEdgeDetector = function (edgeSettings) {
 
 		if (allSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
 			if (diagonalSimilarity.topLeft === false) {
-				finalTiles.push(primaryTileInfo.enclosing.bottom.rightValue);
+				finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "rightValue"));// .enclosing.bottom.rightValue);
 			}
 			if (diagonalSimilarity.topRight === false) {
-				finalTiles.push(primaryTileInfo.enclosing.bottom.leftValue);
+				finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "leftValue"));// .enclosing.bottom.leftValue);
 			}
 			if (diagonalSimilarity.bottomLeft === false) {
-				finalTiles.push(primaryTileInfo.enclosing.top.rightValue);
+				finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "rightValue"));// .enclosing.top.rightValue);
 			}
 			if (diagonalSimilarity.bottomRight === false) {
-				finalTiles.push(primaryTileInfo.enclosing.top.leftValue);
+				finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "leftValue"));// .enclosing.top.leftValue);
 			}
 		}
 

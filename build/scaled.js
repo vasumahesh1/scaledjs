@@ -1,5 +1,5 @@
 // The MIT License (MIT)
-// Copyright (c) 2015 Vasu Mahesh (vasu.mahesh@[yahoo|hotmail|gmail].com)
+// Copyright (c) 2015 Vasu Mahesh (vasu.mahesh@[gmail|yahoo|hotmail].com)
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -90,8 +90,8 @@ function ScaledGen(settingsData) {
     this.addTileset = function(tilesetData) {
         tilesetSettings = tilesetData;
     };
-    this.addTileInfo = function(gidData) {
-        mainMap.addTileInfo(gidData);
+    this.addTileInfo = function(tileData) {
+        mainMap.addTileInfo(tileData);
     };
     /**
 	 * Main Function to start the Map Generation Process
@@ -557,10 +557,10 @@ var ScaledEdgeDetector = function(edgeSettings) {
         Commons.log("Adjacent Values", adjacentValues, Commons.validLogKeys.tmxRenderLogKey);
         Commons.log("Diagonal Values", diagonalValues, Commons.validLogKeys.tmxRenderLogKey);
         var finalTiles = [];
-        var primaryTileInfo = Commons.getTerrainByKey(terrains, primaryValue).getGidInfo();
+        var primaryTerrain = Commons.getTerrainByKey(terrains, primaryValue);
         var lowestDomination = getLowestDomination(primaryValue, adjacentValues);
         Commons.log("Lowest Domination", lowestDomination, Commons.validLogKeys.tmxRenderLogKey);
-        var lowestDominationTile = Commons.getTerrainByKey(terrains, lowestDomination).getGidInfo().other.full;
+        var lowestDominationTile = Commons.getTerrainByKey(terrains, lowestDomination).getTileData("other-tiles", "all", "fullValue");
         finalTiles.push(lowestDominationTile);
         var normalizedAdjacentValues = normalizeAdjacency(primaryValue, adjacentValues);
         var normalizedDiagonalValues = normalizeAdjacency(primaryValue, diagonalValues);
@@ -570,57 +570,57 @@ var ScaledEdgeDetector = function(edgeSettings) {
         // All Similar or Not
         if (allSquareSidesSimilar(similarity) === true) {
             // All Similar
-            finalTiles.push(primaryTileInfo.other.full);
+            finalTiles.push(primaryTerrain.getTileData("other-tiles", "all", "fullValue"));
         } else {
             // Nothing Similar : Calls for Closed Loops
             if (similarity.count === 0) {
-                finalTiles.push(primaryTileInfo.other.openLoops.openEnds.none);
+                finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "noneValue"));
             } else {
                 // All Sides Not Similar
                 // Enclose Mode for 3 Side Adjacent Similarity
                 if (similarity.top === true && similarity.left === true && similarity.right === true) {
-                    finalTiles.push(primaryTileInfo.enclosing.top.topValue);
+                    finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "topValue"));
                 } else if (similarity.bottom === true && similarity.left === true && similarity.right === true) {
-                    finalTiles.push(primaryTileInfo.enclosing.bottom.bottomValue);
+                    finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "bottomValue"));
                 } else if (similarity.top === true && similarity.bottom === true && similarity.right === true) {
-                    finalTiles.push(primaryTileInfo.enclosing.right.rightValue);
+                    finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "right", "rightValue"));
                 } else if (similarity.top === true && similarity.bottom === true && similarity.left === true) {
-                    finalTiles.push(primaryTileInfo.enclosing.left.leftValue);
+                    finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "left", "leftValue"));
                 } else if (similarity.top === true && similarity.left === true) {
-                    finalTiles.push(primaryTileInfo.excluding.bottom.rightValue);
+                    finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "bottom", "rightValue"));
                 } else if (similarity.top === true && similarity.right === true) {
-                    finalTiles.push(primaryTileInfo.excluding.bottom.leftValue);
+                    finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "bottom", "leftValue"));
                 } else if (similarity.bottom === true && similarity.left === true) {
-                    finalTiles.push(primaryTileInfo.excluding.top.rightValue);
+                    finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "top", "rightValue"));
                 } else if (similarity.bottom === true && similarity.right === true) {
-                    finalTiles.push(primaryTileInfo.excluding.top.leftValue);
+                    finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "top", "leftValue"));
                 } else if (similarity.bottom === true && similarity.top === true) {
-                    finalTiles.push(primaryTileInfo.other.openLoops.twoWay.topBottom);
+                    finalTiles.push(primaryTerrain.getTileData("open-tiles", "parallel", "topBottomValue"));
                 } else if (similarity.left === true && similarity.right === true) {
-                    finalTiles.push(primaryTileInfo.other.openLoops.twoWay.leftRight);
+                    finalTiles.push(primaryTerrain.getTileData("open-tiles", "parallel", "leftRightValue"));
                 } else if (similarity.top === true) {
-                    finalTiles.push(primaryTileInfo.other.openLoops.openEnds.top);
+                    finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "topValue"));
                 } else if (similarity.right === true) {
-                    finalTiles.push(primaryTileInfo.other.openLoops.openEnds.right);
+                    finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "rightValue"));
                 } else if (similarity.left === true) {
-                    finalTiles.push(primaryTileInfo.other.openLoops.openEnds.left);
+                    finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "leftValue"));
                 } else if (similarity.bottom === true) {
-                    finalTiles.push(primaryTileInfo.other.openLoops.openEnds.bottom);
+                    finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "bottomValue"));
                 }
             }
         }
         if (allSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
             if (diagonalSimilarity.topLeft === false) {
-                finalTiles.push(primaryTileInfo.enclosing.bottom.rightValue);
+                finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "rightValue"));
             }
             if (diagonalSimilarity.topRight === false) {
-                finalTiles.push(primaryTileInfo.enclosing.bottom.leftValue);
+                finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "leftValue"));
             }
             if (diagonalSimilarity.bottomLeft === false) {
-                finalTiles.push(primaryTileInfo.enclosing.top.rightValue);
+                finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "rightValue"));
             }
             if (diagonalSimilarity.bottomRight === false) {
-                finalTiles.push(primaryTileInfo.enclosing.top.leftValue);
+                finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "leftValue"));
             }
         }
         Commons.log("Final Tiles", finalTiles, Commons.validLogKeys.tmxRenderLogKey);
@@ -935,10 +935,10 @@ var ScaledMap = function() {
 	 * Adds GID Information about the Specified Terrain
 	 * @param {object} Object containing information about GID & Terrain Key
 	 */
-    this.addTileInfo = function(gidObject) {
-        var terrainKey = gidObject["terrainKey"];
-        var gidData = gidObject["gidData"];
-        Commons.getTerrainByKey(terrains, terrainKey).addTileInfo(gidData);
+    this.addTileInfo = function(tileObject) {
+        var terrainKey = tileObject["terrainKey"];
+        var tiles = tileObject["tiles"];
+        Commons.getTerrainByKey(terrains, terrainKey).addTileInfo(tiles);
     };
     /**
 	 * Checks the Validity of the Main Terrains. Based on the Validation Rules set.
@@ -1047,7 +1047,7 @@ var ScaledTerrain = function() {
     var terrainStartPercent = 0;
     var terrainValidationMinPercent = -1;
     var terrainValidationMaxPercent = -1;
-    var terrainGidInfo = -1;
+    var terrainTileInfo = -1;
     this.createTerrain = function(_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
         this.terrainKey = _terrainKey;
         terrainUpperValue = _terrainUpperValue;
@@ -1078,11 +1078,30 @@ var ScaledTerrain = function() {
         terrainValidationMinPercent = minValue;
         terrainValidationMaxPercent = maxValue;
     };
-    this.addTileInfo = function(gidInfo) {
-        terrainGidInfo = gidInfo;
+    this.addTileInfo = function(tileInfo) {
+        terrainTileInfo = tileInfo;
     };
-    this.getGidInfo = function() {
-        return terrainGidInfo;
+    this.getTiles = function() {
+        return terrainTileInfo;
+    };
+    this.getTileData = function(tileType, tilePlacement, tileValue) {
+        var tiles = this.getTiles();
+        var selectedTile = false;
+        for (var key in tiles) {
+            if (tiles[key].type == tileType && tiles[key].placement == tilePlacement) {
+                selectedTile = tiles[key];
+                break;
+            }
+        }
+        if (selectedTile) {
+            if (selectedTile[tileValue]) {
+                return selectedTile[tileValue];
+            }
+            Commons.error("Can't Find Tile Information for Layer: " + terrainLabel + ", Tile Data: " + tileType + ", " + tilePlacement + ", " + tileValue);
+            return false;
+        }
+        Commons.error("Can't Find Tile Information for Layer: " + terrainLabel + ", Tile Data: " + tileType + ", " + tilePlacement + ", " + tileValue);
+        return false;
     };
     this.getData = function() {
         var returnObject = {
@@ -1097,7 +1116,7 @@ var ScaledTerrain = function() {
             terrainStartPercent: terrainStartPercent,
             terrainValidationMinPercent: terrainValidationMinPercent,
             terrainValidationMaxPercent: terrainValidationMaxPercent,
-            terrainGidInfo: terrainGidInfo
+            terrainTileInfo: terrainTileInfo
         };
         return returnObject;
     };
@@ -1164,7 +1183,7 @@ var ScaledTmxGen = function(settingsData) {
         mapValuesTmx.push(tempMap);
     };
     var initLayeredMap = function() {
-        var defautGidValue = Commons.getDefaultTerrain(terrains).getGidInfo().other.full;
+        var defautGidValue = Commons.getDefaultTerrain(terrains).getTileData("other-tiles", "all", "fullValue");
         var tempMap = [];
         for (var rowKey in mapValues) {
             var tempRow = [];

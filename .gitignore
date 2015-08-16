@@ -39,3 +39,12 @@ profile
 # Scaled JS Ignore
 resources/Test*.tmx
 *.token
+
+# Temp Linux Files
+*~
+*.swp
+*.swo
+
+# Photoshop Files
+
+*.psd

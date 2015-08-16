@@ -102,85 +102,86 @@ generator.AddValidationRule({
 
 
 // If you are generating Full TMX Map. Provide the GID Values (Explained Below)
-// for each Layer. Default Layers Need only one Data Provided the Full Tile image.
-generator.AddGidInfo({
+// for each Layer. Default(Lowest Level) layer needs only one tile data
+// "fullValue" Tile image.
+generator.addTileInfo({
 	terrainKey : 'layer_water',
-	gidData : {
-		other: {
-			full: 3
-		}
-	}	
+	tiles : [{
+		type: "other-tiles",
+		placement: "all",
+		fullValue: 3
+	}]	
 });
 
 // This is how a regular layer will look like. You can provide textures for 
 // different types of Edges & intersections
-generator.AddGidInfo({
-	terrainKey : 'layer_plain',
-	gidData : {
-		enclosing: {
-			top: {
-				leftValue: 4,
-				rightValue: 6,
-				topValue: 5
-			},
-			bottom: {
-				leftValue: 18,
-				rightValue: 20,
-				bottomValue: 19
-			},
-			left: {
-				leftValue: 11
-			},
-			right: {
-				rightValue: 13
-			}
-		},
-		excluding: {
-			top: {
-				leftValue: 8,
-				rightValue: 9,
-			},
-			bottom: {
-				leftValue: 15,
-				rightValue: 16,
-			}
-		},
-		other: {
-			full: 2,
-			closedLoops : {
-				openEnds : {
-					top : 22,
-					right : 23,
-					bottom : 24,
-					left : 25,
-					none : 26,
-				},
-				twoWay : {
-					topBottom : 27,
-					leftRight : 28
-				}
-			},
-			openLoops : {
-				openEnds : {
-					top : 29,
-					right : 30,
-					bottom : 31,
-					left : 32,
-					none : 33
-				},
-				twoWay : {
-					topBottom : 34,
-					leftRight : 35
-				}
-			}
-		}
-	}	
+generator.addTileInfo({
+	terrainKey: 'layer_plain',
+	tiles: [{
+		type: "enclosing-tiles",
+		placement: "top",
+		leftValue: 4,
+		rightValue: 6,
+		topValue: 5
+	}, {
+		type: "enclosing-tiles",
+		placement: "bottom",
+		leftValue: 18,
+		rightValue: 20,
+		bottomValue: 19
+	}, {
+		type: "enclosing-tiles",
+		placement: "left",
+		leftValue: 11
+	}, {
+		type: "enclosing-tiles",
+		placement: "right",
+		rightValue: 13
+	}, {
+		type: "excluding-tiles",
+		placement: "top",
+		leftValue: 8,
+		rightValue: 9,
+	}, {
+		type: "excluding-tiles",
+		placement: "bottom",
+		leftValue: 15,
+		rightValue: 16,
+	}, {
+		type: "other-tiles",
+		placement: "all",
+		fullValue: 2
+	}, {
+		type: "closed-tiles",
+		placement: "open",
+		topValue: 22,
+		rightValue: 23,
+		bottomValue: 24,
+		leftValue: 25,
+		noneValue: 26,
+	}, {
+		type: "closed-tiles",
+		placement: "parallel",
+		topBottom: 27,
+		leftRight: 28
+	}, {
+		type: "open-tiles",
+		placement: "open",
+		topValue: 29,
+		rightValue: 30,
+		bottomValue: 31,
+		leftValue: 32,
+		noneValue: 33
+	}, {
+		type: "open-tiles",
+		placement: "parallel",
+		topBottomValue: 34,
+		leftRightValue: 35
+	}]
 });
-
 
 // This is Important for Layer Hierarchy
 // Larger the Index the more Dominant it is.
-// Layer Dominance is in BETA havent tested it out fully. Just make sure that 
 // The layer you want to stay at the top most, stays at the end of this Array
 generator.AddLayerDomination({
 	dominationPriority: ['layer_water', 'layer_plain']
@@ -402,66 +403,68 @@ Gid Data is given as:
 
 ```js
 {
-	terrainKey : 'layer_plain',
-	gidData : {
-		enclosing: {
-			top: {
-				leftValue: 4,
-				rightValue: 6,
-				topValue: 5
-			},
-			bottom: {
-				leftValue: 18,
-				rightValue: 20,
-				bottomValue: 19
-			},
-			left: {
-				leftValue: 11
-			},
-			right: {
-				rightValue: 13
-			}
-		},
-		excluding: {
-			top: {
-				leftValue: 8,
-				rightValue: 9,
-			},
-			bottom: {
-				leftValue: 15,
-				rightValue: 16,
-			}
-		},
-		other: {
-			full: 2,
-			closedLoops : {
-				openEnds : {
-					top : 22,
-					right : 23,
-					bottom : 24,
-					left : 25,
-					none : 26,
-				},
-				twoWay : {
-					topBottom : 27,
-					leftRight : 28
-				}
-			},
-			openLoops : {
-				openEnds : {
-					top : 29,
-					right : 30,
-					bottom : 31,
-					left : 32,
-					none : 33
-				},
-				twoWay : {
-					topBottom : 34,
-					leftRight : 35
-				}
-			}
-		}
-	}	
+	terrainKey: 'layer_plain',
+	tiles: [{
+		type: "enclosing-tiles",
+		placement: "top",
+		leftValue: 4,
+		rightValue: 6,
+		topValue: 5
+	}, {
+		type: "enclosing-tiles",
+		placement: "bottom",
+		leftValue: 18,
+		rightValue: 20,
+		bottomValue: 19
+	}, {
+		type: "enclosing-tiles",
+		placement: "left",
+		leftValue: 11
+	}, {
+		type: "enclosing-tiles",
+		placement: "right",
+		rightValue: 13
+	}, {
+		type: "excluding-tiles",
+		placement: "top",
+		leftValue: 8,
+		rightValue: 9,
+	}, {
+		type: "excluding-tiles",
+		placement: "bottom",
+		leftValue: 15,
+		rightValue: 16,
+	}, {
+		type: "other-tiles",
+		placement: "all",
+		fullValue: 2
+	}, {
+		type: "closed-tiles",
+		placement: "open",
+		topValue: 22,
+		rightValue: 23,
+		bottomValue: 24,
+		leftValue: 25,
+		noneValue: 26,
+	}, {
+		type: "closed-tiles",
+		placement: "parallel",
+		topBottom: 27,
+		leftRight: 28
+	}, {
+		type: "open-tiles",
+		placement: "open",
+		topValue: 29,
+		rightValue: 30,
+		bottomValue: 31,
+		leftValue: 32,
+		noneValue: 33
+	}, {
+		type: "open-tiles",
+		placement: "parallel",
+		topBottomValue: 34,
+		leftRightValue: 35
+	}]
 }
 ```
 

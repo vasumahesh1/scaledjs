@@ -76,9 +76,7 @@ var ScaledTmxGen = function (settingsData) {
 
 
 	var initLayeredMap = function () {
-		var defautGidValue = Commons.getDefaultTerrain(terrains)
-			.getGidInfo()
-			.other.full;
+		var defautGidValue = Commons.getDefaultTerrain(terrains).getTileData("other-tiles", "all", "fullValue");
 		var tempMap = [];
 		for (var rowKey in mapValues) {
 			var tempRow = [];

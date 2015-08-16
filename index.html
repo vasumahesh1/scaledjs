@@ -81,140 +81,134 @@ generator.addValidationRule({
 // for each Layer. Default Layers Need only one Data Provided the Full Tile image.
 generator.addTileInfo({
 	terrainKey : 'layer_water',
-	gidData : {
-		other: {
-			full: 3
-		}
-	}	
+	tiles : [{
+		type: "other-tiles",
+		placement: "all",
+		fullValue: 3
+	}]	
 });
 
 // This is how a regular layer will look like. You can provide textures for 
 // different types of Edges & intersections
 generator.addTileInfo({
-	terrainKey : 'layer_plain',
-	gidData : {
-		enclosing: {
-			top: {
-				leftValue: 4,
-				rightValue: 6,
-				topValue: 5
-			},
-			bottom: {
-				leftValue: 18,
-				rightValue: 20,
-				bottomValue: 19
-			},
-			left: {
-				leftValue: 11
-			},
-			right: {
-				rightValue: 13
-			}
-		},
-		excluding: {
-			top: {
-				leftValue: 8,
-				rightValue: 9,
-			},
-			bottom: {
-				leftValue: 15,
-				rightValue: 16,
-			}
-		},
-		other: {
-			full: 2,
-			closedLoops : {
-				openEnds : {
-					top : 22,
-					right : 23,
-					bottom : 24,
-					left : 25,
-					none : 26,
-				},
-				twoWay : {
-					topBottom : 27,
-					leftRight : 28
-				}
-			},
-			openLoops : {
-				openEnds : {
-					top : 29,
-					right : 30,
-					bottom : 31,
-					left : 32,
-					none : 33
-				},
-				twoWay : {
-					topBottom : 34,
-					leftRight : 35
-				}
-			}
-		}
-	}	
+	terrainKey: 'layer_plain',
+	tiles: [{
+		type: "enclosing-tiles",
+		placement: "top",
+		leftValue: 4,
+		rightValue: 6,
+		topValue: 5
+	}, {
+		type: "enclosing-tiles",
+		placement: "bottom",
+		leftValue: 18,
+		rightValue: 20,
+		bottomValue: 19
+	}, {
+		type: "enclosing-tiles",
+		placement: "left",
+		leftValue: 11
+	}, {
+		type: "enclosing-tiles",
+		placement: "right",
+		rightValue: 13
+	}, {
+		type: "excluding-tiles",
+		placement: "top",
+		leftValue: 8,
+		rightValue: 9,
+	}, {
+		type: "excluding-tiles",
+		placement: "bottom",
+		leftValue: 15,
+		rightValue: 16,
+	}, {
+		type: "other-tiles",
+		placement: "all",
+		fullValue: 2
+	}, {
+		type: "closed-tiles",
+		placement: "open",
+		topValue: 22,
+		rightValue: 23,
+		bottomValue: 24,
+		leftValue: 25,
+		noneValue: 26,
+	}, {
+		type: "open-tiles",
+		placement: "open",
+		topValue: 29,
+		rightValue: 30,
+		bottomValue: 31,
+		leftValue: 32,
+		noneValue: 33
+	}, {
+		type: "open-tiles",
+		placement: "parallel",
+		topBottomValue: 34,
+		leftRightValue: 35
+	}]
 });
 
 
 generator.addTileInfo({
-	terrainKey : 'layer_snow',
-	gidData : {
-		enclosing: {
-			top: {
-				leftValue: 46,
-				rightValue: 48,
-				topValue: 47
-			},
-			bottom: {
-				leftValue: 60,
-				rightValue: 62,
-				bottomValue: 61
-			},
-			left: {
-				leftValue: 53
-			},
-			right: {
-				rightValue: 55
-			}
-		},
-		excluding: {
-			top: {
-				leftValue: 50,
-				rightValue: 51,
-			},
-			bottom: {
-				leftValue: 57,
-				rightValue: 58,
-			}
-		},
-		other: {
-			full: 44,
-			closedLoops : {
-				openEnds : {
-					top : 64,
-					right : 65,
-					bottom : 66,
-					left : 67,
-					none : 68,
-				},
-				twoWay : {
-					topBottom : 69,
-					leftRight : 70
-				}
-			},
-			openLoops : {
-				openEnds : {
-					top : 71,
-					right : 72,
-					bottom : 73,
-					left : 74,
-					none : 75
-				},
-				twoWay : {
-					topBottom : 76,
-					leftRight : 77
-				}
-			}
-		}
-	}	
+	terrainKey: 'layer_snow',
+	tiles: [{
+		type: "enclosing-tiles",
+		placement: "top",
+		leftValue: 46,
+		rightValue: 48,
+		topValue: 47
+	}, {
+		type: "enclosing-tiles",
+		placement: "bottom",
+		leftValue: 60,
+		rightValue: 62,
+		bottomValue: 61
+	}, {
+		type: "enclosing-tiles",
+		placement: "left",
+		leftValue: 53
+	}, {
+		type: "enclosing-tiles",
+		placement: "right",
+		rightValue: 55
+	}, {
+		type: "excluding-tiles",
+		placement: "top",
+		leftValue: 50,
+		rightValue: 51,
+	}, {
+		type: "excluding-tiles",
+		placement: "bottom",
+		leftValue: 57,
+		rightValue: 58,
+	}, {
+		type: "other-tiles",
+		placement: "all",
+		fullValue: 44
+	}, {
+		type: "closed-tiles",
+		placement: "open",
+		topValue: 64,
+		rightValue: 65,
+		bottomValue: 66,
+		leftValue: 67,
+		noneValue: 68,
+	}, {
+		type: "open-tiles",
+		placement: "open",
+		topValue: 71,
+		rightValue: 72,
+		bottomValue: 73,
+		leftValue: 74,
+		noneValue: 75
+	}, {
+		type: "open-tiles",
+		placement: "parallel",
+		topBottomValue: 76,
+		leftRightValue: 77
+	}]
 });
 
 
