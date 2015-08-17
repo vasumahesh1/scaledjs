@@ -17,6 +17,13 @@
 // THE SOFTWARE.
 // 
 // 
+/*
+ * Establish the root object, `window` (`self`) in the browser, `global`
+ * on the server, or `this` in some virtual machines. We use `self`
+ * instead of `window` for `WebWorker` support.
+ */
+var root = typeof self === "object" && self.self === self && self || typeof global === "object" && global.global === global && global || this;
+
 /**
  * Main Function for the Generator Object
  * @param {object}	settingsData	Configuring Settings of the Generator
@@ -90,8 +97,8 @@ function ScaledGen(settingsData) {
     this.addTileset = function(tilesetData) {
         tilesetSettings = tilesetData;
     };
-    this.addTileInfo = function(tileData) {
-        mainMap.addTileInfo(tileData);
+    this.setTileInfo = function(tileData) {
+        mainMap.setTileInfo(tileData);
     };
     /**
 	 * Main Function to start the Map Generation Process
@@ -111,7 +118,7 @@ function ScaledGen(settingsData) {
     };
     /**
 	 * Generates the Entire Map from
-  	 * From 2D Array to 3D Layered Maps to TMX Tiled XML
+	 * From 2D Array to 3D Layered Maps to TMX Tiled XML
 	 */
     this.generateMap = function() {
         this.generateMapValues();
@@ -176,7 +183,19 @@ function ScaledGen(settingsData) {
     };
 }
 
-module.exports = ScaledGen;
+/*
+ * Export the ScaledGen object for **Node.js**, with
+ * backwards-compatibility for their old module API. If we're in
+ * the browser, add `ScaledGen` as a global object.
+ */
+if (typeof exports !== "undefined") {
+    if (typeof module !== "undefined" && module.exports) {
+        exports = module.exports = ScaledGen;
+    }
+    exports.ScaledGen = ScaledGen;
+} else {
+    root.ScaledGen = ScaledGen;
+}
 
 // ----- Construct -----
 var Commons = {
@@ -226,6 +245,16 @@ Commons.log = function(message, logObject, tag) {
 Commons.warn = function(message) {
     if (this.debug === true) {
         console.warn("[ScaledGen - Warning] " + message);
+    }
+};
+
+/**
+ * Wrapper Logging Function over console.info
+ * @param {string} message Message to provide Information
+ */
+Commons.info = function(message) {
+    if (this.debug === true) {
+        console.info("[ScaledGen - Warning] " + message);
     }
 };
 
@@ -374,6 +403,20 @@ Commons.getMainTerrains = function(terrains) {
         }
     }
     return regularTerrains;
+};
+
+/**
+ * Gets the Terrains Responsible for Decoration
+ * @param {array} terrains Array of Terrains
+ */
+Commons.getDecorationTerrains = function(terrains) {
+    var selectedTerrains = [];
+    for (var key in terrains) {
+        if (terrains[key].isDecorationTerrain() === true) {
+            selectedTerrains.push(terrains[key].getData());
+        }
+    }
+    return selectedTerrains;
 };
 
 /**
@@ -637,6 +680,7 @@ var ScaledMap = function() {
     var terrains = [];
     var mapValues = [];
     var mapValuesNormalized = [];
+    var mapValuesDecoration = [];
     var mapValidityReports = [];
     var rowSize = 33;
     var columnSize = 33;
@@ -876,6 +920,108 @@ var ScaledMap = function() {
         }
     };
     /**
+	 * Specifies the List of layers to which the particular Cell Value belongs to
+	 * @param {double}	terrainValue   Value of the Cell
+	 */
+    var getLayersFromValue = function(terrainValue) {
+        var selectedTerrains = [];
+        for (var key in terrains) {
+            if (terrains[key].getData().terrainUpperValue >= terrainValue && terrains[key].getData().terrainLowerValue <= terrainValue) {
+                selectedTerrains.push(terrains[key]);
+            }
+        }
+        return selectedTerrains;
+    };
+    /**
+	 * Gets a Normalized Version of the Map
+	 */
+    var getNormalizedMap = function() {
+        for (var rowKey in mapValues) {
+            var tempRow = [];
+            for (var columnKey in mapValues[rowKey]) {
+                var responsibleTerrains = getLayersFromValue(mapValues[rowKey][columnKey]);
+                for (var key in responsibleTerrains) {
+                    if (responsibleTerrains[key].isRegularTerrain() === true) {
+                        terrainKey = responsibleTerrains[key].getData().terrainKey;
+                        break;
+                    }
+                }
+                tempRow.push(terrainKey);
+            }
+            mapValuesNormalized.push(tempRow);
+        }
+        return mapValuesNormalized;
+    };
+    /**
+	 * Gets a Decoration Mapped Map
+	 */
+    var getDecorationMap = function() {
+        /*
+		 * Step 1: Get the Non Overlapping Decorators - within the Range of the Cell's Value 
+		 * Step 2: Cumulate the percentages, & Randomize to Select one of the Non Overlapping Decorators
+		 * Step 3: Get the Overlappable Terrains
+		 * Step 4: Don't Cumulate, Apply the possibility criteria individually over each decorator
+		 *
+		 */
+        var nonOverlapKey;
+        var overlapKey;
+        for (var rowKey in mapValues) {
+            var tempRow = [];
+            for (var columnKey in mapValues[rowKey]) {
+                var responsibleTerrains = getLayersFromValue(mapValues[rowKey][columnKey]);
+                var nonOverlapDecorators = [];
+                var overlapDecorators = [];
+                var selectedTerrains = [];
+                // STEP 1 & 3
+                for (var key in responsibleTerrains) {
+                    if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getData().terrainDecoration.overlap === false) {
+                        nonOverlapDecorators.push(responsibleTerrains[key]);
+                    } else if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getData().terrainDecoration.overlap === true) {
+                        overlapDecorators.push(responsibleTerrains[key]);
+                    }
+                }
+                // STEP 2
+                var totalPercent = 0;
+                var maxValuePossible = nonOverlapDecorators.length * 100;
+                for (nonOverlapKey in nonOverlapDecorators) {
+                    totalPercent += nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent;
+                }
+                if (totalPercent > maxValuePossible) {
+                    console.warn("Error Adding Placement Percentage of Decoration Terrains - Reverting Terrains to 100% per terrain");
+                    totalPercent = nonOverlapDecorators.length * 100;
+                    for (nonOverlapKey in nonOverlapDecorators) {
+                        nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent = 100;
+                    }
+                }
+                var randomPercent = Commons.randomize(0, totalPercent);
+                var terrainToUse = null;
+                var found = false;
+                for (nonOverlapKey in nonOverlapDecorators) {
+                    if (randomPercent <= nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent) {
+                        found = true;
+                        terrainToUse = nonOverlapDecorators[nonOverlapKey];
+                        break;
+                    }
+                }
+                if (found === false) {
+                    terrainToUse = Commons.randomizeInArray(nonOverlapDecorators);
+                }
+                // Push Selected Non Optional Terrain to Selection List
+                selectedTerrains.push(terrainToUse);
+                // STEP 4
+                for (overlapKey in overlapDecorators) {
+                    randomPercent = Commons.randomize(0, 100);
+                    if (randomPercent <= overlapDecorators[overlapKey].getDecorationData().placementPercent) {
+                        selectedTerrains.push(overlapDecorators[overlapKey]);
+                    }
+                }
+                tempRow.push(selectedTerrains);
+            }
+            mapValuesDecoration.push(tempRow);
+        }
+        return mapValuesDecoration;
+    };
+    /**
 	 * Sets the Dimensions received from the generator
 	 * @param {integer}	rowSize Size of the Row
 	 * @param {integer} columnSize Size of the Column
@@ -937,10 +1083,12 @@ var ScaledMap = function() {
 	 * Adds GID Information about the Specified Terrain
 	 * @param {object} Object containing information about GID & Terrain Key
 	 */
-    this.addTileInfo = function(tileObject) {
+    this.setTileInfo = function(tileObject) {
         var terrainKey = tileObject["terrainKey"];
         var tiles = tileObject["tiles"];
-        Commons.getTerrainByKey(terrains, terrainKey).addTileInfo(tiles);
+        var decoration = tileObject["decoration"] ? tileObject["decoration"] : false;
+        Commons.getTerrainByKey(terrains, terrainKey).setTileInfo(tiles);
+        Commons.getTerrainByKey(terrains, terrainKey).setDecorationData(decoration);
     };
     /**
 	 * Checks the Validity of the Main Terrains. Based on the Validation Rules set.
@@ -974,58 +1122,35 @@ var ScaledMap = function() {
 	 * Main Function invoked to Generate the Map from scratch.
 	 */
     this.generateMapValues = function() {
-        Commons.warn("Map Init Starting");
+        Commons.info("Map Init Starting");
         Commons.log("Terrains Before Map Generation", terrains, Commons.validLogKeys.mapInitializeLogKey);
         init();
         initStartingConditions();
-        Commons.warn("Pre Generation Clean Up");
+        Commons.info("Pre Generation Clean Up");
         preGenerationCleanUp();
-        Commons.warn("Diamond Square Algorithm Starting");
+        Commons.info("Diamond Square Algorithm Starting");
         diamondSquare(rowSize - 1, null);
-        Commons.warn("Post Generation Clean Up");
+        Commons.info("Post Generation Clean Up");
         postGenerationCleanUp();
     };
     /**
-	 * Specifies the List of layers to which the particular Cell Value belongs to
+	 * Alias Function to get terrains
 	 * @param {double}	terrainValue   Value of the Cell
 	 */
     this.getLayersFromValue = function(terrainValue) {
-        var selectedTerrains = [];
-        for (var key in terrains) {
-            if (terrains[key].getData().terrainUpperValue >= terrainValue && terrains[key].getData().terrainLowerValue <= terrainValue) {
-                selectedTerrains.push(terrains[key]);
-            }
-        }
-        return selectedTerrains;
-    };
-    /**
-	 * Gets a Normalized Version of the Map
-	 */
-    this.getNormalizedMap = function() {
-        for (var rowKey in mapValues) {
-            var tempRow = [];
-            for (var columnKey in mapValues[rowKey]) {
-                var responsibleTerrains = this.getLayersFromValue(mapValues[rowKey][columnKey]);
-                for (var key in responsibleTerrains) {
-                    if (responsibleTerrains[key].isRegularTerrain() === true) {
-                        terrainKey = responsibleTerrains[key].getData().terrainKey;
-                        break;
-                    }
-                }
-                tempRow.push(terrainKey);
-            }
-            mapValuesNormalized.push(tempRow);
-        }
-        return mapValuesNormalized;
+        return getLayersFromValue(terrainValue);
     };
     /**
 	 * Gets Settings Data for ScaledTmx
 	 */
     this.getTmxSettings = function() {
-        this.getNormalizedMap();
+        // Get Layered Map with Layer Keys inside the Matrix
+        getNormalizedMap();
+        // Get Possible Decoration Matrix
         var returnObject = {
             mapValues: mapValuesNormalized,
-            terrains: terrains
+            terrains: terrains,
+            mapValuesDecoration: mapValuesDecoration
         };
         return returnObject;
     };
@@ -1050,6 +1175,7 @@ var ScaledTerrain = function() {
     var terrainValidationMinPercent = -1;
     var terrainValidationMaxPercent = -1;
     var terrainTileInfo = -1;
+    var terrainDecoration = false;
     this.createTerrain = function(_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
         this.terrainKey = _terrainKey;
         terrainUpperValue = _terrainUpperValue;
@@ -1076,11 +1202,23 @@ var ScaledTerrain = function() {
         }
         return false;
     };
+    this.isDecorationTerrain = function() {
+        if (terrainType == "decoration") {
+            return true;
+        }
+        return false;
+    };
     this.setValidation = function(minValue, maxValue) {
         terrainValidationMinPercent = minValue;
         terrainValidationMaxPercent = maxValue;
     };
-    this.addTileInfo = function(tileInfo) {
+    this.setDecorationData = function(terrainDecorationData) {
+        terrainDecoration = terrainDecorationData;
+    };
+    this.getDecorationData = function() {
+        return terrainDecoration;
+    };
+    this.setTileInfo = function(tileInfo) {
         terrainTileInfo = tileInfo;
     };
     this.getTiles = function() {
@@ -1129,24 +1267,18 @@ var ScaledTmxGen = function(settingsData) {
     var templateString = "";
     var terrains = [];
     var mapValues = [];
+    var mapValuesDecoration = [];
     var mapValuesTmx = [];
     var tilesetObject = null;
     var edgeHandler = null;
     var edgeHandlerSettings = null;
     var dominationObject = null;
     if (settingsData) {
-        if ("mapValues" in settingsData && settingsData["mapValues"]) {
-            mapValues = settingsData["mapValues"];
-        }
-        if ("terrains" in settingsData && settingsData["terrains"]) {
-            terrains = settingsData["terrains"];
-        }
-        if ("tilesetSettings" in settingsData && settingsData["tilesetSettings"]) {
-            tilesetObject = settingsData["tilesetSettings"];
-        }
-        if ("domSettings" in settingsData && settingsData["domSettings"]) {
-            dominationObject = settingsData["domSettings"];
-        }
+        mapValues = settingsData["mapValues"] ? settingsData["mapValues"] : [];
+        terrains = settingsData["terrains"] ? settingsData["terrains"] : [];
+        tilesetObject = settingsData["tilesetSettings"] ? settingsData["tilesetSettings"] : null;
+        dominationObject = settingsData["domSettings"] ? settingsData["domSettings"] : null;
+        mapValuesDecoration = settingsData["mapValuesDecoration"] ? settingsData["mapValuesDecoration"] : [];
     }
     edgeHandlerSettings = {
         terrains: terrains,
@@ -1243,12 +1375,19 @@ var ScaledTmxGen = function(settingsData) {
     var appendTileRow = function(gidValue) {
         templateString += '<tile gid="' + gidValue + '" />';
     };
+    var decorateMap = function() {
+        for (var rowKey in mapValues) {
+            for (var columnKey in mapValues[rowKey]) {}
+        }
+    };
     this.generateMapTmx = function() {
-        Commons.warn("TMX - Generating Layered Map");
+        Commons.info("TMX - Generating Layered Map");
         this.generateLayeredMap();
+        Commons.info("TMX - Decorating Map");
+        decorateMap();
         // Commons.warn("TMX - Fixing Layer Borders");
         // this.fixLayerBorders();
-        Commons.warn("TMX - Generating Map XML");
+        Commons.info("TMX - Generating Map XML");
         this.generateMapXml();
     };
     this.getTmxXml = function() {

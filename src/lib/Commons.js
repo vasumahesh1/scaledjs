@@ -50,6 +50,16 @@ Commons.warn = function (message) {
 };
 
 /**
+ * Wrapper Logging Function over console.info
+ * @param {string} message Message to provide Information
+ */
+Commons.info = function (message) {
+	if (this.debug === true) {
+		console.info("[ScaledGen - Warning] " + message);
+	}
+};
+
+/**
  * Wrapper Logging Function over console.error
  * @param {string} message Message to print
  */
@@ -200,6 +210,21 @@ Commons.getMainTerrains = function (terrains) {
 		}
 	}
 	return regularTerrains;
+};
+
+
+/**
+ * Gets the Terrains Responsible for Decoration
+ * @param {array} terrains Array of Terrains
+ */
+Commons.getDecorationTerrains = function (terrains) {
+	var selectedTerrains = [];
+	for (var key in terrains) {
+		if (terrains[key].isDecorationTerrain() === true) {
+			selectedTerrains.push(terrains[key].getData());
+		}
+	}
+	return selectedTerrains;
 };
 
 /**

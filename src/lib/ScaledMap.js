@@ -5,6 +5,7 @@ var ScaledMap = function () {
 	var terrains = [];
 	var mapValues = [];
 	var mapValuesNormalized = [];
+	var mapValuesDecoration = [];
 	var mapValidityReports = [];
 	var rowSize = 33;
 	var columnSize = 33;
@@ -301,15 +302,15 @@ var ScaledMap = function () {
 			],
 			Commons.validLogKeys.diamondSquareLogKey
 		);
+
 		mapValues[posX - halfBoxSize][posY] = Commons.getAverage([
 			Commons.tryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
 			Commons.tryGetArrayValue(mapValues, posX, posY),
 			Commons.tryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
 			Commons.tryGetArrayValue(mapValues, posX - boxSize, posY)
 		]) + Commons.randomizePlusMinus(0, 5);
+
 		Commons.log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], Commons.validLogKeys.diamondSquareLogKey);
-
-
 		Commons.log(
 			"Getting Average of", [
 				"[" + (posX + halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
@@ -319,15 +320,15 @@ var ScaledMap = function () {
 			],
 			Commons.validLogKeys.diamondSquareLogKey
 		);
+
 		mapValues[posX + halfBoxSize][posY] = Commons.getAverage([
 			Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
 			Commons.tryGetArrayValue(mapValues, posX, posY),
 			Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
 			Commons.tryGetArrayValue(mapValues, posX + boxSize, posY)
 		]) + Commons.randomizePlusMinus(0, 5);
+
 		Commons.log("Value of [" + (posX + halfBoxSize) + "][" + posY + "]", mapValues[posX + halfBoxSize][posY]);
-
-
 		Commons.log(
 			"Getting Average of", [
 				"[" + (posX - halfBoxSize) + "],[" + (posY - halfBoxSize) + "]",
@@ -336,15 +337,15 @@ var ScaledMap = function () {
 				"[" + (posX) + "],[" + (posY - boxSize) + "]"
 			],
 			Commons.validLogKeys.diamondSquareLogKey);
+
 		mapValues[posX][posY - halfBoxSize] = Commons.getAverage([
 			Commons.tryGetArrayValue(mapValues, posX - halfBoxSize, posY - halfBoxSize),
 			Commons.tryGetArrayValue(mapValues, posX, posY),
 			Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
 			Commons.tryGetArrayValue(mapValues, posX, posY - boxSize)
 		]) + Commons.randomizePlusMinus(0, 5);
+
 		Commons.log("Value of [" + (posX) + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
-
-
 		Commons.log(
 			"Getting Average of", [
 				"[" + (posX - halfBoxSize) + "],[" + (posY + halfBoxSize) + "]",
@@ -354,15 +355,15 @@ var ScaledMap = function () {
 			],
 			Commons.validLogKeys.diamondSquareLogKey
 		);
+
 		mapValues[posX][posY + halfBoxSize] = Commons.getAverage([
 			Commons.tryGetArrayValue(mapValues, posX - halfBoxSize, posY + halfBoxSize),
 			Commons.tryGetArrayValue(mapValues, posX, posY),
 			Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
 			Commons.tryGetArrayValue(mapValues, posX, posY + boxSize)
 		]) + Commons.randomizePlusMinus(0, 5);
+
 		Commons.log("Value of [" + (posX) + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], Commons.validLogKeys.diamondSquareLogKey);
-
-
 		//Commons.log("MAP VALUES AFTER STEP", mapValues, Commons.validLogKeys.diamondSquareLogKey);
 
 		if (halfBoxSize >= 2) {
@@ -375,6 +376,129 @@ var ScaledMap = function () {
 	};
 
 
+	/**
+	 * Specifies the List of layers to which the particular Cell Value belongs to
+	 * @param {double}	terrainValue   Value of the Cell
+	 */
+	var getLayersFromValue = function (terrainValue) {
+		var selectedTerrains = [];
+		for (var key in terrains) {
+			if (terrains[key].getData().terrainUpperValue >= terrainValue && terrains[key].getData().terrainLowerValue <= terrainValue) {
+				selectedTerrains.push(terrains[key]);
+			}
+		}
+		return selectedTerrains;
+	};
+
+
+	/**
+	 * Gets a Normalized Version of the Map
+	 */
+	var getNormalizedMap = function () {
+		for (var rowKey in mapValues) {
+			var tempRow = [];
+			for (var columnKey in mapValues[rowKey]) {
+				var responsibleTerrains = getLayersFromValue(mapValues[rowKey][columnKey]);
+				for (var key in responsibleTerrains) {
+					if (responsibleTerrains[key].isRegularTerrain() === true) {
+						terrainKey = responsibleTerrains[key].getData().terrainKey;
+						break;
+					}
+				}
+
+				tempRow.push(terrainKey);
+			}
+
+			mapValuesNormalized.push(tempRow);
+		}
+
+		return mapValuesNormalized;
+	};
+
+
+
+	/**
+	 * Gets a Decoration Mapped Map
+	 */
+	var getDecorationMap = function () {
+		/*
+		 * Step 1: Get the Non Overlapping Decorators - within the Range of the Cell's Value 
+		 * Step 2: Cumulate the percentages, & Randomize to Select one of the Non Overlapping Decorators
+		 * Step 3: Get the Overlappable Terrains
+		 * Step 4: Don't Cumulate, Apply the possibility criteria individually over each decorator
+		 *
+		 */
+		var nonOverlapKey;
+		var overlapKey;
+
+		for (var rowKey in mapValues) {
+			var tempRow = [];
+			for (var columnKey in mapValues[rowKey]) {
+				var responsibleTerrains = getLayersFromValue(mapValues[rowKey][columnKey]);
+				var nonOverlapDecorators = [];
+				var overlapDecorators = [];
+				var selectedTerrains = [];
+
+				// STEP 1 & 3
+				for (var key in responsibleTerrains) {
+					if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getData().terrainDecoration.overlap === false) {
+						nonOverlapDecorators.push(responsibleTerrains[key]);						
+					} else if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getData().terrainDecoration.overlap === true) {
+						overlapDecorators.push(responsibleTerrains[key]);
+					}
+				}
+
+
+				// STEP 2
+				var totalPercent = 0;
+				var maxValuePossible = nonOverlapDecorators.length * 100;
+				for (nonOverlapKey in nonOverlapDecorators) {
+					totalPercent += nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent;
+				}
+
+				if(totalPercent > maxValuePossible) {
+					console.warn("Error Adding Placement Percentage of Decoration Terrains - Reverting Terrains to 100% per terrain");
+					totalPercent = nonOverlapDecorators.length * 100;
+					for (nonOverlapKey in nonOverlapDecorators) {
+						nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent = 100;
+					}
+				}
+
+				var randomPercent = Commons.randomize(0, totalPercent);
+				var terrainToUse = null;
+				var found = false;
+				for (nonOverlapKey in nonOverlapDecorators) {
+					if (randomPercent <= nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent) {
+						found = true;
+						terrainToUse = nonOverlapDecorators[nonOverlapKey];
+						break;
+					}
+
+				}
+
+				if (found === false) {
+					terrainToUse = Commons.randomizeInArray(nonOverlapDecorators);
+				}
+
+				// Push Selected Non Optional Terrain to Selection List
+				selectedTerrains.push(terrainToUse);
+
+				// STEP 4
+				for (overlapKey in overlapDecorators) {
+					randomPercent = Commons.randomize(0, 100);
+					if (randomPercent <= overlapDecorators[overlapKey].getDecorationData().placementPercent) {
+						selectedTerrains.push(overlapDecorators[overlapKey]);
+					}
+				}
+
+				tempRow.push(selectedTerrains);
+			}
+
+			mapValuesDecoration.push(tempRow);
+		}
+
+		return mapValuesDecoration;
+	};
 
 	/**
 	 * Sets the Dimensions received from the generator
@@ -449,12 +573,13 @@ var ScaledMap = function () {
 	 * Adds GID Information about the Specified Terrain
 	 * @param {object} Object containing information about GID & Terrain Key
 	 */
-	this.addTileInfo = function (tileObject) {
+	this.setTileInfo = function (tileObject) {
 		var terrainKey = tileObject["terrainKey"];
 		var tiles = tileObject["tiles"];
+		var decoration = tileObject["decoration"] ? tileObject["decoration"] : false;
 
-
-		Commons.getTerrainByKey(terrains, terrainKey).addTileInfo(tiles);
+		Commons.getTerrainByKey(terrains, terrainKey).setTileInfo(tiles);
+		Commons.getTerrainByKey(terrains, terrainKey).setDecorationData(decoration);
 	};
 
 	/**
@@ -496,63 +621,37 @@ var ScaledMap = function () {
 	 * Main Function invoked to Generate the Map from scratch.
 	 */
 	this.generateMapValues = function () {
-		Commons.warn("Map Init Starting");
+		Commons.info("Map Init Starting");
 		Commons.log("Terrains Before Map Generation", terrains, Commons.validLogKeys.mapInitializeLogKey);
 		init();
 		initStartingConditions();
-		Commons.warn("Pre Generation Clean Up");
+		Commons.info("Pre Generation Clean Up");
 		preGenerationCleanUp();
-		Commons.warn("Diamond Square Algorithm Starting");
+		Commons.info("Diamond Square Algorithm Starting");
 		diamondSquare(rowSize - 1, null);
-		Commons.warn("Post Generation Clean Up");
+		Commons.info("Post Generation Clean Up");
 		postGenerationCleanUp();
 	};
 
 	/**
-	 * Specifies the List of layers to which the particular Cell Value belongs to
+	 * Alias Function to get terrains
 	 * @param {double}	terrainValue   Value of the Cell
 	 */
 	this.getLayersFromValue = function (terrainValue) {
-		var selectedTerrains = [];
-		for (var key in terrains) {
-			if (terrains[key].getData().terrainUpperValue >= terrainValue && terrains[key].getData().terrainLowerValue <= terrainValue) {
-				selectedTerrains.push(terrains[key]);
-			}
-		}
-		return selectedTerrains;
+		return getLayersFromValue(terrainValue);
 	};
-
-
-	/**
-	 * Gets a Normalized Version of the Map
-	 */
-	this.getNormalizedMap = function () {
-		for (var rowKey in mapValues) {
-			var tempRow = [];
-			for (var columnKey in mapValues[rowKey]) {
-				var responsibleTerrains = this.getLayersFromValue(mapValues[rowKey][columnKey]);
-				for (var key in responsibleTerrains) {
-					if (responsibleTerrains[key].isRegularTerrain() === true) {
-						terrainKey = responsibleTerrains[key].getData().terrainKey;
-						break;
-					}
-				}
-				tempRow.push(terrainKey);
-			}
-			mapValuesNormalized.push(tempRow);
-		}
-		return mapValuesNormalized;
-	};
-
 
 	/**
 	 * Gets Settings Data for ScaledTmx
 	 */
 	this.getTmxSettings = function () {
-		this.getNormalizedMap();
+		// Get Layered Map with Layer Keys inside the Matrix
+		getNormalizedMap();
+		// Get Possible Decoration Matrix
 		var returnObject = {
 			mapValues: mapValuesNormalized,
-			terrains: terrains
+			terrains: terrains,
+			mapValuesDecoration: mapValuesDecoration
 		};
 
 		return returnObject;

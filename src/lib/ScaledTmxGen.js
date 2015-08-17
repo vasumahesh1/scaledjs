@@ -5,6 +5,7 @@ var ScaledTmxGen = function (settingsData) {
 
 	var terrains = [];
 	var mapValues = [];
+	var mapValuesDecoration = [];
 	var mapValuesTmx = [];
 	var tilesetObject = null;
 	var edgeHandler = null;
@@ -12,21 +13,28 @@ var ScaledTmxGen = function (settingsData) {
 	var dominationObject = null;
 
 	if (settingsData) {
-		if (("mapValues" in settingsData) && settingsData["mapValues"]) {
-			mapValues = settingsData["mapValues"];
-		}
 
-		if (("terrains" in settingsData) && settingsData["terrains"]) {
-			terrains = settingsData["terrains"];
-		}
+		mapValues = settingsData["mapValues"] ? settingsData["mapValues"] : [];
+		terrains = settingsData["terrains"] ? settingsData["terrains"] : [];
+		tilesetObject = settingsData["tilesetSettings"] ? settingsData["tilesetSettings"] : null;
+		dominationObject = settingsData["domSettings"] ? settingsData["domSettings"] : null;
+		mapValuesDecoration = settingsData["mapValuesDecoration"] ? settingsData["mapValuesDecoration"] : [];
 
-		if (("tilesetSettings" in settingsData) && settingsData["tilesetSettings"]) {
-			tilesetObject = settingsData["tilesetSettings"];
-		}
+		// if (("mapValues" in settingsData) && settingsData["mapValues"]) {
+		// 	mapValues = settingsData["mapValues"];
+		// }
 
-		if (("domSettings" in settingsData) && settingsData["domSettings"]) {
-			dominationObject = settingsData["domSettings"];
-		}
+		// if (("terrains" in settingsData) && settingsData["terrains"]) {
+		// 	terrains = settingsData["terrains"];
+		// }
+
+		// if (("tilesetSettings" in settingsData) && settingsData["tilesetSettings"]) {
+		// 	tilesetObject = settingsData["tilesetSettings"];
+		// }
+
+		// if (("domSettings" in settingsData) && settingsData["domSettings"]) {
+		// 	dominationObject = settingsData["domSettings"];
+		// }
 
 	}
 
@@ -83,6 +91,7 @@ var ScaledTmxGen = function (settingsData) {
 			for (var columnKey in mapValues[rowKey]) {
 				tempRow.push(defautGidValue);
 			}
+
 			tempMap.push(tempRow);
 		}
 
@@ -149,12 +158,22 @@ var ScaledTmxGen = function (settingsData) {
 		templateString += "<tile gid=\"" + gidValue + "\" />";
 	};
 
+	var decorateMap = function () {
+		for (var rowKey in mapValues) {
+			for (var columnKey in mapValues[rowKey]) {
+				
+			}
+		}
+	};
+
 	this.generateMapTmx = function () {
-		Commons.warn("TMX - Generating Layered Map");
+		Commons.info("TMX - Generating Layered Map");
 		this.generateLayeredMap();
+		Commons.info("TMX - Decorating Map");
+		decorateMap();
 		// Commons.warn("TMX - Fixing Layer Borders");
 		// this.fixLayerBorders();
-		Commons.warn("TMX - Generating Map XML");
+		Commons.info("TMX - Generating Map XML");
 		this.generateMapXml();
 	};
 

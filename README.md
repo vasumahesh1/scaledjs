@@ -104,7 +104,7 @@ generator.addValidationRule({
 // If you are generating Full TMX Map. Provide the GID Values (Explained Below)
 // for each Layer. Default(Lowest Level) layer needs only one tile data
 // "fullValue" Tile image.
-generator.addTileInfo({
+generator.setTileInfo({
 	terrainKey : 'layer_water',
 	tiles : [{
 		type: "other-tiles",
@@ -115,7 +115,7 @@ generator.addTileInfo({
 
 // This is how a regular layer will look like. You can provide textures for 
 // different types of Edges & intersections
-generator.addTileInfo({
+generator.setTileInfo({
 	terrainKey: 'layer_plain',
 	tiles: [{
 		type: "enclosing-tiles",
@@ -395,7 +395,7 @@ generator.addValidationRule({
 	Maximum Percentage of that Terrain must be in the Map.
 
 
-#### ScaledGen.addTileInfo(gidData)
+#### ScaledGen.setTileInfo(gidData)
 
 Add Texture Information About each Layer.
 

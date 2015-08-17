@@ -79,7 +79,7 @@ generator.addValidationRule({
 
 // If you are generating Full TMX Map. Provide the GID Values (Explained Below)
 // for each Layer. Default Layers Need only one Data Provided the Full Tile image.
-generator.addTileInfo({
+generator.setTileInfo({
 	terrainKey : 'layer_water',
 	tiles : [{
 		type: "other-tiles",
@@ -90,7 +90,7 @@ generator.addTileInfo({
 
 // This is how a regular layer will look like. You can provide textures for 
 // different types of Edges & intersections
-generator.addTileInfo({
+generator.setTileInfo({
 	terrainKey: 'layer_plain',
 	tiles: [{
 		type: "enclosing-tiles",
@@ -151,7 +151,7 @@ generator.addTileInfo({
 });
 
 
-generator.addTileInfo({
+generator.setTileInfo({
 	terrainKey: 'layer_snow',
 	tiles: [{
 		type: "enclosing-tiles",
@@ -213,32 +213,31 @@ generator.addTileInfo({
 
 
 /**
- * GID Info for Decoration Layers
- * Not Yet Active
+ * Tile Info for Decoration Layers
  */
-// generator.addTileInfo({
-// 	terrainKey : 'layer_trees',
-// 	gidData : {
-// 		optionalPercent: 35,
-// 		other : [
-// 			{
-// 				key: "orchid_tree",
-// 				value: 77,
-// 				weight: 1000
-// 			},
-// 			{
-// 				key: "apple_tree",
-// 				value: 78,
-// 				weight: 1
-// 			},
-// 			{
-// 				key: "pear_tree",
-// 				value: 79,
-// 				weight: 1
-// 			}
-// 		]	
-// 	}
-// });
+generator.setTileInfo({
+	terrainKey : 'layer_trees',
+	decoration: {
+		overlap: true,
+		placementPercent: 15
+	},
+	tiles: [{
+		type: "decoration",
+		decorationKey: "orchid_tree",
+		value: 78,
+		weight: 1000
+	}, {
+		type: "decoration",
+		decorationKey: "cherry_tree",
+		value: 79,
+		weight: 1
+	}, {
+		type: "decoration",
+		decorationKey: "apple_tree",
+		value: 80,
+		weight: 1
+	}]
+});
 
 //
 // This is Important for Layer Hierarchy

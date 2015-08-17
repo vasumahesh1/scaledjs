@@ -22,6 +22,13 @@
 // 
 // 
 
+/*
+ * Establish the root object, `window` (`self`) in the browser, `global`
+ * on the server, or `this` in some virtual machines. We use `self`
+ * instead of `window` for `WebWorker` support.
+ */
+var root = typeof self === 'object' && self.self === self && self || typeof global === 'object' && global.global === global && global || this;
+
 
 /**
  * Main Function for the Generator Object
@@ -51,7 +58,6 @@ function ScaledGen(settingsData) {
 			Commons.showProgressUpdate = settingsData["onProgressUpdate"];
 		}
 
-
 	}
 
 	/**
@@ -68,7 +74,7 @@ function ScaledGen(settingsData) {
 	 * @param {integer} columnSize Size of the Column
 	 */
 	this.setMapSize = function (rowSize, columnSize) {
-		mainMap.setDimensions(rowSize,columnSize);
+		mainMap.setDimensions(rowSize, columnSize);
 	};
 
 	/**
@@ -114,8 +120,8 @@ function ScaledGen(settingsData) {
 	};
 
 
-	this.addTileInfo = function (tileData) {
-		mainMap.addTileInfo(tileData);
+	this.setTileInfo = function (tileData) {
+		mainMap.setTileInfo(tileData);
 	};
 
 
@@ -140,7 +146,7 @@ function ScaledGen(settingsData) {
 
 	/**
 	 * Generates the Entire Map from
-  	 * From 2D Array to 3D Layered Maps to TMX Tiled XML
+	 * From 2D Array to 3D Layered Maps to TMX Tiled XML
 	 */
 	this.generateMap = function () {
 		this.generateMapValues();
@@ -155,7 +161,7 @@ function ScaledGen(settingsData) {
 		}
 	};
 
-	this.getTmxXml = function() {
+	this.getTmxXml = function () {
 		return scaledTmx.getTmxXml();
 	};
 
@@ -211,7 +217,18 @@ function ScaledGen(settingsData) {
 		return html;
 	};
 
-
 }
 
-module.exports = ScaledGen;
+/*
+ * Export the ScaledGen object for **Node.js**, with
+ * backwards-compatibility for their old module API. If we're in
+ * the browser, add `ScaledGen` as a global object.
+ */
+if (typeof exports !== 'undefined') {
+	if (typeof module !== 'undefined' && module.exports) {
+		exports = module.exports = ScaledGen;
+	}
+	exports.ScaledGen = ScaledGen;
+} else {
+	root.ScaledGen = ScaledGen;
+}

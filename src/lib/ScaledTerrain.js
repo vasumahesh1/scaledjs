@@ -11,6 +11,7 @@ var ScaledTerrain = function () {
 	var terrainValidationMinPercent = -1;
 	var terrainValidationMaxPercent = -1;
 	var terrainTileInfo = -1;
+	var terrainDecoration = false;
 
 
 	this.createTerrain = function (_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
@@ -45,13 +46,27 @@ var ScaledTerrain = function () {
 		return false;
 	};
 
+	this.isDecorationTerrain = function () {
+		if (terrainType == "decoration") {
+			return true;
+		}
+		return false;
+	};
+
 	this.setValidation = function (minValue, maxValue) {
 		terrainValidationMinPercent = minValue;
 		terrainValidationMaxPercent = maxValue;
 	};
 
+	this.setDecorationData = function (terrainDecorationData) {
+		terrainDecoration = terrainDecorationData;
+	};
 
-	this.addTileInfo = function (tileInfo) {
+	this.getDecorationData = function () {
+		return terrainDecoration;
+	};
+
+	this.setTileInfo = function (tileInfo) {
 		terrainTileInfo = tileInfo;
 	};
 
