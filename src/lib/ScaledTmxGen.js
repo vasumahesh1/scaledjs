@@ -19,23 +19,6 @@ var ScaledTmxGen = function (settingsData) {
 		tilesetObject = settingsData["tilesetSettings"] ? settingsData["tilesetSettings"] : null;
 		dominationObject = settingsData["domSettings"] ? settingsData["domSettings"] : null;
 		mapValuesDecoration = settingsData["mapValuesDecoration"] ? settingsData["mapValuesDecoration"] : [];
-
-		// if (("mapValues" in settingsData) && settingsData["mapValues"]) {
-		// 	mapValues = settingsData["mapValues"];
-		// }
-
-		// if (("terrains" in settingsData) && settingsData["terrains"]) {
-		// 	terrains = settingsData["terrains"];
-		// }
-
-		// if (("tilesetSettings" in settingsData) && settingsData["tilesetSettings"]) {
-		// 	tilesetObject = settingsData["tilesetSettings"];
-		// }
-
-		// if (("domSettings" in settingsData) && settingsData["domSettings"]) {
-		// 	dominationObject = settingsData["domSettings"];
-		// }
-
 	}
 
 	edgeHandlerSettings = {
@@ -158,10 +141,68 @@ var ScaledTmxGen = function (settingsData) {
 		templateString += "<tile gid=\"" + gidValue + "\" />";
 	};
 
+	var getRandomizedDecorationTile = function (terrain) {
+		var tiles = terrain.getData().terrainTileInfo;
+		var tileKey;
+		var randomPercent;
+		var totalWeight = 0;
+		var selectedTile = null;
+
+		for (tileKey in tiles) {
+			if (tiles[tileKey].weight) {
+				totalWeight += tiles[tileKey].weight;
+			}
+		}
+
+		randomPercent = Commons.randomize(0, totalWeight);
+
+		for (tileKey in tiles) {
+			if (randomPercent <= tiles[tileKey].weight) {
+				selectedTile = tiles[tileKey];
+				break;
+			}
+		}
+
+		if (selectedTile) {
+			if (!selectedTile.dimensions) {
+				return selectedTile.value;
+			}
+		}
+
+		return -1;
+	};
+
+	var canPlaceDecorationLayer = function (rowKey, columnKey) {
+		var primaryCell = mapValues[rowKey][columnKey];
+
+		var similarity = edgeHandler.getAdjacentSimilarity(primaryCell, getAdjacentValues(rowKey, columnKey));
+
+		if(edgeHandler.allSquareSidesSimilar(similarity) === true) {
+			return true;
+		}
+
+		return false;
+	};
+
 	var decorateMap = function () {
 		for (var rowKey in mapValues) {
 			for (var columnKey in mapValues[rowKey]) {
-				
+				if (mapValuesDecoration[rowKey]) {
+					var selectedTerrains = mapValuesDecoration[rowKey][columnKey];
+					var tiles = [];
+					if (selectedTerrains && selectedTerrains.length !== 0 && canPlaceDecorationLayer(rowKey, columnKey)) {
+						for (var terrainKey in selectedTerrains) {
+							tiles.push(getRandomizedDecorationTile(selectedTerrains[terrainKey]));
+						}
+
+						Commons.removeKeyFromArray(tiles, -1);
+					}
+
+					if (tiles && tiles.length > 0) {
+						insertTilesIntoMap(tiles, rowKey, columnKey);
+					}
+				}
+
 			}
 		}
 	};
@@ -171,8 +212,6 @@ var ScaledTmxGen = function (settingsData) {
 		this.generateLayeredMap();
 		Commons.info("TMX - Decorating Map");
 		decorateMap();
-		// Commons.warn("TMX - Fixing Layer Borders");
-		// this.fixLayerBorders();
 		Commons.info("TMX - Generating Map XML");
 		this.generateMapXml();
 	};
@@ -193,19 +232,6 @@ var ScaledTmxGen = function (settingsData) {
 				insertTilesIntoMap(tileValues, rowKey, columnKey);
 			}
 		}
-	};
-
-	this.fixLayerBorders = function () {
-		for (var rowKey in mapValuesTmx[0]) {
-			for (var columnKey in mapValuesTmx[0][rowKey]) {
-				// Irrespective of Layers
-				this.fixBorderAtCell(rowKey, columnKey);
-			}
-		}
-	};
-
-	this.fixBorderAtCell = function (posX, posY) {
-
 	};
 
 

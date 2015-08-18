@@ -98,7 +98,7 @@ Commons.randomizeInArray = function (arrayList) {
 };
 
 /**
- * Randomizes a value from a given Array but makes sure the 
+ * Randomizes a value from a given Array but makes sure the
  * value doesn't come from the Exception list
  * @param {int} minValue   Start Range
  * @param {int} maxValue   End Range
@@ -165,7 +165,7 @@ Commons.tryGetArrayValue = function (arrayList, posX, posY) {
 
 /**
  * Checks if the given point is at the Edge of the Map
- * (0,y) (x,0) (x,Y) (X,y) are the possible values 
+ * (0,y) (x,0) (x,Y) (X,y) are the possible values
  * @param {array} arrayList Map Array Values(2D)
  * @param {int} posX      X coordinate
  * @param {int} posY      Y coordinate
@@ -210,6 +210,21 @@ Commons.getMainTerrains = function (terrains) {
 		}
 	}
 	return regularTerrains;
+};
+
+
+/**
+ * Remove all occurences of a given Value from an Array
+ *
+ * @param      {array}  array   Array of Values
+ * @param      {value}  value   Value to Remove
+ */
+Commons.removeKeyFromArray = function (array, value) {
+	for (var key in array) {
+		if (array[key] === value) {
+			array.splice(key, 1);
+		}
+	}
 };
 
 

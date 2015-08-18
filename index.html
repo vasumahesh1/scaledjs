@@ -40,10 +40,26 @@ generator.addTerrain({
 });
 
 generator.addTerrain({
+	key : 'layer_bushes',
+	label : 'Bushes',
+	max : 65,
+	min : 30,
+	type : "decoration"
+});
+
+generator.addTerrain({
 	key : 'layer_snow',
 	label : 'Snow',
 	max : 100,
-	min : 30
+	min : 65
+});
+
+generator.addTerrain({
+	key : 'layer_snow_bushes',
+	label : 'Snow Bushes',
+	max : 100,
+	min : 65,
+	type : "decoration"
 });
 
 
@@ -218,26 +234,75 @@ generator.setTileInfo({
 generator.setTileInfo({
 	terrainKey : 'layer_trees',
 	decoration: {
-		overlap: true,
-		placementPercent: 15
+		overlap: false,
+		placementPercent: 25
 	},
 	tiles: [{
 		type: "decoration",
 		decorationKey: "orchid_tree",
 		value: 78,
-		weight: 1000
+		weight: 300
 	}, {
 		type: "decoration",
 		decorationKey: "cherry_tree",
 		value: 79,
-		weight: 1
+		weight: 10
 	}, {
 		type: "decoration",
 		decorationKey: "apple_tree",
 		value: 80,
-		weight: 1
+		weight: 10
+	}, {
+		type: "decoration",
+		decorationKey: "ever_green_tree",
+		value: 81,
+		weight: 75
 	}]
 });
+
+generator.setTileInfo({
+	terrainKey : 'layer_bushes',
+	decoration: {
+		overlap: false,
+		placementPercent: 65
+	},
+	tiles: [{
+		type: "decoration",
+		decorationKey: "bush_1",
+		value: 82,
+		weight: 50
+	}, {
+		type: "decoration",
+		decorationKey: "bush_2",
+		value: 83,
+		weight: 50
+	}, {
+		type: "decoration",
+		decorationKey: "bush_3",
+		value: 84,
+		weight: 10
+	}]
+});
+
+generator.setTileInfo({
+	terrainKey : 'layer_snow_bushes',
+	decoration: {
+		overlap: true,
+		placementPercent: 50
+	},
+	tiles: [{
+		type: "decoration",
+		decorationKey: "snow_pile",
+		value: 85,
+		weight: 10
+	}, {
+		type: "decoration",
+		decorationKey: "snow_tree",
+		value: 86,
+		weight: 50
+	}]
+});
+
 
 //
 // This is Important for Layer Hierarchy
@@ -248,10 +313,21 @@ generator.addLayerDomination({
 	dominationPriority: ['layer_water', 'layer_plain', 'layer_snow']
 });
 
+// [Without Decotration]
+// Tileset Information for the Tiled Map
+// generator.addTileset({
+// 	source: 'origin_tileset_3_layers.png',
+// 	height:160,
+// 	width:224,
+// 	tileWidth:32,
+// 	tileHeight:32
+// });
+
+// [With Decotration]
 // Tileset Information for the Tiled Map
 generator.addTileset({
-	source: 'origin_tileset_3_layers.png',
-	height:160,
+	source: 'origin_tileset_3_layers_with_decoration.png',
+	height:416,
 	width:224,
 	tileWidth:32,
 	tileHeight:32

@@ -85,42 +85,14 @@ var ScaledEdgeDetector = function (edgeSettings) {
 
 	};
 
-
-	var getAdjacentSimilarity = function (primaryValue, adjacentValues) {
-		var similarity = {
-			top: false,
-			left: false,
-			right: false,
-			bottom: false,
-			count: 0
-		};
-
-
-		if (adjacentValues[0] == primaryValue) {
-			similarity.top = true;
-			similarity.count++;
+	this.allSquareSidesSimilar = function (similarity) {
+		if (similarity.top === true && similarity.left === true && similarity.right === true && similarity.bottom === true) {
+			return true;
 		}
-
-		if (adjacentValues[1] == primaryValue) {
-			similarity.right = true;
-			similarity.count++;
-		}
-
-		if (adjacentValues[2] == primaryValue) {
-			similarity.bottom = true;
-			similarity.count++;
-		}
-
-		if (adjacentValues[3] == primaryValue) {
-			similarity.left = true;
-			similarity.count++;
-		}
-
-		return similarity;
+		return false;
 	};
 
-
-	var getDiagonalSimilarity = function (primaryValue, diagonalValues) {
+	this.getDiagonalSimilarity = function (primaryValue, diagonalValues) {
 		var similarity = {
 			topLeft: false,
 			topRight: false,
@@ -153,11 +125,37 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		return similarity;
 	};
 
-	var allSquareSidesSimilar = function (similarity) {
-		if (similarity.top === true && similarity.left === true && similarity.right === true && similarity.bottom === true) {
-			return true;
+	this.getAdjacentSimilarity = function (primaryValue, adjacentValues) {
+		var similarity = {
+			top: false,
+			left: false,
+			right: false,
+			bottom: false,
+			count: 0
+		};
+
+
+		if (adjacentValues[0] == primaryValue) {
+			similarity.top = true;
+			similarity.count++;
 		}
-		return false;
+
+		if (adjacentValues[1] == primaryValue) {
+			similarity.right = true;
+			similarity.count++;
+		}
+
+		if (adjacentValues[2] == primaryValue) {
+			similarity.bottom = true;
+			similarity.count++;
+		}
+
+		if (adjacentValues[3] == primaryValue) {
+			similarity.left = true;
+			similarity.count++;
+		}
+
+		return similarity;
 	};
 
 	this.resolveTileValue = function (primaryValue, adjacentValues, diagonalValues) {
@@ -182,11 +180,11 @@ var ScaledEdgeDetector = function (edgeSettings) {
 		var normalizedAdjacentValues = normalizeAdjacency(primaryValue, adjacentValues);
 		var normalizedDiagonalValues = normalizeAdjacency(primaryValue, diagonalValues);
 
-		var similarity = getAdjacentSimilarity(primaryValue, normalizedAdjacentValues);
-		var diagonalSimilarity = getDiagonalSimilarity(primaryValue, normalizedDiagonalValues);
+		var similarity = this.getAdjacentSimilarity(primaryValue, normalizedAdjacentValues);
+		var diagonalSimilarity = this.getDiagonalSimilarity(primaryValue, normalizedDiagonalValues);
 		Commons.log("Similarity", similarity, Commons.validLogKeys.tmxRenderLogKey);
 		// All Similar or Not
-		if (allSquareSidesSimilar(similarity) === true) {
+		if (this.allSquareSidesSimilar(similarity) === true) {
 			// All Similar
 			finalTiles.push(primaryTerrain.getTileData("other-tiles", "all", "fullValue"));// .other.full);
 
@@ -236,7 +234,7 @@ var ScaledEdgeDetector = function (edgeSettings) {
 
 		}
 
-		if (allSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
+		if (this.allSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
 			if (diagonalSimilarity.topLeft === false) {
 				finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "rightValue"));// .enclosing.bottom.rightValue);
 			}

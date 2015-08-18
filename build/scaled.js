@@ -297,7 +297,7 @@ Commons.randomizeInArray = function(arrayList) {
 };
 
 /**
- * Randomizes a value from a given Array but makes sure the 
+ * Randomizes a value from a given Array but makes sure the
  * value doesn't come from the Exception list
  * @param {int} minValue   Start Range
  * @param {int} maxValue   End Range
@@ -362,7 +362,7 @@ Commons.tryGetArrayValue = function(arrayList, posX, posY) {
 
 /**
  * Checks if the given point is at the Edge of the Map
- * (0,y) (x,0) (x,Y) (X,y) are the possible values 
+ * (0,y) (x,0) (x,Y) (X,y) are the possible values
  * @param {array} arrayList Map Array Values(2D)
  * @param {int} posX      X coordinate
  * @param {int} posY      Y coordinate
@@ -403,6 +403,20 @@ Commons.getMainTerrains = function(terrains) {
         }
     }
     return regularTerrains;
+};
+
+/**
+ * Remove all occurences of a given Value from an Array
+ *
+ * @param      {array}  array   Array of Values
+ * @param      {value}  value   Value to Remove
+ */
+Commons.removeKeyFromArray = function(array, value) {
+    for (var key in array) {
+        if (array[key] === value) {
+            array.splice(key, 1);
+        }
+    }
 };
 
 /**
@@ -536,33 +550,13 @@ var ScaledEdgeDetector = function(edgeSettings) {
         Commons.log("Returning", getDominationKey(returnValue), Commons.validLogKeys.tmxRenderLogKey);
         return getDominationKey(returnValue);
     };
-    var getAdjacentSimilarity = function(primaryValue, adjacentValues) {
-        var similarity = {
-            top: false,
-            left: false,
-            right: false,
-            bottom: false,
-            count: 0
-        };
-        if (adjacentValues[0] == primaryValue) {
-            similarity.top = true;
-            similarity.count++;
+    this.allSquareSidesSimilar = function(similarity) {
+        if (similarity.top === true && similarity.left === true && similarity.right === true && similarity.bottom === true) {
+            return true;
         }
-        if (adjacentValues[1] == primaryValue) {
-            similarity.right = true;
-            similarity.count++;
-        }
-        if (adjacentValues[2] == primaryValue) {
-            similarity.bottom = true;
-            similarity.count++;
-        }
-        if (adjacentValues[3] == primaryValue) {
-            similarity.left = true;
-            similarity.count++;
-        }
-        return similarity;
+        return false;
     };
-    var getDiagonalSimilarity = function(primaryValue, diagonalValues) {
+    this.getDiagonalSimilarity = function(primaryValue, diagonalValues) {
         var similarity = {
             topLeft: false,
             topRight: false,
@@ -588,11 +582,31 @@ var ScaledEdgeDetector = function(edgeSettings) {
         }
         return similarity;
     };
-    var allSquareSidesSimilar = function(similarity) {
-        if (similarity.top === true && similarity.left === true && similarity.right === true && similarity.bottom === true) {
-            return true;
+    this.getAdjacentSimilarity = function(primaryValue, adjacentValues) {
+        var similarity = {
+            top: false,
+            left: false,
+            right: false,
+            bottom: false,
+            count: 0
+        };
+        if (adjacentValues[0] == primaryValue) {
+            similarity.top = true;
+            similarity.count++;
         }
-        return false;
+        if (adjacentValues[1] == primaryValue) {
+            similarity.right = true;
+            similarity.count++;
+        }
+        if (adjacentValues[2] == primaryValue) {
+            similarity.bottom = true;
+            similarity.count++;
+        }
+        if (adjacentValues[3] == primaryValue) {
+            similarity.left = true;
+            similarity.count++;
+        }
+        return similarity;
     };
     this.resolveTileValue = function(primaryValue, adjacentValues, diagonalValues) {
         if (Commons.getDefaultTerrain(terrains).terrainKey == primaryValue) {
@@ -609,11 +623,11 @@ var ScaledEdgeDetector = function(edgeSettings) {
         finalTiles.push(lowestDominationTile);
         var normalizedAdjacentValues = normalizeAdjacency(primaryValue, adjacentValues);
         var normalizedDiagonalValues = normalizeAdjacency(primaryValue, diagonalValues);
-        var similarity = getAdjacentSimilarity(primaryValue, normalizedAdjacentValues);
-        var diagonalSimilarity = getDiagonalSimilarity(primaryValue, normalizedDiagonalValues);
+        var similarity = this.getAdjacentSimilarity(primaryValue, normalizedAdjacentValues);
+        var diagonalSimilarity = this.getDiagonalSimilarity(primaryValue, normalizedDiagonalValues);
         Commons.log("Similarity", similarity, Commons.validLogKeys.tmxRenderLogKey);
         // All Similar or Not
-        if (allSquareSidesSimilar(similarity) === true) {
+        if (this.allSquareSidesSimilar(similarity) === true) {
             // All Similar
             finalTiles.push(primaryTerrain.getTileData("other-tiles", "all", "fullValue"));
         } else {
@@ -654,7 +668,7 @@ var ScaledEdgeDetector = function(edgeSettings) {
                 }
             }
         }
-        if (allSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
+        if (this.allSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
             if (diagonalSimilarity.topLeft === false) {
                 finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "rightValue"));
             }
@@ -873,9 +887,9 @@ var ScaledMap = function() {
 	 * @return {Array}		mapValues 	Final Modified Map
 	 */
     var diamondSquare = function(boxSize, repairSalt) {
-        Commons.warn("Diamond Step Starting");
+        Commons.info("Diamond Step Starting");
         diamondStep(boxSize / 2, boxSize / 2, boxSize, repairSalt);
-        Commons.warn("Square Step Starting");
+        Commons.info("Square Step Starting");
         squareStep(boxSize / 2, boxSize / 2, boxSize, repairSalt);
     };
     var diamondStep = function(posX, posY, boxSize, repairSalt) {
@@ -974,9 +988,9 @@ var ScaledMap = function() {
                 var selectedTerrains = [];
                 // STEP 1 & 3
                 for (var key in responsibleTerrains) {
-                    if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getData().terrainDecoration.overlap === false) {
+                    if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getDecorationData().overlap === false) {
                         nonOverlapDecorators.push(responsibleTerrains[key]);
-                    } else if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getData().terrainDecoration.overlap === true) {
+                    } else if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getDecorationData().overlap === true) {
                         overlapDecorators.push(responsibleTerrains[key]);
                     }
                 }
@@ -987,27 +1001,25 @@ var ScaledMap = function() {
                     totalPercent += nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent;
                 }
                 if (totalPercent > maxValuePossible) {
-                    console.warn("Error Adding Placement Percentage of Decoration Terrains - Reverting Terrains to 100% per terrain");
+                    Commons.warn("Error Adding Placement Percentage of Decoration Terrains - Reverting Terrains to 100% per terrain");
                     totalPercent = nonOverlapDecorators.length * 100;
                     for (nonOverlapKey in nonOverlapDecorators) {
                         nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent = 100;
                     }
                 }
-                var randomPercent = Commons.randomize(0, totalPercent);
+                // 35% + 35% will be 70/200
+                var randomPercent = Commons.randomize(0, maxValuePossible);
                 var terrainToUse = null;
-                var found = false;
                 for (nonOverlapKey in nonOverlapDecorators) {
                     if (randomPercent <= nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent) {
-                        found = true;
                         terrainToUse = nonOverlapDecorators[nonOverlapKey];
                         break;
                     }
                 }
-                if (found === false) {
-                    terrainToUse = Commons.randomizeInArray(nonOverlapDecorators);
-                }
                 // Push Selected Non Optional Terrain to Selection List
-                selectedTerrains.push(terrainToUse);
+                if (terrainToUse) {
+                    selectedTerrains.push(terrainToUse);
+                }
                 // STEP 4
                 for (overlapKey in overlapDecorators) {
                     randomPercent = Commons.randomize(0, 100);
@@ -1147,6 +1159,7 @@ var ScaledMap = function() {
         // Get Layered Map with Layer Keys inside the Matrix
         getNormalizedMap();
         // Get Possible Decoration Matrix
+        getDecorationMap();
         var returnObject = {
             mapValues: mapValuesNormalized,
             terrains: terrains,
@@ -1375,9 +1388,56 @@ var ScaledTmxGen = function(settingsData) {
     var appendTileRow = function(gidValue) {
         templateString += '<tile gid="' + gidValue + '" />';
     };
+    var getRandomizedDecorationTile = function(terrain) {
+        var tiles = terrain.getData().terrainTileInfo;
+        var tileKey;
+        var randomPercent;
+        var totalWeight = 0;
+        var selectedTile = null;
+        for (tileKey in tiles) {
+            if (tiles[tileKey].weight) {
+                totalWeight += tiles[tileKey].weight;
+            }
+        }
+        randomPercent = Commons.randomize(0, totalWeight);
+        for (tileKey in tiles) {
+            if (randomPercent <= tiles[tileKey].weight) {
+                selectedTile = tiles[tileKey];
+                break;
+            }
+        }
+        if (selectedTile) {
+            if (!selectedTile.dimensions) {
+                return selectedTile.value;
+            }
+        }
+        return -1;
+    };
+    var canPlaceDecorationLayer = function(rowKey, columnKey) {
+        var primaryCell = mapValues[rowKey][columnKey];
+        var similarity = edgeHandler.getAdjacentSimilarity(primaryCell, getAdjacentValues(rowKey, columnKey));
+        if (edgeHandler.allSquareSidesSimilar(similarity) === true) {
+            return true;
+        }
+        return false;
+    };
     var decorateMap = function() {
         for (var rowKey in mapValues) {
-            for (var columnKey in mapValues[rowKey]) {}
+            for (var columnKey in mapValues[rowKey]) {
+                if (mapValuesDecoration[rowKey]) {
+                    var selectedTerrains = mapValuesDecoration[rowKey][columnKey];
+                    var tiles = [];
+                    if (selectedTerrains && selectedTerrains.length !== 0 && canPlaceDecorationLayer(rowKey, columnKey)) {
+                        for (var terrainKey in selectedTerrains) {
+                            tiles.push(getRandomizedDecorationTile(selectedTerrains[terrainKey]));
+                        }
+                        Commons.removeKeyFromArray(tiles, -1);
+                    }
+                    if (tiles && tiles.length > 0) {
+                        insertTilesIntoMap(tiles, rowKey, columnKey);
+                    }
+                }
+            }
         }
     };
     this.generateMapTmx = function() {
@@ -1385,8 +1445,6 @@ var ScaledTmxGen = function(settingsData) {
         this.generateLayeredMap();
         Commons.info("TMX - Decorating Map");
         decorateMap();
-        // Commons.warn("TMX - Fixing Layer Borders");
-        // this.fixLayerBorders();
         Commons.info("TMX - Generating Map XML");
         this.generateMapXml();
     };
@@ -1405,15 +1463,6 @@ var ScaledTmxGen = function(settingsData) {
             }
         }
     };
-    this.fixLayerBorders = function() {
-        for (var rowKey in mapValuesTmx[0]) {
-            for (var columnKey in mapValuesTmx[0][rowKey]) {
-                // Irrespective of Layers
-                this.fixBorderAtCell(rowKey, columnKey);
-            }
-        }
-    };
-    this.fixBorderAtCell = function(posX, posY) {};
     this.generateMapXml = function() {
         templateString += '<?xml version="1.0" encoding="UTF-8"?>';
         templateString += '<map version="1.0" orientation="orthogonal" renderorder="left-up" width="' + mapValuesTmx[0].length + '" height="' + mapValuesTmx[0].length + '" tilewidth="' + tilesetObject.tileWidth + '" tileheight="' + tilesetObject.tileHeight + '" nextobjectid="1">';

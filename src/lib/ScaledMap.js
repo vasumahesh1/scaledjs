@@ -241,9 +241,9 @@ var ScaledMap = function () {
 	 * @return {Array}		mapValues 	Final Modified Map
 	 */
 	var diamondSquare = function (boxSize, repairSalt) {
-		Commons.warn("Diamond Step Starting");
+		Commons.info("Diamond Step Starting");
 		diamondStep(boxSize / 2, boxSize / 2, boxSize, repairSalt);
-		Commons.warn("Square Step Starting");
+		Commons.info("Square Step Starting");
 		squareStep(boxSize / 2, boxSize / 2, boxSize, repairSalt);
 	};
 
@@ -441,9 +441,9 @@ var ScaledMap = function () {
 
 				// STEP 1 & 3
 				for (var key in responsibleTerrains) {
-					if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getData().terrainDecoration.overlap === false) {
+					if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getDecorationData().overlap === false) {
 						nonOverlapDecorators.push(responsibleTerrains[key]);						
-					} else if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getData().terrainDecoration.overlap === true) {
+					} else if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getDecorationData().overlap === true) {
 						overlapDecorators.push(responsibleTerrains[key]);
 					}
 				}
@@ -457,31 +457,28 @@ var ScaledMap = function () {
 				}
 
 				if(totalPercent > maxValuePossible) {
-					console.warn("Error Adding Placement Percentage of Decoration Terrains - Reverting Terrains to 100% per terrain");
+					Commons.warn("Error Adding Placement Percentage of Decoration Terrains - Reverting Terrains to 100% per terrain");
 					totalPercent = nonOverlapDecorators.length * 100;
 					for (nonOverlapKey in nonOverlapDecorators) {
 						nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent = 100;
 					}
 				}
 
-				var randomPercent = Commons.randomize(0, totalPercent);
+				// 35% + 35% will be 70/200
+				var randomPercent = Commons.randomize(0, maxValuePossible);
 				var terrainToUse = null;
-				var found = false;
 				for (nonOverlapKey in nonOverlapDecorators) {
 					if (randomPercent <= nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent) {
-						found = true;
 						terrainToUse = nonOverlapDecorators[nonOverlapKey];
 						break;
 					}
 
 				}
 
-				if (found === false) {
-					terrainToUse = Commons.randomizeInArray(nonOverlapDecorators);
-				}
-
 				// Push Selected Non Optional Terrain to Selection List
-				selectedTerrains.push(terrainToUse);
+				if(terrainToUse) {
+					selectedTerrains.push(terrainToUse);
+				}
 
 				// STEP 4
 				for (overlapKey in overlapDecorators) {
@@ -648,6 +645,7 @@ var ScaledMap = function () {
 		// Get Layered Map with Layer Keys inside the Matrix
 		getNormalizedMap();
 		// Get Possible Decoration Matrix
+		getDecorationMap();
 		var returnObject = {
 			mapValues: mapValuesNormalized,
 			terrains: terrains,
