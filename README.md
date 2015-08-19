@@ -39,7 +39,7 @@ Hey! What's working ?
 * Conversion of Value Matrix to 3D Layered Matrix
 * Conversion of 3D Matrix to TMX Tiled Map Format
 * ~~Panoramic Maps - Allowing Maps to continue Horizontally, Vertically or Both!~~
-* ~~Support for Variable Textures (Like Textures of Variable Trees etc.)~~
+* Support for Variable Textures (Like Textures of Variable Trees etc.)
 * ~~Enabling More Terrain Layer Support~~ - As of Now Works Upto 3 Layers.
 * ~~Optional Hook for Developers when the Actual Adjacency Placement Rules are applied~~
 
