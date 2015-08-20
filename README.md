@@ -49,11 +49,12 @@ Basic Usage
 
 Refer [index.html for a Working Example](index.html)
 
+
 ```js
 // Main Instance of the Generator
 var generator = new ScaledGen({
     debug : true,
-    logs : ['tmxRender'],
+    logs : [],
     maxTries : 20
 });
 
@@ -77,28 +78,13 @@ generator.addTerrain({
 	min : 30
 });
 
-// Define How the Map will look by specifying the 
-// Starting Condition of the map
-generator.addStartingCondition({
-	terrainKey: 'layer_water', 
-	minCount: 1,
-	optionalPercent: 25
-});
-
-generator.addStartingCondition({
-	terrainKey: 'layer_plain', 
-	minCount: 1,
-	optionalPercent: 35
-});
-
-
-// Define Validation Rules
-// So that the Generator will only generate a Map that
-// meets the Rules you have given
-generator.addValidationRule({
-	terrainKey : 'layer_water',
-	minPercent : 5
-});
+// For Generating Only 2D Array of Values:
+//
+// Use this:
+// generator.generateMapValues();
+// var map = generator.getMapValues();
+//
+// Stop here if you Only want a Matrix.
 
 
 // If you are generating Full TMX Map. Provide the GID Values (Explained Below)
@@ -181,6 +167,7 @@ generator.setTileInfo({
 });
 
 // This is Important for Layer Hierarchy
+//
 // Larger the Index the more Dominant it is.
 // The layer you want to stay at the top most, stays at the end of this Array
 generator.addLayerDomination({
@@ -196,11 +183,8 @@ generator.addTileset({
 	tileHeight:32
 });
 
-// For Generating Only 2D Array of Values:
-// generator.generateMapValues();
-// var map = generator.getMapValues();
-
 // Full Generation - Map Array -> 3D Layer -> TMX Map
+//
 // Use this If you want full generation from Scratch without any Custom Breakpoints 
 // between the Generation Process
 generator.generateMap();
@@ -212,6 +196,11 @@ generator.renderMapValues('map-container');
 var TMX_XML = generator.getTmxXml();
 console.log(TMX_XML);
 ```
+
+Advanced Usage
+--------------------------------
+Refer [Advanced Usage Readme](advanced-usage.md)
+
 
 Customizations
 --------------------------------
@@ -318,7 +307,7 @@ Add a new Terrain to the Map.
 
 * `default` - boolean - Optional
 
-	Mark one Layer as Default. Currently not being used.
+	Mark one Layer as Default. Important as the layer with `default:true` has to be the **first** in layer domination array
 
 #### ScaledGen.addStartingCondition(conditionData)
 
@@ -539,13 +528,16 @@ The following Tile Information is used for Decoration Layers
 
 * `tiles` - array - Required
 
-	The tiles have an extra key called `weight`. It signifies the probability of that type of "decoration" to appear on a selected cell by the engine. The main purpose of this is to have variable textures like Layer `trees` can have variable textures yet be the same Layer `trees`. THe more the weight the more probable is the cell to appear when compared to the others in the array.
+	The tiles have an extra key called `weight`. It signifies the probability of that type of "decoration" to appear on a selected cell by the engine. The main purpose of this is to have variable textures like Layer `trees` can have variable textures yet be the same Layer `trees`. The more the weight the more probable is the cell to appear when compared to the others in the array.
 
 
 
 #### ScaledGen.addLayerDomination(dominationData)
 
+**Default Terrain must come at the 0th index of this array else may lead to untested behavior**
+
 Currently Specifies the Priority in which the layers standout to each other. Based on that the TMX is rendered. This will be usefull when you have 3 or more types of Terrain Layers.
+No need to provide Decoration Layers here. Only those terrains that are used in Terrain Generation.
 
 ```js
 {

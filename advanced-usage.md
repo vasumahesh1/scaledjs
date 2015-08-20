@@ -1,0 +1,331 @@
+## ScaledJS - Terrain Generator for HTML 5 Games & Apps
+[![Build Status](https://travis-ci.org/vasumahesh1/scaledjs.svg?branch=master)](https://travis-ci.org/vasumahesh1/scaledjs)
+
+Advanced Usage
+--------------------------------
+
+```js
+// Main Instance of the Generator
+var generator = new ScaledGen({
+    debug : true,
+    logs : ['tmxRender'],
+    maxTries : 20
+});
+
+// Set the Map Size you want to Generate
+generator.setMapSize(17,17);
+
+
+// Add Terrains that meet your needs
+generator.addTerrain({
+	key : 'layer_water',
+	label : 'Water',
+	max : 30,
+	min : 0,
+	default : true
+});
+
+generator.addTerrain({
+	key : 'layer_plain',
+	label : 'Plain',
+	max : 65,
+	min : 30
+});
+
+generator.addTerrain({
+	key : 'layer_trees',
+	label : 'Trees',
+	max : 65,
+	min : 30,
+	type : "decoration"
+});
+
+generator.addTerrain({
+	key : 'layer_bushes',
+	label : 'Bushes',
+	max : 65,
+	min : 30,
+	type : "decoration"
+});
+
+generator.addTerrain({
+	key : 'layer_snow',
+	label : 'Snow',
+	max : 100,
+	min : 65
+});
+
+generator.addTerrain({
+	key : 'layer_snow_bushes',
+	label : 'Snow Bushes',
+	max : 100,
+	min : 65,
+	type : "decoration"
+});
+
+// Define How the Map will look by specifying the 
+// Starting Condition of the map
+generator.addStartingCondition({
+	terrainKey: 'layer_water', 
+	minCount: 1,
+	optionalPercent: 25
+});
+
+generator.addStartingCondition({
+	terrainKey: 'layer_plain', 
+	minCount: 1,
+	optionalPercent: 35
+});
+
+generator.addStartingCondition({
+	terrainKey: 'layer_snow', 
+	minCount: 1,
+	optionalPercent: 20
+});
+
+
+// Define Validation Rules
+// So that the Generator will only generate a Map that
+// meets the Rules you have given
+generator.addValidationRule({
+	terrainKey : 'layer_water',
+	minPercent : 5
+});
+
+// If you are generating Full TMX Map. Provide the GID Values (Explained Below)
+// for each Layer. Default Layers Need only one Data Provided the Full Tile image.
+generator.setTileInfo({
+	terrainKey : 'layer_water',
+	tiles : [{
+		type: "other-tiles",
+		placement: "all",
+		fullValue: 3
+	}]	
+});
+
+// This is how a regular layer will look like. You can provide textures for 
+// different types of Edges & intersections
+generator.setTileInfo({
+	terrainKey: 'layer_plain',
+	tiles: [{
+		type: "enclosing-tiles",
+		placement: "top",
+		leftValue: 4,
+		rightValue: 6,
+		topValue: 5
+	}, {
+		type: "enclosing-tiles",
+		placement: "bottom",
+		leftValue: 18,
+		rightValue: 20,
+		bottomValue: 19
+	}, {
+		type: "enclosing-tiles",
+		placement: "left",
+		leftValue: 11
+	}, {
+		type: "enclosing-tiles",
+		placement: "right",
+		rightValue: 13
+	}, {
+		type: "excluding-tiles",
+		placement: "top",
+		leftValue: 8,
+		rightValue: 9,
+	}, {
+		type: "excluding-tiles",
+		placement: "bottom",
+		leftValue: 15,
+		rightValue: 16,
+	}, {
+		type: "other-tiles",
+		placement: "all",
+		fullValue: 2
+	}, {
+		type: "closed-tiles",
+		placement: "open",
+		topValue: 22,
+		rightValue: 23,
+		bottomValue: 24,
+		leftValue: 25,
+		noneValue: 26,
+	}, {
+		type: "open-tiles",
+		placement: "open",
+		topValue: 29,
+		rightValue: 30,
+		bottomValue: 31,
+		leftValue: 32,
+		noneValue: 33
+	}, {
+		type: "open-tiles",
+		placement: "parallel",
+		topBottomValue: 34,
+		leftRightValue: 35
+	}]
+});
+
+
+generator.setTileInfo({
+	terrainKey: 'layer_snow',
+	tiles: [{
+		type: "enclosing-tiles",
+		placement: "top",
+		leftValue: 46,
+		rightValue: 48,
+		topValue: 47
+	}, {
+		type: "enclosing-tiles",
+		placement: "bottom",
+		leftValue: 60,
+		rightValue: 62,
+		bottomValue: 61
+	}, {
+		type: "enclosing-tiles",
+		placement: "left",
+		leftValue: 53
+	}, {
+		type: "enclosing-tiles",
+		placement: "right",
+		rightValue: 55
+	}, {
+		type: "excluding-tiles",
+		placement: "top",
+		leftValue: 50,
+		rightValue: 51,
+	}, {
+		type: "excluding-tiles",
+		placement: "bottom",
+		leftValue: 57,
+		rightValue: 58,
+	}, {
+		type: "other-tiles",
+		placement: "all",
+		fullValue: 44
+	}, {
+		type: "closed-tiles",
+		placement: "open",
+		topValue: 64,
+		rightValue: 65,
+		bottomValue: 66,
+		leftValue: 67,
+		noneValue: 68,
+	}, {
+		type: "open-tiles",
+		placement: "open",
+		topValue: 71,
+		rightValue: 72,
+		bottomValue: 73,
+		leftValue: 74,
+		noneValue: 75
+	}, {
+		type: "open-tiles",
+		placement: "parallel",
+		topBottomValue: 76,
+		leftRightValue: 77
+	}]
+});
+
+
+// Tile Info for Decoration Layers
+//
+generator.setTileInfo({
+	terrainKey : 'layer_trees',
+	decoration: {
+		overlap: false,
+		placementPercent: 25
+	},
+	tiles: [{
+		type: "decoration",
+		decorationKey: "orchid_tree",
+		value: 78,
+		weight: 300
+	}, {
+		type: "decoration",
+		decorationKey: "cherry_tree",
+		value: 79,
+		weight: 10
+	}, {
+		type: "decoration",
+		decorationKey: "apple_tree",
+		value: 80,
+		weight: 10
+	}, {
+		type: "decoration",
+		decorationKey: "ever_green_tree",
+		value: 81,
+		weight: 75
+	}]
+});
+
+generator.setTileInfo({
+	terrainKey : 'layer_bushes',
+	decoration: {
+		overlap: false,
+		placementPercent: 45
+	},
+	tiles: [{
+		type: "decoration",
+		decorationKey: "bush_1",
+		value: 82,
+		weight: 50
+	}, {
+		type: "decoration",
+		decorationKey: "bush_2",
+		value: 83,
+		weight: 50
+	}, {
+		type: "decoration",
+		decorationKey: "bush_3",
+		value: 84,
+		weight: 10
+	}]
+});
+
+generator.setTileInfo({
+	terrainKey : 'layer_snow_bushes',
+	decoration: {
+		overlap: true,
+		placementPercent: 100
+	},
+	tiles: [{
+		type: "decoration",
+		decorationKey: "snow_tree",
+		value: 86,
+		weight: 100
+	}]
+});
+
+// This is Important for Layer Hierarchy
+// Larger the Index the more Dominant it is.
+// The layer you want to stay at the top most, stays at the end of this Array
+// No need to provide Decoration Layers here.
+generator.addLayerDomination({
+	dominationPriority: ['layer_water', 'layer_plain', 'layer_snow']
+});
+
+// Tileset Information for the Tiled Map
+generator.addTileset({
+	source: 'origin_tileset_3_layers_with_decoration.png',
+	height:416,
+	width:224,
+	tileWidth:32,
+	tileHeight:32
+});
+
+// For Generating Only 2D Array of Values:
+// generator.generateMapValues();
+// var map = generator.getMapValues();
+
+// Full Generation - Map Array -> 3D Layer -> TMX Map
+// Use this If you want full generation from Scratch without any Custom Breakpoints 
+// between the Generation Process
+generator.generateMap();
+
+// For Displaying Map: (Array Values)
+generator.renderMapValues('map-container');
+
+// For Getting Final TMX Map
+var TMX_XML = generator.getTmxXml();
+console.log(TMX_XML);
+```
