@@ -206,7 +206,8 @@ var Commons = {
         diamondSquareLogKey: "diamondSquare",
         mapValidationLogKey: "mapValidation",
         mapRenderLogKey: "mapRender",
-        tmxRenderLogKey: "tmxRender"
+        tmxRenderLogKey: "tmxRender",
+        decorationRenderLogKey: "decorationRender"
     },
     showProgressUpdate: function() {}
 };
@@ -966,6 +967,9 @@ var ScaledMap = function() {
         }
         return mapValuesNormalized;
     };
+    var sortByZLevel = function(terrainA, terrainB) {
+        return terrainA.getDecorationData().zLevel - terrainB.getDecorationData().zLevel;
+    };
     /**
 	 * Gets a Decoration Mapped Map
 	 */
@@ -994,6 +998,12 @@ var ScaledMap = function() {
                         overlapDecorators.push(responsibleTerrains[key]);
                     }
                 }
+                Commons.log("Before Sort - Overlapping Decoration", overlapDecorators, Commons.validLogKeys.decorationRenderLogKey);
+                Commons.log("Before Sort - Non-Overlapping Decoration", nonOverlapDecorators, Commons.validLogKeys.decorationRenderLogKey);
+                overlapDecorators.sort(sortByZLevel);
+                nonOverlapDecorators.sort(sortByZLevel);
+                Commons.log("After Sort - Overlapping Decoration", overlapDecorators, Commons.validLogKeys.decorationRenderLogKey);
+                Commons.log("After Sort - Non-Overlapping Decoration", nonOverlapDecorators, Commons.validLogKeys.decorationRenderLogKey);
                 // STEP 2
                 var totalPercent = 0;
                 var maxValuePossible = nonOverlapDecorators.length * 100;
@@ -1007,11 +1017,16 @@ var ScaledMap = function() {
                         nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent = 100;
                     }
                 }
+                Commons.log("totalPercent", totalPercent, Commons.validLogKeys.decorationRenderLogKey);
                 // 35% + 35% will be 70/200
                 var randomPercent = Commons.randomize(0, maxValuePossible);
                 var terrainToUse = null;
+                var cumulativePercent = 0;
+                Commons.log("maxValuePossible", maxValuePossible, Commons.validLogKeys.decorationRenderLogKey);
+                Commons.log("randomPercent", randomPercent, Commons.validLogKeys.decorationRenderLogKey);
                 for (nonOverlapKey in nonOverlapDecorators) {
-                    if (randomPercent <= nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent) {
+                    cumulativePercent += nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent;
+                    if (randomPercent <= cumulativePercent) {
                         terrainToUse = nonOverlapDecorators[nonOverlapKey];
                         break;
                     }
@@ -1019,12 +1034,14 @@ var ScaledMap = function() {
                 // Push Selected Non Optional Terrain to Selection List
                 if (terrainToUse) {
                     selectedTerrains.push(terrainToUse);
+                    Commons.log("Pushing", terrainToUse, Commons.validLogKeys.decorationRenderLogKey);
                 }
                 // STEP 4
                 for (overlapKey in overlapDecorators) {
                     randomPercent = Commons.randomize(0, 100);
                     if (randomPercent <= overlapDecorators[overlapKey].getDecorationData().placementPercent) {
                         selectedTerrains.push(overlapDecorators[overlapKey]);
+                        Commons.log("Pushing", overlapDecorators[overlapKey], Commons.validLogKeys.decorationRenderLogKey);
                     }
                 }
                 tempRow.push(selectedTerrains);
@@ -1048,11 +1065,7 @@ var ScaledMap = function() {
 	 */
     this.addTerrain = function(terrainObject) {
         var terrainData = new ScaledTerrain();
-        if ("zLevel" in terrainObject) {
-            terrainData.createTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, terrainObject.zLevel);
-        } else {
-            terrainData.createTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, 0);
-        }
+        terrainData.createTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min);
         if ("type" in terrainObject) {
             if (possibleTerrains.indexOf(terrainObject.type) !== -1) {
                 terrainData.setType(terrainObject.type);
@@ -1189,12 +1202,11 @@ var ScaledTerrain = function() {
     var terrainValidationMaxPercent = -1;
     var terrainTileInfo = -1;
     var terrainDecoration = false;
-    this.createTerrain = function(_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
+    this.createTerrain = function(_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue) {
         this.terrainKey = _terrainKey;
         terrainUpperValue = _terrainUpperValue;
         terrainLowerValue = _terrainLowerValue;
         terrainLabel = _terrainLabel;
-        terrainZLevel = _terrainZLevel;
     };
     this.setStartingCondition = function(_terrainStartCount, _terrainStartPercent) {
         terrainStartPercent = _terrainStartPercent;
@@ -1226,6 +1238,10 @@ var ScaledTerrain = function() {
         terrainValidationMaxPercent = maxValue;
     };
     this.setDecorationData = function(terrainDecorationData) {
+        terrainDecorationData.placementPercent = terrainDecorationData.placementPercent ? terrainDecorationData.placementPercent : 0;
+        terrainDecorationData.overlap = terrainDecorationData.overlap ? terrainDecorationData.overlap : false;
+        terrainDecorationData.zLevel = terrainDecorationData.zLevel ? terrainDecorationData.zLevel : 0;
+        terrainDecorationData.edgePlacement = terrainDecorationData.edgePlacement ? terrainDecorationData.edgePlacement : false;
         terrainDecoration = terrainDecorationData;
     };
     this.getDecorationData = function() {
@@ -1393,6 +1409,7 @@ var ScaledTmxGen = function(settingsData) {
         var tileKey;
         var randomPercent;
         var totalWeight = 0;
+        var cumulativeWeight = 0;
         var selectedTile = null;
         for (tileKey in tiles) {
             if (tiles[tileKey].weight) {
@@ -1401,7 +1418,8 @@ var ScaledTmxGen = function(settingsData) {
         }
         randomPercent = Commons.randomize(0, totalWeight);
         for (tileKey in tiles) {
-            if (randomPercent <= tiles[tileKey].weight) {
+            cumulativeWeight += tiles[tileKey].weight;
+            if (randomPercent <= cumulativeWeight) {
                 selectedTile = tiles[tileKey];
                 break;
             }
@@ -1427,9 +1445,12 @@ var ScaledTmxGen = function(settingsData) {
                 if (mapValuesDecoration[rowKey]) {
                     var selectedTerrains = mapValuesDecoration[rowKey][columnKey];
                     var tiles = [];
-                    if (selectedTerrains && selectedTerrains.length !== 0 && canPlaceDecorationLayer(rowKey, columnKey)) {
+                    var tilePlacement = canPlaceDecorationLayer(rowKey, columnKey);
+                    if (selectedTerrains && selectedTerrains.length !== 0) {
                         for (var terrainKey in selectedTerrains) {
-                            tiles.push(getRandomizedDecorationTile(selectedTerrains[terrainKey]));
+                            if (tilePlacement || selectedTerrains[terrainKey].getDecorationData().edgePlacement) {
+                                tiles.push(getRandomizedDecorationTile(selectedTerrains[terrainKey]));
+                            }
                         }
                         Commons.removeKeyFromArray(tiles, -1);
                     }

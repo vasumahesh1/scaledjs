@@ -416,6 +416,11 @@ var ScaledMap = function () {
 	};
 
 
+	var sortByZLevel = function (terrainA, terrainB) {
+		return terrainA.getDecorationData().zLevel - terrainB.getDecorationData().zLevel;
+	};
+
+
 
 	/**
 	 * Gets a Decoration Mapped Map
@@ -448,6 +453,12 @@ var ScaledMap = function () {
 					}
 				}
 
+				Commons.log("Before Sort - Overlapping Decoration", overlapDecorators, Commons.validLogKeys.decorationRenderLogKey);
+				Commons.log("Before Sort - Non-Overlapping Decoration", nonOverlapDecorators, Commons.validLogKeys.decorationRenderLogKey);
+				overlapDecorators.sort(sortByZLevel);
+				nonOverlapDecorators.sort(sortByZLevel);
+				Commons.log("After Sort - Overlapping Decoration", overlapDecorators, Commons.validLogKeys.decorationRenderLogKey);
+				Commons.log("After Sort - Non-Overlapping Decoration", nonOverlapDecorators, Commons.validLogKeys.decorationRenderLogKey);
 
 				// STEP 2
 				var totalPercent = 0;
@@ -464,20 +475,28 @@ var ScaledMap = function () {
 					}
 				}
 
+				Commons.log("totalPercent", totalPercent, Commons.validLogKeys.decorationRenderLogKey);
+
 				// 35% + 35% will be 70/200
 				var randomPercent = Commons.randomize(0, maxValuePossible);
 				var terrainToUse = null;
+				var cumulativePercent = 0;
+				Commons.log("maxValuePossible", maxValuePossible, Commons.validLogKeys.decorationRenderLogKey);
+				Commons.log("randomPercent", randomPercent, Commons.validLogKeys.decorationRenderLogKey);
 				for (nonOverlapKey in nonOverlapDecorators) {
-					if (randomPercent <= nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent) {
+					cumulativePercent += nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent;
+					if (randomPercent <= cumulativePercent) {
 						terrainToUse = nonOverlapDecorators[nonOverlapKey];
 						break;
 					}
 
 				}
 
+
 				// Push Selected Non Optional Terrain to Selection List
 				if(terrainToUse) {
 					selectedTerrains.push(terrainToUse);
+					Commons.log("Pushing", terrainToUse, Commons.validLogKeys.decorationRenderLogKey);
 				}
 
 				// STEP 4
@@ -485,6 +504,7 @@ var ScaledMap = function () {
 					randomPercent = Commons.randomize(0, 100);
 					if (randomPercent <= overlapDecorators[overlapKey].getDecorationData().placementPercent) {
 						selectedTerrains.push(overlapDecorators[overlapKey]);
+						Commons.log("Pushing", overlapDecorators[overlapKey], Commons.validLogKeys.decorationRenderLogKey);
 					}
 				}
 
@@ -513,11 +533,8 @@ var ScaledMap = function () {
 	 */
 	this.addTerrain = function (terrainObject) {
 		var terrainData = new ScaledTerrain();
-		if ('zLevel' in terrainObject) {
-			terrainData.createTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, terrainObject.zLevel);
-		} else {
-			terrainData.createTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min, 0);
-		}
+
+		terrainData.createTerrain(terrainObject.label, terrainObject.key, terrainObject.max, terrainObject.min);
 
 		if ('type' in terrainObject) {
 			if (possibleTerrains.indexOf(terrainObject.type) !== -1) {

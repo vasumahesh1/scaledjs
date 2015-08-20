@@ -7,7 +7,7 @@
 // Main Instance of the Generator
 var generator = new ScaledGen({
     debug : true,
-    logs : ['tmxRender'],
+    logs : ['decorationRender'],
     maxTries : 20
 });
 
@@ -54,13 +54,13 @@ generator.addTerrain({
 	min : 65
 });
 
-generator.addTerrain({
-	key : 'layer_snow_bushes',
-	label : 'Snow Bushes',
-	max : 100,
-	min : 65,
-	type : "decoration"
-});
+// generator.addTerrain({
+// 	key : 'layer_snow_bushes',
+// 	label : 'Snow Bushes',
+// 	max : 100,
+// 	min : 65,
+// 	type : "decoration"
+// });
 
 
 // Define How the Map will look by specifying the 
@@ -264,7 +264,7 @@ generator.setTileInfo({
 	terrainKey : 'layer_bushes',
 	decoration: {
 		overlap: false,
-		placementPercent: 65
+		placementPercent: 45
 	},
 	tiles: [{
 		type: "decoration",
@@ -284,24 +284,19 @@ generator.setTileInfo({
 	}]
 });
 
-generator.setTileInfo({
-	terrainKey : 'layer_snow_bushes',
-	decoration: {
-		overlap: true,
-		placementPercent: 50
-	},
-	tiles: [{
-		type: "decoration",
-		decorationKey: "snow_pile",
-		value: 85,
-		weight: 10
-	}, {
-		type: "decoration",
-		decorationKey: "snow_tree",
-		value: 86,
-		weight: 50
-	}]
-});
+// generator.setTileInfo({
+// 	terrainKey : 'layer_snow_bushes',
+// 	decoration: {
+// 		overlap: true,
+// 		placementPercent: 100
+// 	},
+// 	tiles: [{
+// 		type: "decoration",
+// 		decorationKey: "snow_tree",
+// 		value: 86,
+// 		weight: 100
+// 	}]
+// });
 
 
 //

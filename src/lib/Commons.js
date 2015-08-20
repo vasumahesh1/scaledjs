@@ -8,6 +8,7 @@ var Commons = {
 		mapValidationLogKey: 'mapValidation',
 		mapRenderLogKey: 'mapRender',
 		tmxRenderLogKey: 'tmxRender',
+		decorationRenderLogKey: 'decorationRender'
 	},
 	showProgressUpdate: function () {}
 };

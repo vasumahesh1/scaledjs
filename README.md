@@ -47,7 +47,7 @@ Hey! What's working ?
 Basic Usage
 --------------------------------
 
-Refer index.html for a live development example
+Refer [index.html for a Working Example](index.html)
 
 ```js
 // Main Instance of the Generator
@@ -397,6 +397,9 @@ generator.addValidationRule({
 
 #### ScaledGen.setTileInfo(gidData)
 
+
+##### Regular Terrains
+
 Add Texture Information About each Layer.
 
 Gid Data is given as:
@@ -473,6 +476,73 @@ This Image will help you understand what each part of the JSON signifies:
 ![alt text][tiling]
 
 
+
+##### Decoration Layers
+
+To add a Decoration Layer you first need to add a Layer to the generator. Then Specify the Tile Information. (Refer the [Working Example](index.html) for a more clear Idea on how a decoration Layer works)
+
+```js
+generator.addTerrain({
+	key : 'layer_bushes',
+	label : 'Bushes',
+	max : 65,
+	min : 30,
+	type : "decoration"
+});
+```
+
+![alt text][decoration]
+
+The following Tile Information is used for Decoration Layers
+```js
+{
+	terrainKey : 'layer_bushes',
+	decoration: {
+		placementPercent: 45,
+		overlap: false,
+		edgePlacement: false,
+		zLevel: 1
+	},
+	tiles: [{
+		type: "decoration",
+		decorationKey: "bush_1",
+		value: 82,
+		weight: 50
+	}, {
+		type: "decoration",
+		decorationKey: "bush_2",
+		value: 83,
+		weight: 50
+	}, {
+		type: "decoration",
+		decorationKey: "bush_3",
+		value: 84,
+		weight: 10
+	}]
+}
+```
+* `placementPercent` - int - Required - Range (0,100) (Inclusive)
+
+	Percentage to be used as a probability to check if the given Layer can be placed at a tile. (like 45% chance of having a Rock in a Water tile)
+
+* `overlap` - boolean - Optional - (Default: false)
+
+	Specify the Decoration Layer is overlappable with other Decoration Layers.
+
+* `edgePlacement` - boolean - Optional - (Default: false)
+
+	Maximum Percentage of that Terrain must be in the Map.
+
+* `zLevel` - int - Optional - (Default: 0)
+
+	If you are using Overlapping Terrains, use this to specify which Layer will be ahead of the other.
+
+* `tiles` - array - Required
+
+	The tiles have an extra key called `weight`. It signifies the probability of that type of "decoration" to appear on a selected cell by the engine. The main purpose of this is to have variable textures like Layer `trees` can have variable textures yet be the same Layer `trees`. THe more the weight the more probable is the cell to appear when compared to the others in the array.
+
+
+
 #### ScaledGen.addLayerDomination(dominationData)
 
 Currently Specifies the Priority in which the layers standout to each other. Based on that the TMX is rendered. This will be usefull when you have 3 or more types of Terrain Layers.
@@ -522,3 +592,4 @@ I don't own any textures used in this Image. They are used for Illustrative Purp
 
 [banner]: screenshots/readme-image.jpg "Terrain Gen"
 [tiling]: screenshots/tiling-json.jpg "Tile Setup"
+[decoration]: screenshots/decoration-image.jpg "Decoration Layer Example"

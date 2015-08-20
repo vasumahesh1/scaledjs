@@ -146,6 +146,7 @@ var ScaledTmxGen = function (settingsData) {
 		var tileKey;
 		var randomPercent;
 		var totalWeight = 0;
+		var cumulativeWeight = 0;
 		var selectedTile = null;
 
 		for (tileKey in tiles) {
@@ -157,7 +158,8 @@ var ScaledTmxGen = function (settingsData) {
 		randomPercent = Commons.randomize(0, totalWeight);
 
 		for (tileKey in tiles) {
-			if (randomPercent <= tiles[tileKey].weight) {
+			cumulativeWeight += tiles[tileKey].weight;
+			if (randomPercent <= cumulativeWeight) {
 				selectedTile = tiles[tileKey];
 				break;
 			}
@@ -190,9 +192,12 @@ var ScaledTmxGen = function (settingsData) {
 				if (mapValuesDecoration[rowKey]) {
 					var selectedTerrains = mapValuesDecoration[rowKey][columnKey];
 					var tiles = [];
-					if (selectedTerrains && selectedTerrains.length !== 0 && canPlaceDecorationLayer(rowKey, columnKey)) {
+					var tilePlacement = canPlaceDecorationLayer(rowKey, columnKey);
+					if (selectedTerrains && selectedTerrains.length !== 0) {
 						for (var terrainKey in selectedTerrains) {
-							tiles.push(getRandomizedDecorationTile(selectedTerrains[terrainKey]));
+							if(tilePlacement || selectedTerrains[terrainKey].getDecorationData().edgePlacement) {
+								tiles.push(getRandomizedDecorationTile(selectedTerrains[terrainKey]));
+							}
 						}
 
 						Commons.removeKeyFromArray(tiles, -1);

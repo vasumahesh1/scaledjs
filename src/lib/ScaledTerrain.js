@@ -14,12 +14,11 @@ var ScaledTerrain = function () {
 	var terrainDecoration = false;
 
 
-	this.createTerrain = function (_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue, _terrainZLevel) {
+	this.createTerrain = function (_terrainLabel, _terrainKey, _terrainUpperValue, _terrainLowerValue) {
 		this.terrainKey = _terrainKey;
 		terrainUpperValue = _terrainUpperValue;
 		terrainLowerValue = _terrainLowerValue;
 		terrainLabel = _terrainLabel;
-		terrainZLevel = _terrainZLevel;
 	};
 
 	this.setStartingCondition = function (_terrainStartCount, _terrainStartPercent) {
@@ -59,6 +58,10 @@ var ScaledTerrain = function () {
 	};
 
 	this.setDecorationData = function (terrainDecorationData) {
+		terrainDecorationData.placementPercent = terrainDecorationData.placementPercent ? terrainDecorationData.placementPercent : 0;
+		terrainDecorationData.overlap = terrainDecorationData.overlap ? terrainDecorationData.overlap : false;
+		terrainDecorationData.zLevel = terrainDecorationData.zLevel ? terrainDecorationData.zLevel : 0;
+		terrainDecorationData.edgePlacement = terrainDecorationData.edgePlacement ? terrainDecorationData.edgePlacement : false;
 		terrainDecoration = terrainDecorationData;
 	};
 
