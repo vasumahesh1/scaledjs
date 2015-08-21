@@ -46,16 +46,12 @@ var ScaledEdgeDetector = function (edgeSettings) {
 	var getLowestDomination = function (primaryValue, arrayValues) {
 		var dominationValues = [];
 		var returnValue;
-		// var primaryDomination = primaryValue;
+		
 		var primaryDominationValue = getDominationValue(primaryValue);
 		for (var key in arrayValues) {
 			if (arrayValues[key] !== -1) {
 				var dominationValue = getDominationValue(arrayValues[key]);
 				dominationValues.push(dominationValue);
-				// if (dominationValue < primaryDominationValue) {
-				// 	primaryDominationValue = dominationValue;
-				// 	primaryDomination = arrayValues[key];
-				// }
 			}
 
 		}

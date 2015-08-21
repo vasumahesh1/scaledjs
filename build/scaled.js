@@ -149,6 +149,13 @@ function ScaledGen(settingsData) {
         map_element.innerHTML = mapHtml;
     };
     /**
+	 * Gets the percentages of all the Regular Terrains in the Map
+	 * @return {object} Indexed {terrainKey, percentage}
+	 */
+    this.getRegularTerrainPercentages = function() {
+        return mainMap.getRegularTerrainPercentages();
+    };
+    /**
 	 * Generates an HTML Row for the Map
 	 * @param {Array} rowValues	Contains an Array of Values
 	 */
@@ -523,7 +530,6 @@ var ScaledEdgeDetector = function(edgeSettings) {
     var getLowestDomination = function(primaryValue, arrayValues) {
         var dominationValues = [];
         var returnValue;
-        // var primaryDomination = primaryValue;
         var primaryDominationValue = getDominationValue(primaryValue);
         for (var key in arrayValues) {
             if (arrayValues[key] !== -1) {
@@ -1142,6 +1148,19 @@ var ScaledMap = function() {
         }
         Commons.log("Validity Reports", mapValidityReports, Commons.validLogKeys.mapValidationLogKey);
         return validStatus;
+    };
+    /**
+	 * Gets the percentages of all the Regular Terrains in the Map
+	 * @return {object} Indexed {terrainKey, percentage}
+	 */
+    this.getRegularTerrainPercentages = function() {
+        var percentTerrains = {};
+        var regularTerrains = Commons.getMainTerrains(terrains);
+        for (var key in regularTerrains) {
+            var percent = getLayerPercentage(regularTerrains[key].terrainKey);
+            percentTerrains[regularTerrains[key].terrainKey] = percent;
+        }
+        return percentTerrains;
     };
     /**
 	 * Main Function invoked to Generate the Map from scratch.

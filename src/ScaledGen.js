@@ -179,6 +179,14 @@ function ScaledGen(settingsData) {
 		map_element.innerHTML = mapHtml;
 	};
 
+	/**
+	 * Gets the percentages of all the Regular Terrains in the Map
+	 * @return {object} Indexed {terrainKey, percentage}
+	 */
+	this.getRegularTerrainPercentages = function () {
+		return mainMap.getRegularTerrainPercentages();
+	};
+
 
 	/**
 	 * Generates an HTML Row for the Map

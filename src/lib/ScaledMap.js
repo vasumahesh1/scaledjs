@@ -629,7 +629,21 @@ var ScaledMap = function () {
 		return validStatus;
 	};
 
+	/**
+	 * Gets the percentages of all the Regular Terrains in the Map
+	 * @return {object} Indexed {terrainKey, percentage}
+	 */
+	this.getRegularTerrainPercentages = function () {
+		var percentTerrains = {};
+		var regularTerrains = Commons.getMainTerrains(terrains);
 
+		for (var key in regularTerrains) {
+			var percent = getLayerPercentage(regularTerrains[key].terrainKey);
+			percentTerrains[regularTerrains[key].terrainKey] = percent;
+		}
+
+		return percentTerrains;
+	};
 
 	/**
 	 * Main Function invoked to Generate the Map from scratch.
