@@ -225,6 +225,10 @@ var ScaledTmxGen = function (settingsData) {
 		return templateString;
 	};
 
+	this.getLayeredMap = function() {
+		return mapValuesTmx;
+	};
+
 
 	this.generateLayeredMap = function () {
 		initLayeredMap();
@@ -260,7 +264,5 @@ var ScaledTmxGen = function (settingsData) {
 		}
 		templateString += '</map>';
 	};
-
-
 
 };
