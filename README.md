@@ -49,6 +49,8 @@ Basic Usage
 
 Refer [index.html for a Working Example](index.html)
 
+Use this [Sample Image](resources/origin_tileset.png) for Generating TMX XML
+
 
 ```js
 // Main Instance of the Generator
