@@ -42,22 +42,11 @@ function ScaledGen(settingsData) {
 	var tilesetSettings = null;
 
 	if (settingsData) {
-		if (("debug" in settingsData) && settingsData["debug"] === true) {
-			Commons.debug = true;
-		}
 
-		if (("logs" in settingsData)) {
-			Commons.allowedLogs = settingsData["logs"];
-		}
-
-		if (("maxTries" in settingsData)) {
-			maxTries = settingsData["maxTries"];
-		}
-
-		if (("onProgressUpdate" in settingsData)) {
-			Commons.showProgressUpdate = settingsData["onProgressUpdate"];
-		}
-
+		Commons.debug = settingsData["debug"] ? true : false;
+		Commons.allowedLogs = settingsData["logs"] ? settingsData["logs"] : [];
+		Commons.showProgressUpdate = settingsData["onProgressUpdate"] ? settingsData["onProgressUpdate"] : function () {};
+		maxTries = settingsData["maxTries"] ? settingsData["maxTries"] : 10;
 	}
 
 	/**
@@ -119,7 +108,10 @@ function ScaledGen(settingsData) {
 		tilesetSettings = tilesetData;
 	};
 
-
+	/**
+	 * Sets the Tile Data of a Particular Layer
+	 * @param {object} tileData Object containing the Layer Key & associated Tile data
+	 */
 	this.setTileInfo = function (tileData) {
 		mainMap.setTileInfo(tileData);
 	};
@@ -161,8 +153,20 @@ function ScaledGen(settingsData) {
 		}
 	};
 
+	/**
+	 * Gets the XML of the TMX Map Generated
+	 * @return {string} XML String
+	 */
 	this.getTmxXml = function () {
 		return scaledTmx.getTmxXml();
+	};
+
+	/**
+	 * Gets the 3D Layered Map in between the TMX XML and the 2D Matrix
+	 * @return {object} 3D Layered Object
+	 */
+	this.getLayeredMap = function () {
+		return scaledTmx.getLayeredMap();
 	};
 
 	/**

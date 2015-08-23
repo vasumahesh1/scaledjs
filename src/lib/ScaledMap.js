@@ -230,6 +230,52 @@ var ScaledMap = function () {
 		if (mapValidityReports.length !== 0) {
 
 		}
+
+		// Normalizing the Validation Rules
+		var key;
+		var totalMinPercent = 0;
+		var totalMaxPercent = 0;
+		var totalMinCount = 0;
+		var totalMaxCount = 0;
+		var normalizeBase = 0;
+
+		var regularTerrains = Commons.getMainTerrains(terrains);
+
+		for (key in regularTerrains) {
+			if (regularTerrains[key].terrainValidationMinPercent >= 0) {
+				totalMinPercent += regularTerrains[key].terrainValidationMinPercent;
+				totalMinCount++;
+			}
+
+			if (regularTerrains[key].terrainValidationMaxPercent >= 0) {
+				totalMaxPercent += regularTerrains[key].terrainValidationMaxPercent;
+				totalMaxCount++;
+			}
+		}
+
+		if (totalMinPercent > 100) {
+			normalizeBase = totalMinCount * 100;
+			for (key in terrains) {
+				if (terrains[key].isRegularTerrain() && terrains[key].getData().terrainValidationMinPercent >= 0) {
+					Commons.warn("Before" + terrains[key].terrainKey + " " + terrains[key].getData().terrainValidationMinPercent);
+					var possibleMinPercent = (terrains[key].getData().terrainValidationMinPercent / normalizeBase) * 100;
+					var currentMaxPercent = terrains[key].getData().terrainValidationMaxPercent;
+					terrains[key].setValidation(possibleMinPercent, currentMaxPercent);
+				}
+			}
+		}
+
+		if (totalMaxPercent > 100) {
+			Commons.warn("Max Percent Validation Rules are Above 100% - Normalizing Values to range [0,100]");
+			normalizeBase = totalMaxCount * 100;
+			for (key in terrains) {
+				if (terrains[key].isRegularTerrain() && terrains[key].getData().terrainValidationMaxPercent >= 0) {
+					var possibleMaxPercent = (terrains[key].getData().terrainValidationMaxPercent / normalizeBase) * 100;
+					var currentMinPercent = terrains[key].getData().terrainValidationMinPercent;
+					terrains[key].setValidation(currentMinPercent, possibleMaxPercent);
+				}
+			}
+		}
 	};
 
 
@@ -427,7 +473,7 @@ var ScaledMap = function () {
 	 */
 	var getDecorationMap = function () {
 		/*
-		 * Step 1: Get the Non Overlapping Decorators - within the Range of the Cell's Value 
+		 * Step 1: Get the Non Overlapping Decorators - within the Range of the Cell's Value
 		 * Step 2: Cumulate the percentages, & Randomize to Select one of the Non Overlapping Decorators
 		 * Step 3: Get the Overlappable Terrains
 		 * Step 4: Don't Cumulate, Apply the possibility criteria individually over each decorator
@@ -447,7 +493,7 @@ var ScaledMap = function () {
 				// STEP 1 & 3
 				for (var key in responsibleTerrains) {
 					if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getDecorationData().overlap === false) {
-						nonOverlapDecorators.push(responsibleTerrains[key]);						
+						nonOverlapDecorators.push(responsibleTerrains[key]);
 					} else if (responsibleTerrains[key].isDecorationTerrain() === true && responsibleTerrains[key].getDecorationData().overlap === true) {
 						overlapDecorators.push(responsibleTerrains[key]);
 					}
@@ -467,7 +513,7 @@ var ScaledMap = function () {
 					totalPercent += nonOverlapDecorators[nonOverlapKey].getDecorationData().placementPercent;
 				}
 
-				if(totalPercent > maxValuePossible) {
+				if (totalPercent > maxValuePossible) {
 					Commons.warn("Error Adding Placement Percentage of Decoration Terrains - Reverting Terrains to 100% per terrain");
 					totalPercent = nonOverlapDecorators.length * 100;
 					for (nonOverlapKey in nonOverlapDecorators) {
@@ -494,7 +540,7 @@ var ScaledMap = function () {
 
 
 				// Push Selected Non Optional Terrain to Selection List
-				if(terrainToUse) {
+				if (terrainToUse) {
 					selectedTerrains.push(terrainToUse);
 					Commons.log("Pushing", terrainToUse, Commons.validLogKeys.decorationRenderLogKey);
 				}
@@ -578,6 +624,18 @@ var ScaledMap = function () {
 		if ("maxPercent" in ruleObject) {
 			maxValue = ruleObject["maxPercent"];
 		}
+
+		maxValue = maxValue < 0 ? -1 : maxValue;
+		minValue = minValue < 0 ? -1 : minValue;
+
+		// Swapping in case of Opposite
+		if (maxValue < minValue) {
+			Commons.warn("Terrain (" + terrainKey + ") Validation minPercent is more than its maxPercent, Swapping Values");
+			var tempValue = minValue;
+			minValue = maxValue;
+			maxValue = tempValue;
+		}
+
 
 		Commons.getTerrainByKey(terrains, terrainKey).setValidation(minValue, maxValue);
 	};

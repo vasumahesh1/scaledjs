@@ -56,7 +56,7 @@ Commons.warn = function (message) {
  */
 Commons.info = function (message) {
 	if (this.debug === true) {
-		console.info("[ScaledGen - Warning] " + message);
+		console.info("[ScaledGen - Info] " + message);
 	}
 };
 

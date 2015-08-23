@@ -221,6 +221,13 @@ var ScaledTmxGen = function (settingsData) {
 		this.generateMapXml();
 	};
 
+	this.generateMapLayered = function () {
+		Commons.info("TMX - Generating Layered Map");
+		this.generateLayeredMap();
+		Commons.info("TMX - Decorating Map");
+		decorateMap();
+	};
+
 	this.getTmxXml = function () {
 		return templateString;
 	};

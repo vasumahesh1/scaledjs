@@ -7,9 +7,7 @@ Fully compatible with Cocos 2D JS & Cordova Apps
 
 > **IMPORTANT:**
 > ScaledJS is **under construction** and might have some quirks. Refer "What's working" Section.
-> Currently works awesome with Three Terrain Layers. When Terrain has 4 or more may lead to 
-> Unexpected Behaviour 
-> You will have certain issues with inter layer Edge Detection
+> If your Map has 4 or more Terrain (not Decoration) Layers may cause some Unexpected Behaviour.
 
 Installation
 --------------------------------
@@ -38,11 +36,7 @@ Hey! What's working ?
 * Terrain Generation based off Diamond Square Algorithm
 * Conversion of Value Matrix to 3D Layered Matrix
 * Conversion of 3D Matrix to TMX Tiled Map Format
-* ~~Panoramic Maps - Allowing Maps to continue Horizontally, Vertically or Both!~~
 * Support for Variable Textures (Like Textures of Variable Trees etc.)
-* ~~Enabling More Terrain Layer Support~~ - As of Now Works Upto 3 Terrain Layers.
-* ~~Optional Hook for Developers when the Actual Adjacency Placement Rules are applied~~
-
 
 Basic Usage
 --------------------------------
@@ -572,6 +566,17 @@ Main Function which starts the Map Generation Process.
 #### ScaledGen.getTmxXml()
 
 Function to return TMX Map XML which can further be used in Cocos or other Game Engines
+
+
+
+TODO / In-Progress
+--------------------------------
+
+* ~~Panoramic Maps - Allowing Maps to continue Horizontally, Vertically or Both!~~
+* ~~Enabling More Terrain Layer Support~~ - Tested with 3 Terrain Layers (and lots of Decoration Layers).
+* ~~Optional Hook for Developers when the Actual Adjacency Placement Rules are applied~~
+* ~~Enabling Better Progress Reporting from ScaledJS~~
+* ~~Allowing Terrain Layers to have Variable Textures also~~
 
 
 License
