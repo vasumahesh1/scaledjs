@@ -1491,6 +1491,9 @@ var ScaledTmxGen = function(settingsData) {
     this.getTmxXml = function() {
         return templateString;
     };
+    this.getLayeredMap = function() {
+        return mapValuesTmx;
+    };
     this.generateLayeredMap = function() {
         initLayeredMap();
         for (var rowKey in mapValues) {

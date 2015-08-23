@@ -34,7 +34,7 @@ describe("map-generation", function () {
 			});
 		}
 
-		generator.generateMapValues();
+		generator.generateMap();
 		done();
 	});
 
