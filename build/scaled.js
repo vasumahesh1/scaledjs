@@ -520,6 +520,7 @@ var Scaled = function(Scaled) {
 var Scaled = function(Scaled) {
     var ScaledMap = function() {
         var terrains = [];
+        var regularTerrains = [];
         var mapValues = [];
         var mapValuesNormalized = [];
         var mapValuesDecoration = [];
@@ -780,7 +781,7 @@ var Scaled = function(Scaled) {
             var totalMinCount = 0;
             var totalMaxCount = 0;
             var normalizeBase = 0;
-            var regularTerrains = Scaled.Commons.getMainTerrains(terrains);
+            regularTerrains = Scaled.Commons.getMainTerrains(terrains);
             mapProgress = [];
             for (key in regularTerrains) {
                 // Reset Map Progress
@@ -818,10 +819,21 @@ var Scaled = function(Scaled) {
                 }
             }
         };
+        var getTerrainReportForCorrection = function(currentTerrain, needPositive) {
+            for (var key in mapValidityReports) {
+                if (mapValidityReports[key].terrainKey !== currentTerrain.terrainKey && mapValidityReports[key].positiveIncrease === needPositive) {
+                    return mapValidityReports[key];
+                }
+            }
+            return false;
+        };
         var analyzeCorrection = function(cellValue, selectedTerrain, selectedProgress) {
             if (mapValidityReports.length !== 0) {
                 var dynamicRepairMagnitude = 0;
                 var selectedReport = false;
+                var REPAIR_BUFFER = 15;
+                var nextTerrainReport;
+                var nextTerrain;
                 for (var key in mapValidityReports) {
                     if (mapValidityReports[key].terrainKey === selectedTerrain.terrainKey) {
                         dynamicRepairMagnitude = mapValidityReports[key].repairMagnitude - selectedProgress.getPercent();
@@ -843,19 +855,22 @@ var Scaled = function(Scaled) {
                             shouldIncrease = false;
                         }
                     }
-                    var basicRepairValue = 15;
-                    basicRepairValue += Math.abs(dynamicRepairMagnitude);
-                    // Scaled.Commons.randomizePlusMinusControlled(minValue, maxValue, barMinimum, barMaximum, barMargin);
-                    if (shouldIncrease) {
-                        // Always Positive between 1,basicRepairValue
-                        bufferChange = Scaled.Commons.randomizePlusMinusControlled(1, basicRepairValue, 1, 10, 0);
-                        Scaled.Commons.log("Increasing Value of Cell By", bufferChange, Scaled.Commons.validLogKeys.correctionLogKey);
-                    } else {
-                        // Always Negative betweem 1,basicRepairValue
-                        bufferChange = Scaled.Commons.randomizePlusMinusControlled(1, basicRepairValue, 1, 10, 15);
-                        Scaled.Commons.log("Decreasing Value of Cell By", bufferChange, Scaled.Commons.validLogKeys.correctionLogKey);
+                    nextTerrainReport = getTerrainReportForCorrection(selectedTerrain, shouldIncrease);
+                    nextTerrain = Scaled.Commons.getTerrainByKey(regularTerrains, nextTerrainReport.terrainKey);
+                    // If Another Report is Available
+                    if (nextTerrainReport) {
+                        // Scaled.Commons.randomizePlusMinusControlled(minValue, maxValue, barMinimum, barMaximum, barMargin);
+                        if (shouldIncrease) {
+                            // Always Positive
+                            bufferChange = Scaled.Commons.randomizePlusMinusControlled(nextTerrain.getTerrainMinimum, nextTerrain.getTerrainMinimum + REPAIR_BUFFER, 1, 10, 0);
+                            Scaled.Commons.log("Increasing Value of Cell By", bufferChange, Scaled.Commons.validLogKeys.correctionLogKey);
+                        } else {
+                            // Always Negative
+                            bufferChange = Scaled.Commons.randomizePlusMinusControlled(nextTerrain.getTerrainMinimum, nextTerrain.getTerrainMinimum + REPAIR_BUFFER, 1, 10, 15);
+                            Scaled.Commons.log("Decreasing Value of Cell By", bufferChange, Scaled.Commons.validLogKeys.correctionLogKey);
+                        }
+                        cellValue += bufferChange;
                     }
-                    cellValue += bufferChange;
                 }
             }
             return cellValue;
