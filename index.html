@@ -5,9 +5,11 @@
 <script>
 
 // Main Instance of the Generator
+console.log(Scaled);
+
 var generator = new ScaledGen({
     debug : true,
-    logs : ['decorationRender'],
+    logs : ['all'],
     maxTries : 20
 });
 
@@ -89,7 +91,12 @@ generator.addStartingCondition({
 // meets the Rules you have given
 generator.addValidationRule({
 	terrainKey : 'layer_water',
-	minPercent : 5
+	minPercent : 20
+});
+
+generator.addValidationRule({
+	terrainKey : 'layer_snow',
+	minPercent : 10
 });
 
 

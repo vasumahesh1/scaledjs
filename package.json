@@ -1,6 +1,6 @@
 {
   "name": "scaledjs",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Scaled - Awesome Terrain Generator for Games",
   "devDependencies": {
     "grunt": "~0.4.5",

@@ -11,7 +11,7 @@ module.exports = function (grunt) {
           mangle: false,
           preserveComments: true
         },
-        src: ['src/**/*.js'],
+        src: ['src/*/*.js', 'src/*.js'],
         dest: 'build/scaled.js'
       },
       min: {
