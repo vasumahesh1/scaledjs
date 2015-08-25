@@ -9,6 +9,9 @@ var Scaled = (function (Scaled) {
 		var mapValuesNormalized = [];
 		var mapValuesDecoration = [];
 		var mapValidityReports = [];
+		var positiveReports = [];
+		var negativeReports = [];
+		var mapProgress = [];
 		var rowSize = 33;
 		var columnSize = 33;
 		var mapInitValue = -1;
@@ -62,6 +65,16 @@ var Scaled = (function (Scaled) {
 			}
 		};
 
+		/**
+		 * Descending Order of sorting of Validity Reports
+		 * @param  {object} reportA Scaled Validity Report
+		 * @param  {object} reportB Scaled Validity Report
+		 * @return {int}         Difference of the Repair Magnitude
+		 */
+		var sortMapValidityReports = function (reportA, reportB) {
+			return reportB.repairMagnitude - reportA.repairMagnitude;
+		};
+
 
 		/**
 		 * Initializes the Starting Conditions of the Map
@@ -72,8 +85,9 @@ var Scaled = (function (Scaled) {
 			startTerrainKeys = ["", "", "", ""];
 			startTerrainValues = [];
 
-			var minCountArray = [];
-			var totalMin = 0;
+			var terrainKey;
+			var terrainsWithStartPercent = [];
+			var slotsRequested = 0;
 
 			// Get Valid Terrains
 			// i.e. Main Terrains Only
@@ -90,39 +104,94 @@ var Scaled = (function (Scaled) {
 					tempObject["terrainKey"] = regularTerrains[key].terrainKey;
 					tempObject["count"] = regularTerrains[key].terrainStartCount;
 					tempObject["nextPercent"] = regularTerrains[key].terrainStartPercent;
-					totalMin += regularTerrains[key].terrainStartCount;
-					minCountArray.push(tempObject);
+					slotsRequested += regularTerrains[key].terrainStartCount;
+					terrainsWithStartPercent.push(tempObject);
 				}
 			}
 
 			// Descending Order Sort - based on the Count
-			minCountArray.sort(function (itemA, itemB) {
+			terrainsWithStartPercent.sort(function (itemA, itemB) {
 				return itemB["count"] - itemA["count"];
 			});
 
 			var remainingSlots = 4;
 			var slotsUsed = [];
-			if (totalMin <= 4) {
+			if (slotsRequested <= 4) {
 				// Free Slots Left
-				remainingSlots = 4 - totalMin;
+				remainingSlots = 4 - slotsRequested;
 
 				/*
 				 * Below Code Assigns a Random Edge of the Map to the Above calculated Terrains
 				 * The Choice of slot is random(0,3)
 				 */
-				for (var minKey in minCountArray) {
-					for (j = 0; j < minCountArray[minKey]["count"]; j++) {
+				for (var minKey in terrainsWithStartPercent) {
+					for (j = 0; j < terrainsWithStartPercent[minKey]["count"]; j++) {
 						var value = Scaled.Commons.randomizeWithException(0, 3, slotsUsed);
 						slotsUsed.push(value);
-						startTerrainKeys[value] = minCountArray[minKey]["terrainKey"];
+						startTerrainKeys[value] = terrainsWithStartPercent[minKey]["terrainKey"];
 					}
 				}
 
-			} else if (totalMin > 4) {
+			} else if (slotsRequested > 4) {
 				console.warn("Cannot have more than 4 starting conditions as a Rectangular map has only 4 vertices");
 			}
 
 			Scaled.Commons.log("Empty Non Optional Slots to Use", remainingSlots, Scaled.Commons.validLogKeys.mapInitializeLogKey);
+
+			// if (mapValidityReports.length !== 0) {
+			// 	Scaled.Commons.log("Validation Errored, Trying to Optimize Map", mapValidityReports, Scaled.Commons.validLogKeys.mapValidationLogKey);
+			// 	// Validity Reports are Already unique per Terrain
+			// 	var validityKey;
+			// 	var validitySlots;
+			// 	var positiveReports = [];
+			// 	var negativeReports = [];
+
+			// 	for (validityKey in mapValidityReports) {
+			// 		if (mapValidityReports[validityKey].positiveIncrease) {
+			// 			positiveReports.push(mapValidityReports[validityKey]);
+			// 		} else {
+			// 			negativeReports.push(mapValidityReports[validityKey]);
+			// 		}
+			// 	}
+
+			// 	positiveReports.sort(sortMapValidityReports);
+
+			// 	Scaled.Commons.log("Selected Reports", positiveReports, Scaled.Commons.validLogKeys.mapValidationLogKey);
+
+			// 	if (positiveReports.length > 4) {
+			// 		// 4 or More Layers errored Last Time & need Positive Increase
+			// 		console.warn("Validation too Strict. Trying to Optimize Map as much as Possible");
+			// 	}
+
+			// 	for (validityKey in positiveReports) {
+			// 		for (terrainKey in regularTerrains) {
+			// 			if (regularTerrains[terrainKey].terrainKey === positiveReports[validityKey].terrainKey) {
+			// 				validitySlots = Scaled.Commons.randomizeWithException(0, 3, slotsUsed);
+			// 				slotsUsed.push(validitySlots);
+			// 				startTerrainKeys[validitySlots] = positiveReports[validityKey].terrainKey;
+			// 			}
+			// 		}
+			// 	}
+			// 	Scaled.Commons.log("Selected Starting Conditions", startTerrainKeys, Scaled.Commons.validLogKeys.mapValidationLogKey);
+
+			// 	remainingSlots -= positiveReports.length;
+
+			// 	if (remainingSlots > 0) {
+			// 		for (validityKey in positiveReports) {
+			// 			for (terrainKey in regularTerrains) {
+			// 				if (regularTerrains[terrainKey].terrainKey === positiveReports[validityKey].terrainKey && positiveReports[validityKey].repairMagnitude >= 5 && remainingSlots > 0) {
+			// 					validitySlots = Scaled.Commons.randomizeWithException(0, 3, slotsUsed);
+			// 					slotsUsed.push(validitySlots);
+			// 					startTerrainKeys[validitySlots] = positiveReports[validityKey].terrainKey;
+			// 					remainingSlots--;
+			// 				}
+			// 			}
+			// 		}
+			// 	}
+
+			// 	Scaled.Commons.log("Final Selected Starting Conditions", startTerrainKeys, Scaled.Commons.validLogKeys.mapValidationLogKey);
+
+			// }
 
 			// If free slots left. i.e. User has not given all 4 edge details
 			if (remainingSlots !== 0) {
@@ -137,7 +206,7 @@ var Scaled = (function (Scaled) {
 				 * which can be used to determine which  Terrain to be selected
 				 * (Selected Layer will have Cumulative Percentage just above the random value)
 				 */
-				for (var terrainKey in regularTerrains) {
+				for (terrainKey in regularTerrains) {
 					var tempTerrain = {};
 					if (regularTerrains[terrainKey].terrainStartPercent > 0) {
 						totalOptional += regularTerrains[terrainKey].terrainStartPercent;
@@ -230,6 +299,15 @@ var Scaled = (function (Scaled) {
 		 */
 		var preGenerationCleanUp = function () {
 			if (mapValidityReports.length !== 0) {
+				for (var validityKey in mapValidityReports) {
+					if (mapValidityReports[validityKey].positiveIncrease) {
+						positiveReports.push(mapValidityReports[validityKey]);
+					} else {
+						negativeReports.push(mapValidityReports[validityKey]);
+					}
+				}
+
+				positiveReports.sort(sortMapValidityReports);
 
 			}
 
@@ -243,7 +321,13 @@ var Scaled = (function (Scaled) {
 
 			var regularTerrains = Scaled.Commons.getMainTerrains(terrains);
 
+			mapProgress = [];
+
 			for (key in regularTerrains) {
+				// Reset Map Progress
+				mapProgress.push(new Scaled.ScaledGenProgress(regularTerrains[key].terrainKey));
+
+				// Normalizing Values of Validation
 				if (regularTerrains[key].terrainValidationMinPercent >= 0) {
 					totalMinPercent += regularTerrains[key].terrainValidationMinPercent;
 					totalMinCount++;
@@ -278,6 +362,95 @@ var Scaled = (function (Scaled) {
 					}
 				}
 			}
+		};
+
+
+		var analyzeCorrection = function (cellValue, selectedTerrain, selectedProgress) {
+			if (mapValidityReports.length !== 0) {
+				var dynamicRepairMagnitude = 0;
+				var selectedReport = false;
+				for (var key in mapValidityReports) {
+					if (mapValidityReports[key].terrainKey === selectedTerrain.terrainKey) {
+						dynamicRepairMagnitude = mapValidityReports[key].repairMagnitude - selectedProgress.getPercent();
+						selectedReport = mapValidityReports[key];
+					}
+				}
+
+				if (selectedReport) {
+					Scaled.Commons.log("Correcting Values for " + selectedTerrain.terrainKey + " Current Percent: " + selectedProgress.getPercent() + " Repair Percent Needed: ", selectedReport.repairMagnitude, Scaled.Commons.validLogKeys.correctionLogKey);
+					var shouldIncrease = true;
+					var bufferChange = 0;
+					if (selectedReport.positiveIncrease) {
+						// Need some less of the Stuff
+						if (dynamicRepairMagnitude < 0) {
+							shouldIncrease = false;
+						}
+
+					} else {
+						// Need some less of the Stuff
+						if (dynamicRepairMagnitude > 0) {
+							shouldIncrease = false;
+						}
+					}
+					var basicRepairValue = 15;
+					basicRepairValue += Math.abs(dynamicRepairMagnitude);
+					// Scaled.Commons.randomizePlusMinusControlled(minValue, maxValue, barMinimum, barMaximum, barMargin);
+					if (shouldIncrease) {
+						// Always Positive between 1,basicRepairValue
+						bufferChange = Scaled.Commons.randomizePlusMinusControlled(1, basicRepairValue, 1, 10, 0);
+						Scaled.Commons.log("Increasing Value of Cell By", bufferChange, Scaled.Commons.validLogKeys.correctionLogKey);
+					} else {
+						// Always Negative betweem 1,basicRepairValue
+						bufferChange = Scaled.Commons.randomizePlusMinusControlled(1, basicRepairValue, 1, 10, 15);
+						Scaled.Commons.log("Decreasing Value of Cell By", bufferChange, Scaled.Commons.validLogKeys.correctionLogKey);
+					}
+
+					cellValue += bufferChange;
+
+					// cellValue = cellValue > selectedTerrain.terrainUpperValue ? selectedTerrain.terrainUpperValue : cellValue;
+					// cellValue = cellValue < selectedTerrain.terrainLowerValue ? selectedTerrain.terrainLowerValue : cellValue; 
+				}
+			}
+
+			return cellValue;
+		};
+
+		/**
+		 * Correction Buffer to determine value per cell
+		 * @param  {int} cellValue Cell's current Value
+		 * @return {int}           Corrected Cell Value
+		 */
+		var correctionBuffer = function (cellValue) {
+			var key;
+			var responsibleTerrains = getLayersFromValue(cellValue);
+			var regularTerrains = Scaled.Commons.getMainTerrains(terrains);
+
+			for (key in responsibleTerrains) {
+				if (responsibleTerrains[key].isRegularTerrain() === true) {
+					terrainKey = responsibleTerrains[key].getData().terrainKey;
+					break;
+				}
+			}
+
+			var selectedTerrain = Scaled.Commons.getTerrainByKey(regularTerrains, terrainKey);
+			if (selectedTerrain) {
+				var selectedProgress = false;
+				for (key in mapProgress) {
+					if (mapProgress[key].terrainKey === selectedTerrain.terrainKey) {
+						mapProgress[key].increment();
+						selectedProgress = mapProgress[key];
+					} else {
+						mapProgress[key].pass();
+					}
+					// Scaled.Commons.log(mapProgress[key].terrainKey, mapProgress[key].getPercent() + "%", Scaled.Commons.validLogKeys.correctionLogKey);
+				}
+
+				if (selectedProgress) {
+					return analyzeCorrection(cellValue, selectedTerrain, selectedProgress);
+				}
+			}
+			Scaled.Commons.warn("Unable to find Regular Terrain for the Given Cell Value");
+			return cellValue;
 		};
 
 
@@ -325,6 +498,9 @@ var Scaled = (function (Scaled) {
 				mapValues[posX + halfBoxSize][posY + halfBoxSize],
 			]);
 
+
+			mapValues[posX][posY] = correctionBuffer(mapValues[posX][posY]);
+
 			Scaled.Commons.log("Value of Center [" + posX + "][" + posY + "]", mapValues[posX][posY], Scaled.Commons.validLogKeys.diamondSquareLogKey);
 			if (halfBoxSize >= 2) {
 				diamondStep(posX - quartBoxSize, posY - quartBoxSize, halfBoxSize, repairSalt);
@@ -358,6 +534,9 @@ var Scaled = (function (Scaled) {
 				Scaled.Commons.tryGetArrayValue(mapValues, posX - boxSize, posY)
 			]) + Scaled.Commons.randomizePlusMinus(0, 5);
 
+
+			mapValues[posX - halfBoxSize][posY] = correctionBuffer(mapValues[posX - halfBoxSize][posY]);
+
 			Scaled.Commons.log("Value of [" + (posX - halfBoxSize) + "][" + posY + "]", mapValues[posX - halfBoxSize][posY], Scaled.Commons.validLogKeys.diamondSquareLogKey);
 			Scaled.Commons.log(
 				"Getting Average of", [
@@ -376,6 +555,8 @@ var Scaled = (function (Scaled) {
 				Scaled.Commons.tryGetArrayValue(mapValues, posX + boxSize, posY)
 			]) + Scaled.Commons.randomizePlusMinus(0, 5);
 
+			mapValues[posX + halfBoxSize][posY] = correctionBuffer(mapValues[posX + halfBoxSize][posY]);
+
 			Scaled.Commons.log("Value of [" + (posX + halfBoxSize) + "][" + posY + "]", mapValues[posX + halfBoxSize][posY]);
 			Scaled.Commons.log(
 				"Getting Average of", [
@@ -392,6 +573,8 @@ var Scaled = (function (Scaled) {
 				Scaled.Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY - halfBoxSize),
 				Scaled.Commons.tryGetArrayValue(mapValues, posX, posY - boxSize)
 			]) + Scaled.Commons.randomizePlusMinus(0, 5);
+
+			mapValues[posX][posY - halfBoxSize] = correctionBuffer(mapValues[posX][posY - halfBoxSize]);
 
 			Scaled.Commons.log("Value of [" + (posX) + "][" + (posY - halfBoxSize) + "]", mapValues[posX][posY - halfBoxSize], Scaled.Commons.validLogKeys.diamondSquareLogKey);
 			Scaled.Commons.log(
@@ -410,6 +593,8 @@ var Scaled = (function (Scaled) {
 				Scaled.Commons.tryGetArrayValue(mapValues, posX + halfBoxSize, posY + halfBoxSize),
 				Scaled.Commons.tryGetArrayValue(mapValues, posX, posY + boxSize)
 			]) + Scaled.Commons.randomizePlusMinus(0, 5);
+
+			mapValues[posX][posY + halfBoxSize] = correctionBuffer(mapValues[posX][posY + halfBoxSize]);
 
 			Scaled.Commons.log("Value of [" + (posX) + "][" + (posY + halfBoxSize) + "]", mapValues[posX][posY + halfBoxSize], Scaled.Commons.validLogKeys.diamondSquareLogKey);
 			//Scaled.Commons.log("MAP VALUES AFTER STEP", mapValues, Scaled.Commons.validLogKeys.diamondSquareLogKey);

@@ -9,7 +9,8 @@ var Scaled = (function (Scaled) {
 			mapValidationLogKey: 'mapValidation',
 			mapRenderLogKey: 'mapRender',
 			tmxRenderLogKey: 'tmxRender',
-			decorationRenderLogKey: 'decorationRender'
+			decorationRenderLogKey: 'decorationRender',
+			correctionLogKey: 'correction'
 		},
 		showProgressUpdate: function () {}
 	};
@@ -24,7 +25,7 @@ var Scaled = (function (Scaled) {
 	 */
 	Commons.consoleLog = function (message, object) {
 		if (this.debug === true) {
-			console.log("[ScaledGen] " + message + " : ", object);
+			console.log("[ScaledGen]" + message + " : ", object);
 		}
 	};
 
@@ -37,7 +38,7 @@ var Scaled = (function (Scaled) {
 	 */
 	Commons.log = function (message, logObject, tag) {
 		if (this.debug === true && (this.allowedLogs.indexOf(tag) != -1 || this.allowedLogs[0] == 'all')) {
-			this.consoleLog(message, logObject);
+			this.consoleLog("[" + tag + "] " + message, logObject);
 		}
 	};
 
@@ -126,6 +127,22 @@ var Scaled = (function (Scaled) {
 		var barValue = this.randomize(1, 10);
 		var randomValue = this.randomize(minValue, maxValue);
 		if (barValue <= PLUS_MINUS_BAR) {
+			return (barValue * -1);
+		}
+		return barValue;
+	};
+
+
+	/**
+	 * Common RNG Function to generate random numbers in a given range
+	 * with a possibility of Negative (Control from the function only)
+	 * @param {int} minValue Start Range
+	 * @param {int} maxValue End Range
+	 */
+	Commons.randomizePlusMinusControlled = function (minValue, maxValue, barMinimum, barMaximum, barMargin) {
+		var barValue = this.randomize(barMinimum, barMaximum);
+		var randomValue = this.randomize(minValue, maxValue);
+		if (barValue <= barMargin) {
 			return (barValue * -1);
 		}
 		return barValue;
@@ -255,6 +272,8 @@ var Scaled = (function (Scaled) {
 				return terrains[key];
 			}
 		}
+
+		return false;
 	};
 
 	/**
