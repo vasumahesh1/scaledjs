@@ -502,6 +502,14 @@ var Scaled = function(Scaled) {
             totalCount++;
             percent = cellCount / totalCount * 100;
         };
+        this.silentIncrement = function() {
+            cellCount++;
+            percent = cellCount / totalCount * 100;
+        };
+        this.silentDecrement = function() {
+            cellCount--;
+            percent = cellCount / totalCount * 100;
+        };
         this.pass = function() {
             totalCount++;
             percent = cellCount / totalCount * 100;
@@ -819,58 +827,90 @@ var Scaled = function(Scaled) {
                 }
             }
         };
-        var getTerrainReportForCorrection = function(currentTerrain, needPositive) {
-            for (var key in mapValidityReports) {
-                if (mapValidityReports[key].terrainKey !== currentTerrain.terrainKey && mapValidityReports[key].positiveIncrease === needPositive) {
-                    return mapValidityReports[key];
-                }
-            }
-            return false;
+        // var getTerrainReportForCorrection = function (currentTerrain, needPositive) {
+        // 	for (var key in mapValidityReports) {
+        // 		if (mapValidityReports[key].terrainKey !== currentTerrain.terrainKey && mapValidityReports[key].positiveIncrease === needPositive) {
+        // 			return mapValidityReports[key];
+        // 		}
+        // 	}
+        // 	return false;
+        // };
+        var getTerrainDistance = function(terrainA, terrainB) {
+            var terrainAMiddle = (terrainA.terrainLowerValue + terrainA.terrainUpperValue) / 2;
+            var terrainBMiddle = (terrainB.terrainLowerValue + terrainB.terrainUpperValue) / 2;
+            return Math.abs(terrainAMiddle - terrainBMiddle);
         };
         var analyzeCorrection = function(cellValue, selectedTerrain, selectedProgress) {
-            if (mapValidityReports.length !== 0) {
-                var dynamicRepairMagnitude = 0;
-                var selectedReport = false;
-                var REPAIR_BUFFER = 15;
-                var nextTerrainReport;
-                var nextTerrain;
-                for (var key in mapValidityReports) {
-                    if (mapValidityReports[key].terrainKey === selectedTerrain.terrainKey) {
-                        dynamicRepairMagnitude = mapValidityReports[key].repairMagnitude - selectedProgress.getPercent();
-                        selectedReport = mapValidityReports[key];
+            /**
+			 *
+			 * STEP 1: Is current cell meeting the Validation?
+			 *
+			 * STEP 2: If Yes, Assign the cell to another Nearby Terrain
+			 * STEP 2.1: Get Possible Candidates i.e. Failing the exisitng Validation
+			 * STEP 2.2: Select the Nearest Terrain
+			 *
+			 * Step 3: If Not, Skip Auto Correction & assign this cell to the Terrain
+			 *
+			 *
+			 */
+            var minPercentValidation = false;
+            var maxPercentValidation = false;
+            if (selectedTerrain.terrainValidationMinPercent !== -1 && selectedTerrain.terrainValidationMinPercent <= selectedProgress.getPercent() || selectedTerrain.terrainValidationMinPercent === -1) {
+                // Current Cell Meets the Validation, Assign this cell to another Cell
+                minPercentValidation = true;
+            }
+            if (selectedTerrain.terrainValidationMaxPercent !== -1 && selectedTerrain.terrainValidationMaxPercent >= selectedProgress.getPercent() || selectedTerrain.terrainValidationMaxPercent === -1) {
+                // Current Cell Meets the Validation, Assign this cell to another Cell
+                maxPercentValidation = true;
+            }
+            if (maxPercentValidation && minPercentValidation) {
+                // Can Replace the Cell
+                Scaled.Commons.log("Can Replace Values for " + selectedTerrain.terrainKey + " Current Percent: " + selectedProgress.getPercent() + " Validation Percentages: (" + selectedTerrain.terrainValidationMinPercent + "," + selectedTerrain.terrainValidationMaxPercent + ")", selectedTerrain.terrainValidationMinPercent, Scaled.Commons.validLogKeys.correctionLogKey);
+                // Get Terrains Failing the Validation at the Moment
+                var progressTerrain = false;
+                var replacementTerrain = false;
+                var foundTerrain = false;
+                var foundTerrainProgress = false;
+                var currentDistance = Number.MAX_VALUE;
+                for (var progressKey in mapProgress) {
+                    var progressMinValidation = false;
+                    var progressMaxValidation = false;
+                    if (mapProgress[progressKey].terrainKey !== selectedTerrain.terrainKey) {
+                        for (var key in regularTerrains) {
+                            if (regularTerrains[key].terrainKey == mapProgress[progressKey].terrainKey) {
+                                progressTerrain = regularTerrains[key];
+                                break;
+                            }
+                        }
+                        if (progressTerrain) {
+                            if (progressTerrain.terrainValidationMinPercent !== -1 && progressTerrain.terrainValidationMinPercent <= mapProgress[progressKey].getPercent() || progressTerrain.terrainValidationMinPercent === -1) {
+                                // Current Cell Meets the Validation, Assign this cell to another Cell
+                                progressMinValidation = true;
+                            }
+                            if (progressTerrain.terrainValidationMaxPercent !== -1 && progressTerrain.terrainValidationMaxPercent >= mapProgress[progressKey].getPercent() || progressTerrain.terrainValidationMaxPercent === -1) {
+                                // Current Cell Meets the Validation, Assign this cell to another Cell
+                                progressMaxValidation = true;
+                            }
+                            if (!progressMaxValidation || !progressMinValidation) {
+                                // Terrain is Failing the validation
+                                var progressTerrainDistance = getTerrainDistance(selectedTerrain, progressTerrain);
+                                Scaled.Commons.log("Terrain Distance " + progressTerrain.terrainKey + " with " + selectedTerrain.terrainKey, progressTerrainDistance, Scaled.Commons.validLogKeys.correctionLogKey);
+                                if (currentDistance > progressTerrainDistance) {
+                                    // This Terrain is Near.
+                                    Scaled.Commons.log("Replacing " + selectedTerrain.terrainKey + " with ", progressTerrain.terrainKey, Scaled.Commons.validLogKeys.correctionLogKey);
+                                    replacementTerrain = progressTerrain;
+                                    currentDistance = progressTerrainDistance;
+                                    foundTerrain = true;
+                                    foundTerrainProgress = mapProgress[progressKey];
+                                }
+                            }
+                        }
                     }
                 }
-                if (selectedReport) {
-                    Scaled.Commons.log("Correcting Values for " + selectedTerrain.terrainKey + " Current Percent: " + selectedProgress.getPercent() + " Repair Percent Needed: ", selectedReport.repairMagnitude, Scaled.Commons.validLogKeys.correctionLogKey);
-                    var shouldIncrease = true;
-                    var bufferChange = 0;
-                    if (selectedReport.positiveIncrease) {
-                        // Need some less of the Stuff
-                        if (dynamicRepairMagnitude < 0) {
-                            shouldIncrease = false;
-                        }
-                    } else {
-                        // Need some less of the Stuff
-                        if (dynamicRepairMagnitude > 0) {
-                            shouldIncrease = false;
-                        }
-                    }
-                    nextTerrainReport = getTerrainReportForCorrection(selectedTerrain, shouldIncrease);
-                    nextTerrain = Scaled.Commons.getTerrainByKey(regularTerrains, nextTerrainReport.terrainKey);
-                    // If Another Report is Available
-                    if (nextTerrainReport) {
-                        // Scaled.Commons.randomizePlusMinusControlled(minValue, maxValue, barMinimum, barMaximum, barMargin);
-                        if (shouldIncrease) {
-                            // Always Positive
-                            bufferChange = Scaled.Commons.randomizePlusMinusControlled(nextTerrain.getTerrainMinimum, nextTerrain.getTerrainMinimum + REPAIR_BUFFER, 1, 10, 0);
-                            Scaled.Commons.log("Increasing Value of Cell By", bufferChange, Scaled.Commons.validLogKeys.correctionLogKey);
-                        } else {
-                            // Always Negative
-                            bufferChange = Scaled.Commons.randomizePlusMinusControlled(nextTerrain.getTerrainMinimum, nextTerrain.getTerrainMinimum + REPAIR_BUFFER, 1, 10, 15);
-                            Scaled.Commons.log("Decreasing Value of Cell By", bufferChange, Scaled.Commons.validLogKeys.correctionLogKey);
-                        }
-                        cellValue += bufferChange;
-                    }
+                if (foundTerrain) {
+                    cellValue = Scaled.Commons.randomize(replacementTerrain.terrainLowerValue, replacementTerrain.terrainUpperValue);
+                    foundTerrainProgress.silentIncrement();
+                    selectedProgress.silentDecrement();
                 }
             }
             return cellValue;
@@ -1169,14 +1209,14 @@ var Scaled = function(Scaled) {
                 if (regularTerrains[key].terrainValidationMinPercent != -1) {
                     if (percent < regularTerrains[key].terrainValidationMinPercent) {
                         validStatus = false;
-                        validityReport = new Scaled.ScaledValidityReport(regularTerrains[key].terrainKey, Math.abs(percent - regularTerrains[key].terrainValidationMinPercent), true);
                     }
+                    validityReport = new Scaled.ScaledValidityReport(regularTerrains[key].terrainKey, Math.abs(percent - regularTerrains[key].terrainValidationMinPercent), regularTerrains[key].terrainValidationMinPercent, true);
                 }
                 if (regularTerrains[key].terrainValidationMaxPercent != -1) {
                     if (percent > regularTerrains[key].terrainValidationMaxPercent) {
                         validStatus = false;
-                        validityReport = new Scaled.ScaledValidityReport(regularTerrains[key].terrainKey, Math.abs(percent - regularTerrains[key].terrainValidationMaxPercent), false);
                     }
+                    validityReport = new Scaled.ScaledValidityReport(regularTerrains[key].terrainKey, Math.abs(percent - regularTerrains[key].terrainValidationMaxPercent), regularTerrains[key].terrainValidationMaxPercent, false);
                 }
                 if (validityReport !== null) {
                     mapValidityReports.push(validityReport);
@@ -1295,6 +1335,12 @@ var Scaled = function(Scaled) {
         this.setValidation = function(minValue, maxValue) {
             terrainValidationMinPercent = minValue;
             terrainValidationMaxPercent = maxValue;
+        };
+        this.getValidation = function() {
+            return {
+                minValue: terrainValidationMinPercent,
+                maxValue: terrainValidationMaxPercent
+            };
         };
         this.setDecorationData = function(terrainDecorationData) {
             terrainDecorationData.placementPercent = terrainDecorationData.placementPercent ? terrainDecorationData.placementPercent : 0;
@@ -1579,10 +1625,11 @@ var Scaled = function(Scaled) {
 }(Scaled || {});
 
 var Scaled = function(Scaled) {
-    var ScaledValidityReport = function(terrainKey, magnitude, isPositive) {
+    var ScaledValidityReport = function(terrainKey, magnitude, actualPercent, isPositive) {
         this.terrainKey = terrainKey;
         this.repairMagnitude = magnitude;
         this.positiveIncrease = isPositive;
+        this.actualPercent = actualPercent;
     };
     Scaled.ScaledValidityReport = ScaledValidityReport;
     return Scaled;

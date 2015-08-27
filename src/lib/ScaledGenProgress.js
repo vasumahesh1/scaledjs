@@ -12,6 +12,16 @@ var Scaled = (function (Scaled) {
 			percent = (cellCount / totalCount) * 100;
 		};
 
+		this.silentIncrement = function () {
+			cellCount++;
+			percent = (cellCount / totalCount) * 100;
+		};
+
+		this.silentDecrement = function () {
+			cellCount--;
+			percent = (cellCount / totalCount) * 100;
+		};
+
 		this.pass = function () {
 			totalCount++;
 			percent = (cellCount / totalCount) * 100;

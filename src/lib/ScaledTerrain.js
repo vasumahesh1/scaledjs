@@ -1,5 +1,5 @@
 var Scaled = (function (Scaled) {
-	
+
 	var ScaledTerrain = function () {
 		this.terrainKey = -1;
 		var terrainUpperValue = -1;
@@ -57,6 +57,14 @@ var Scaled = (function (Scaled) {
 		this.setValidation = function (minValue, maxValue) {
 			terrainValidationMinPercent = minValue;
 			terrainValidationMaxPercent = maxValue;
+		};
+
+
+		this.getValidation = function () {
+			return {
+				minValue: terrainValidationMinPercent,
+				maxValue: terrainValidationMaxPercent
+			};
 		};
 
 		this.setDecorationData = function (terrainDecorationData) {
