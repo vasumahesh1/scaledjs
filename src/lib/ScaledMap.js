@@ -10,8 +10,6 @@ var Scaled = (function (Scaled) {
 		var mapValuesNormalized = [];
 		var mapValuesDecoration = [];
 		var mapValidityReports = [];
-		var positiveReports = [];
-		var negativeReports = [];
 		var mapProgress = [];
 		var rowSize = 33;
 		var columnSize = 33;
@@ -139,61 +137,6 @@ var Scaled = (function (Scaled) {
 
 			Scaled.Commons.log("Empty Non Optional Slots to Use", remainingSlots, Scaled.Commons.validLogKeys.mapInitializeLogKey);
 
-			// if (mapValidityReports.length !== 0) {
-			// 	Scaled.Commons.log("Validation Errored, Trying to Optimize Map", mapValidityReports, Scaled.Commons.validLogKeys.mapValidationLogKey);
-			// 	// Validity Reports are Already unique per Terrain
-			// 	var validityKey;
-			// 	var validitySlots;
-			// 	var positiveReports = [];
-			// 	var negativeReports = [];
-
-			// 	for (validityKey in mapValidityReports) {
-			// 		if (mapValidityReports[validityKey].positiveIncrease) {
-			// 			positiveReports.push(mapValidityReports[validityKey]);
-			// 		} else {
-			// 			negativeReports.push(mapValidityReports[validityKey]);
-			// 		}
-			// 	}
-
-			// 	positiveReports.sort(sortMapValidityReports);
-
-			// 	Scaled.Commons.log("Selected Reports", positiveReports, Scaled.Commons.validLogKeys.mapValidationLogKey);
-
-			// 	if (positiveReports.length > 4) {
-			// 		// 4 or More Layers errored Last Time & need Positive Increase
-			// 		console.warn("Validation too Strict. Trying to Optimize Map as much as Possible");
-			// 	}
-
-			// 	for (validityKey in positiveReports) {
-			// 		for (terrainKey in regularTerrains) {
-			// 			if (regularTerrains[terrainKey].terrainKey === positiveReports[validityKey].terrainKey) {
-			// 				validitySlots = Scaled.Commons.randomizeWithException(0, 3, slotsUsed);
-			// 				slotsUsed.push(validitySlots);
-			// 				startTerrainKeys[validitySlots] = positiveReports[validityKey].terrainKey;
-			// 			}
-			// 		}
-			// 	}
-			// 	Scaled.Commons.log("Selected Starting Conditions", startTerrainKeys, Scaled.Commons.validLogKeys.mapValidationLogKey);
-
-			// 	remainingSlots -= positiveReports.length;
-
-			// 	if (remainingSlots > 0) {
-			// 		for (validityKey in positiveReports) {
-			// 			for (terrainKey in regularTerrains) {
-			// 				if (regularTerrains[terrainKey].terrainKey === positiveReports[validityKey].terrainKey && positiveReports[validityKey].repairMagnitude >= 5 && remainingSlots > 0) {
-			// 					validitySlots = Scaled.Commons.randomizeWithException(0, 3, slotsUsed);
-			// 					slotsUsed.push(validitySlots);
-			// 					startTerrainKeys[validitySlots] = positiveReports[validityKey].terrainKey;
-			// 					remainingSlots--;
-			// 				}
-			// 			}
-			// 		}
-			// 	}
-
-			// 	Scaled.Commons.log("Final Selected Starting Conditions", startTerrainKeys, Scaled.Commons.validLogKeys.mapValidationLogKey);
-
-			// }
-
 			// If free slots left. i.e. User has not given all 4 edge details
 			if (remainingSlots !== 0) {
 				var optionalKey = 0;
@@ -299,19 +242,6 @@ var Scaled = (function (Scaled) {
 		 * Does a Clean Up before the Generation
 		 */
 		var preGenerationCleanUp = function () {
-			if (mapValidityReports.length !== 0) {
-				for (var validityKey in mapValidityReports) {
-					if (mapValidityReports[validityKey].positiveIncrease) {
-						positiveReports.push(mapValidityReports[validityKey]);
-					} else {
-						negativeReports.push(mapValidityReports[validityKey]);
-					}
-				}
-
-				positiveReports.sort(sortMapValidityReports);
-
-			}
-
 			// Normalizing the Validation Rules
 			var key;
 			var totalMinPercent = 0;
@@ -364,16 +294,6 @@ var Scaled = (function (Scaled) {
 				}
 			}
 		};
-
-		// var getTerrainReportForCorrection = function (currentTerrain, needPositive) {
-		// 	for (var key in mapValidityReports) {
-		// 		if (mapValidityReports[key].terrainKey !== currentTerrain.terrainKey && mapValidityReports[key].positiveIncrease === needPositive) {
-		// 			return mapValidityReports[key];
-		// 		}
-		// 	}
-
-		// 	return false;
-		// };
 
 
 		var getTerrainDistance = function (terrainA, terrainB) {
