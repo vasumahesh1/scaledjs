@@ -10,7 +10,7 @@ console.log(Scaled);
 var generator = new ScaledGen({
     debug : true,
     logs : ['mapInit', 'mapValidation', 'correction'],
-    maxTries : 20
+    maxTries : 1
 });
 
 // Set the Map Size you want to Generate
@@ -91,13 +91,13 @@ generator.addStartingCondition({
 // meets the Rules you have given
 generator.addValidationRule({
 	terrainKey : 'layer_water',
-	minPercent : 10,
-	maxPercent : 20
+	minPercent : 10
 });
 
 generator.addValidationRule({
 	terrainKey : 'layer_snow',
-	minPercent : 10
+	minPercent : 5,
+	maxPercent : 15
 });
 
 

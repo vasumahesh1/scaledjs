@@ -8,7 +8,7 @@ describe("map-generation", function () {
 	var generateMapSample = function (terrains, validations) {
 		generator = new scaledGen({
 			debug: false,
-			maxTries: 5,
+			maxTries: 20,
 			logs: []
 		});
 
@@ -107,23 +107,21 @@ describe("map-generation", function () {
 		done();
 	});
 
-	// it("Test - Terrain generated Percentages", function (done) {
-	// 	var validations = [{
-	// 		terrainKey: 'layer_water',
-	// 		minPercent: 15,
-	// 		maxPercent: 55,
-	// 	}, {
-	// 		terrainKey: 'layer_plain',
-	// 		minPercent: 35,
-	// 		maxPercent: 100,
-	// 	}];
+	it("Test - Terrain generated Percentages", function (done) {
+		var validations = [{
+			terrainKey: 'layer_water',
+			minPercent: 15
+		}, {
+			terrainKey: 'layer_plain',
+			minPercent: 35
+		}];
 
-	// 	generator.should.not.equal(undefined);
-	// 	var percentages = generator.getRegularTerrainPercentages();
-	// 	testValidation(percentages, validations);
+		generator.should.not.equal(undefined);
+		var percentages = generator.getRegularTerrainPercentages();
+		testValidation(percentages, validations);
 
-	// 	done();
-	// });
+		done();
+	});
 
 
 	// it("Test - Terrain generated for Invalid Percentages", function (done) {

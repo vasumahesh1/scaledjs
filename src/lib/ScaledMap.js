@@ -410,7 +410,7 @@ var Scaled = (function (Scaled) {
 				maxPercentValidation = true;
 			}
 
-			if (maxPercentValidation && minPercentValidation) {
+			if ((maxPercentValidation && minPercentValidation) || !maxPercentValidation) {
 				// Can Replace the Cell
 				Scaled.Commons.log("Can Replace Values for " + selectedTerrain.terrainKey + " Current Percent: " + selectedProgress.getPercent() + " Validation Percentages: (" + selectedTerrain.terrainValidationMinPercent + "," + selectedTerrain.terrainValidationMaxPercent + ")", selectedTerrain.terrainValidationMinPercent, Scaled.Commons.validLogKeys.correctionLogKey);
 				// Get Terrains Failing the Validation at the Moment
@@ -442,7 +442,8 @@ var Scaled = (function (Scaled) {
 								progressMaxValidation = true;
 							}
 
-							if (!progressMaxValidation || !progressMinValidation) {
+							// Select only terrains in NEED of increasing percentages
+							if (!progressMinValidation || !maxPercentValidation) {
 								// Terrain is Failing the validation
 								var progressTerrainDistance = getTerrainDistance(selectedTerrain, progressTerrain);
 								Scaled.Commons.log("Terrain Distance " + progressTerrain.terrainKey + " with " + selectedTerrain.terrainKey, progressTerrainDistance, Scaled.Commons.validLogKeys.correctionLogKey);
