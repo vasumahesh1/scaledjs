@@ -156,25 +156,9 @@ var Scaled = (function (Scaled) {
 			return similarity;
 		};
 
-		this.resolveTileValue = function (primaryValue, adjacentValues, diagonalValues) {
-			if (Scaled.Commons.getDefaultTerrain(terrains)
-				.terrainKey == primaryValue) {
-				return [];
-			}
-
-			Scaled.Commons.log("Primary Cell Layer", primaryValue, Scaled.Commons.validLogKeys.tmxRenderLogKey);
-			Scaled.Commons.log("Adjacent Values", adjacentValues, Scaled.Commons.validLogKeys.tmxRenderLogKey);
-			Scaled.Commons.log("Diagonal Values", diagonalValues, Scaled.Commons.validLogKeys.tmxRenderLogKey);
+		this.getTilesBasedOnSimilarity = function (primaryValue, adjacentValues, diagonalValues) {
 			var finalTiles = [];
 			var primaryTerrain = Scaled.Commons.getTerrainByKey(terrains, primaryValue);
-
-
-			var lowestDomination = getLowestDomination(primaryValue, adjacentValues);
-			Scaled.Commons.log("Lowest Domination", lowestDomination, Scaled.Commons.validLogKeys.tmxRenderLogKey);
-			var lowestDominationTile = Scaled.Commons.getTerrainByKey(terrains, lowestDomination).getTileData("other-tiles", "all", "fullValue");
-			finalTiles.push(lowestDominationTile);
-
-
 			var normalizedAdjacentValues = normalizeAdjacency(primaryValue, adjacentValues);
 			var normalizedDiagonalValues = normalizeAdjacency(primaryValue, diagonalValues);
 
@@ -184,47 +168,47 @@ var Scaled = (function (Scaled) {
 			// All Similar or Not
 			if (this.allSquareSidesSimilar(similarity) === true) {
 				// All Similar
-				finalTiles.push(primaryTerrain.getTileData("other-tiles", "all", "fullValue")); // .other.full);
+				finalTiles.push(primaryTerrain.getTileData("other-tiles", "all", "fullValue"));
 
 			} else {
 				// Nothing Similar : Calls for Closed Loops
 				if (similarity.count === 0) {
-					finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "noneValue")); // .other.openLoops.openEnds.none);
+					finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "noneValue"));
 				} else {
 					// All Sides Not Similar
 					// Enclose Mode for 3 Side Adjacent Similarity
 					if (similarity.top === true && similarity.left === true && similarity.right === true) {
-						finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "topValue")); // .enclosing.top.topValue);
+						finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "topValue"));
 					} else if (similarity.bottom === true && similarity.left === true && similarity.right === true) {
-						finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "bottomValue")); // .enclosing.bottom.bottomValue);
+						finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "bottomValue"));
 					} else if (similarity.top === true && similarity.bottom === true && similarity.right === true) {
-						finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "right", "rightValue")); // .enclosing.right.rightValue);
+						finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "right", "rightValue"));
 					} else if (similarity.top === true && similarity.bottom === true && similarity.left === true) {
-						finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "left", "leftValue")); // .enclosing.left.leftValue);
+						finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "left", "leftValue"));
 					}
 					// Exclose Mode for 2 Side Adjacent Similarity
 					else if (similarity.top === true && similarity.left === true) {
-						finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "bottom", "rightValue")); // .excluding.bottom.rightValue);
+						finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "bottom", "rightValue"));
 					} else if (similarity.top === true && similarity.right === true) {
-						finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "bottom", "leftValue")); // .excluding.bottom.leftValue);
+						finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "bottom", "leftValue"));
 					} else if (similarity.bottom === true && similarity.left === true) {
-						finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "top", "rightValue")); // .excluding.top.rightValue);
+						finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "top", "rightValue"));
 					} else if (similarity.bottom === true && similarity.right === true) {
-						finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "top", "leftValue")); // .excluding.top.leftValue);
+						finalTiles.push(primaryTerrain.getTileData("excluding-tiles", "top", "leftValue"));
 					} else if (similarity.bottom === true && similarity.top === true) {
-						finalTiles.push(primaryTerrain.getTileData("open-tiles", "parallel", "topBottomValue")); // .other.openLoops.twoWay.topBottom);
+						finalTiles.push(primaryTerrain.getTileData("open-tiles", "parallel", "topBottomValue"));
 					} else if (similarity.left === true && similarity.right === true) {
-						finalTiles.push(primaryTerrain.getTileData("open-tiles", "parallel", "leftRightValue")); // .other.openLoops.twoWay.leftRight);
+						finalTiles.push(primaryTerrain.getTileData("open-tiles", "parallel", "leftRightValue"));
 					}
 					// Enclose Mode for 1 Side Similarity
 					else if (similarity.top === true) {
-						finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "topValue")); // .other.openLoops.openEnds.top);
+						finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "topValue"));
 					} else if (similarity.right === true) {
-						finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "rightValue")); // .other.openLoops.openEnds.right);
+						finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "rightValue"));
 					} else if (similarity.left === true) {
-						finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "leftValue")); // .other.openLoops.openEnds.left);
+						finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "leftValue"));
 					} else if (similarity.bottom === true) {
-						finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "bottomValue")); // .other.openLoops.openEnds.bottom);
+						finalTiles.push(primaryTerrain.getTileData("open-tiles", "open", "bottomValue"));
 					}
 				}
 
@@ -234,22 +218,44 @@ var Scaled = (function (Scaled) {
 
 			if (this.allSquareSidesSimilar(similarity) === true && diagonalSimilarity.count !== 4) {
 				if (diagonalSimilarity.topLeft === false) {
-					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "rightValue")); // .enclosing.bottom.rightValue);
+					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "rightValue"));
 				}
 				if (diagonalSimilarity.topRight === false) {
-					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "leftValue")); // .enclosing.bottom.leftValue);
+					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "bottom", "leftValue"));
 				}
 				if (diagonalSimilarity.bottomLeft === false) {
-					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "rightValue")); // .enclosing.top.rightValue);
+					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "rightValue"));
 				}
 				if (diagonalSimilarity.bottomRight === false) {
-					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "leftValue")); // .enclosing.top.leftValue);
+					finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "leftValue"));
 				}
 			}
 
+			return finalTiles;
+		};
 
+		this.resolveTileValue = function (primaryValue, adjacentValues, diagonalValues) {
+			if (Scaled.Commons.getDefaultTerrain(terrains).terrainKey == primaryValue) {
+				return [];
+			}
 
+			Scaled.Commons.log("Primary Cell Layer", primaryValue, Scaled.Commons.validLogKeys.tmxRenderLogKey);
+			Scaled.Commons.log("Adjacent Values", adjacentValues, Scaled.Commons.validLogKeys.tmxRenderLogKey);
+			Scaled.Commons.log("Diagonal Values", diagonalValues, Scaled.Commons.validLogKeys.tmxRenderLogKey);
+			var dominationTiles = [];
+			var finalTiles = [];
 
+			var lowestDomination = getLowestDomination(primaryValue, adjacentValues);
+			Scaled.Commons.log("Lowest Domination", lowestDomination, Scaled.Commons.validLogKeys.test);
+			var lowestDominationTiles = this.getTilesBasedOnSimilarity(lowestDomination, adjacentValues, diagonalValues);
+			Scaled.Commons.log("Lowest Domination Tiles", lowestDominationTiles, Scaled.Commons.validLogKeys.test);
+			Array.prototype.push.apply(dominationTiles, lowestDominationTiles);
+			Scaled.Commons.log("dominationTiles", dominationTiles, Scaled.Commons.validLogKeys.test);
+
+			var edgeTiles = this.getTilesBasedOnSimilarity(primaryValue, adjacentValues, diagonalValues);
+			finalTiles = dominationTiles.concat(edgeTiles);
+			finalTiles = getUnique(finalTiles);
+			Scaled.Commons.log("finalTiles", finalTiles, Scaled.Commons.validLogKeys.test);
 
 			Scaled.Commons.log("Final Tiles", finalTiles, Scaled.Commons.validLogKeys.tmxRenderLogKey);
 			return finalTiles;

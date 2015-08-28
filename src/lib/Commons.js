@@ -10,7 +10,8 @@ var Scaled = (function (Scaled) {
 			mapRenderLogKey: 'mapRender',
 			tmxRenderLogKey: 'tmxRender',
 			decorationRenderLogKey: 'decorationRender',
-			correctionLogKey: 'correction'
+			correctionLogKey: 'correction',
+			test: 'test'
 		},
 		showProgressUpdate: function () {}
 	};

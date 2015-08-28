@@ -10,7 +10,8 @@ var Scaled = function(Scaled) {
             mapRenderLogKey: "mapRender",
             tmxRenderLogKey: "tmxRender",
             decorationRenderLogKey: "decorationRender",
-            correctionLogKey: "correction"
+            correctionLogKey: "correction",
+            test: "test"
         },
         showProgressUpdate: function() {}
     };
@@ -409,19 +410,9 @@ var Scaled = function(Scaled) {
             }
             return similarity;
         };
-        this.resolveTileValue = function(primaryValue, adjacentValues, diagonalValues) {
-            if (Scaled.Commons.getDefaultTerrain(terrains).terrainKey == primaryValue) {
-                return [];
-            }
-            Scaled.Commons.log("Primary Cell Layer", primaryValue, Scaled.Commons.validLogKeys.tmxRenderLogKey);
-            Scaled.Commons.log("Adjacent Values", adjacentValues, Scaled.Commons.validLogKeys.tmxRenderLogKey);
-            Scaled.Commons.log("Diagonal Values", diagonalValues, Scaled.Commons.validLogKeys.tmxRenderLogKey);
+        this.getTilesBasedOnSimilarity = function(primaryValue, adjacentValues, diagonalValues) {
             var finalTiles = [];
             var primaryTerrain = Scaled.Commons.getTerrainByKey(terrains, primaryValue);
-            var lowestDomination = getLowestDomination(primaryValue, adjacentValues);
-            Scaled.Commons.log("Lowest Domination", lowestDomination, Scaled.Commons.validLogKeys.tmxRenderLogKey);
-            var lowestDominationTile = Scaled.Commons.getTerrainByKey(terrains, lowestDomination).getTileData("other-tiles", "all", "fullValue");
-            finalTiles.push(lowestDominationTile);
             var normalizedAdjacentValues = normalizeAdjacency(primaryValue, adjacentValues);
             var normalizedDiagonalValues = normalizeAdjacency(primaryValue, diagonalValues);
             var similarity = this.getAdjacentSimilarity(primaryValue, normalizedAdjacentValues);
@@ -483,6 +474,27 @@ var Scaled = function(Scaled) {
                     finalTiles.push(primaryTerrain.getTileData("enclosing-tiles", "top", "leftValue"));
                 }
             }
+            return finalTiles;
+        };
+        this.resolveTileValue = function(primaryValue, adjacentValues, diagonalValues) {
+            if (Scaled.Commons.getDefaultTerrain(terrains).terrainKey == primaryValue) {
+                return [];
+            }
+            Scaled.Commons.log("Primary Cell Layer", primaryValue, Scaled.Commons.validLogKeys.tmxRenderLogKey);
+            Scaled.Commons.log("Adjacent Values", adjacentValues, Scaled.Commons.validLogKeys.tmxRenderLogKey);
+            Scaled.Commons.log("Diagonal Values", diagonalValues, Scaled.Commons.validLogKeys.tmxRenderLogKey);
+            var dominationTiles = [];
+            var finalTiles = [];
+            var lowestDomination = getLowestDomination(primaryValue, adjacentValues);
+            Scaled.Commons.log("Lowest Domination", lowestDomination, Scaled.Commons.validLogKeys.test);
+            var lowestDominationTiles = this.getTilesBasedOnSimilarity(lowestDomination, adjacentValues, diagonalValues);
+            Scaled.Commons.log("Lowest Domination Tiles", lowestDominationTiles, Scaled.Commons.validLogKeys.test);
+            Array.prototype.push.apply(dominationTiles, lowestDominationTiles);
+            Scaled.Commons.log("dominationTiles", dominationTiles, Scaled.Commons.validLogKeys.test);
+            var edgeTiles = this.getTilesBasedOnSimilarity(primaryValue, adjacentValues, diagonalValues);
+            finalTiles = dominationTiles.concat(edgeTiles);
+            finalTiles = getUnique(finalTiles);
+            Scaled.Commons.log("finalTiles", finalTiles, Scaled.Commons.validLogKeys.test);
             Scaled.Commons.log("Final Tiles", finalTiles, Scaled.Commons.validLogKeys.tmxRenderLogKey);
             return finalTiles;
         };
