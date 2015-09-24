@@ -5,6 +5,7 @@
   "authors": [
     "Vasu Mahesh <vasu.mahesh@yahoo.com>"
   ],
+  "main": "build/scaled.min.js",
   "description": "Procedural Terrain Generator for HTML5",
   "keywords": [
     "terrain",
