@@ -21,7 +21,8 @@ Or download a release build in Github.
 Features
 --------------------------------
 
-* Uses Optimal Diamond Square Algorithm for Terrain Generation
+* Uses Optimal Diamond Square Algorithm  for Terrain Generation
+* Available in C++ as ScaledC (soon) with Perlin Noise as well
 * Freedom to Add as Many Layers as you want
 * Freely decide on how the Starting Conditions of the Map are
 * Inbuilt Generator for TMX Tiled Format Maps - For Runtime Tiled Map
